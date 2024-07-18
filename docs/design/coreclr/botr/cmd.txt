@@ -3,7 +3,7 @@ clone:
 
 git clone --branch main --no-checkout --filter=tree:0 https://github.com/jurakovic/runtime.git
 cd runtime
-git sparse-checkout set docs/design/coreclr/botr
+git sparse-checkout set docs
 git checkout main
 git checkout docs-init
 

@@ -1,0 +1,13 @@
+
+cd docs/design/coreclr/botr
+docker build --no-cache -t botr-docs:2024.07.18-1 .
+
+docker rm -f botr-docs
+docker run -d --restart always -p 9901:80 --name botr-docs botr-docs:2024.07.18-1
+
+http://localhost:9901/
+
+docker logs botr-docs -n 10
+
+docker exec -it botr-docs bash
+

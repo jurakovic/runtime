@@ -1,4 +1,14 @@
 
+clone:
+
+git clone --branch main --no-checkout --filter=tree:0 https://github.com/jurakovic/runtime.git
+cd runtime
+git sparse-checkout set docs/design/coreclr
+git checkout main
+git checkout docs-init
+
+=============
+
 mkdocs:
 
 cd docs/design/coreclr
@@ -8,4 +18,6 @@ mkdocs build --site_dir 'botr/site'
 mkdocs serve -a 0.0.0.0:9902
 
 http://localhost:9902/
+
+==============
 

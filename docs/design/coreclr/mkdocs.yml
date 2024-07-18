@@ -1,4 +1,6 @@
 site_name: The Book of the Runtime
+docs_dir: 'botr'
+site_dir: 'botr_site'
 
 theme:
   name: material

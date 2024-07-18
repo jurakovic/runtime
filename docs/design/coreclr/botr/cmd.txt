@@ -21,3 +21,11 @@ http://localhost:9902/
 
 ==============
 
+rebase upstream:
+
+git remote add upstream https://github.com/dotnet/runtime.git
+git fetch upstream main
+git checkout main
+git rebase upstream/main
+git push
+

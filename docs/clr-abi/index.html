@@ -1,0 +1,1421 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../readytorun-overview/">
+      
+      
+        <link rel="next" href="../xplat-minidump-generation/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.3">
+    
+    
+      
+        <title>CLR ABI - The Book of the Runtime</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.50c56a3b.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#clr-abi" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="The Book of the Runtime" class="md-header__button md-logo" aria-label="The Book of the Runtime" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            The Book of the Runtime
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              CLR ABI
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jurakovic/runtime" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="The Book of the Runtime" class="md-nav__button md-logo" aria-label="The Book of the Runtime" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    The Book of the Runtime
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jurakovic/runtime" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../botr-faq/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Book of the Runtime FAQ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intro-to-clr/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction to the Common Language Runtime
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../garbage-collection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Garbage Collection Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../threading/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Threading
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../type-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Type System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../type-loader/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Type Loader
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../method-descriptor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Method Descriptor
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../virtual-stub-dispatch/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Virtual Stub Dispatch
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stackwalking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Stack Walking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../corelib/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    System.Private.CoreLib and calling into the runtime
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dac-notes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Access Component (DAC) Notes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../profiling/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Profiling
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../profilability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Implementing Profilability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exceptions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    What Every Dev needs to Know About Exceptions in the Runtime
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readytorun-overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ReadyToRun Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    CLR ABI
+  </span>
+  
+
+      </a>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xplat-minidump-generation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cross-platform Minidumps
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mixed-mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mixed Mode Assemblies
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-for-porting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guide For Porting
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vectors-and-intrinsics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vectors and Intrinsics
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ilc-architecture/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ILC Compiler Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../managed-type-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Managed Type System Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../r2r-perfmap-format/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ready to run PerfMap format
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readytorun-format/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ReadyToRun File Format
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shared-generics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shared Generics Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="clr-abi">CLR ABI</h1>
+<p>This document describes the .NET Common Language Runtime (CLR) software conventions (or ABI, "Application Binary Interface"). It focuses on the ABI for the x64 (aka, AMD64), ARM (aka, ARM32 or Thumb-2), and ARM64 processor architectures. Documentation for the x86 ABI is somewhat scant, but information on the basics of the calling convention is included at the bottom of this document.</p>
+<p>It describes requirements that the Just-In-Time (JIT) compiler imposes on the VM and vice-versa.</p>
+<p>A note on the JIT codebases: JIT32 refers to the original JIT codebase that originally generated x86 code and was later ported to generate ARM code. JIT64 refers to the legacy .NET Framework codebase that supports AMD64. The RyuJIT compiler evolved from JIT32, and now supports all platforms and architectures. See <a href="https://devblogs.microsoft.com/dotnet/the-ryujit-transition-is-complete">this post</a> for more RyuJIT history.</p>
+<p>NativeAOT refers to a runtime that is optimized for ahead-of-time compilation (AOT). The NativeAOT ABI differs in a few details for simplicity and consistency across platforms.</p>
+<h1 id="getting-started">Getting started</h1>
+<p>Read everything in the documented Windows and non-Windows ABI documentation. The CLR follows those basic conventions. This document only describes things that are CLR-specific, or exceptions from those documents.</p>
+<h2 id="windows-abi-documentation">Windows ABI documentation</h2>
+<p>AMD64: See <a href="https://learn.microsoft.com/cpp/build/x64-software-conventions">x64 Software Conventions</a>.</p>
+<p>ARM: See <a href="https://learn.microsoft.com/cpp/build/overview-of-arm-abi-conventions">Overview of ARM32 ABI Conventions</a>.</p>
+<p>ARM64: See <a href="https://learn.microsoft.com/cpp/build/arm64-windows-abi-conventions">Overview of ARM64 ABI conventions</a>.</p>
+<h2 id="non-windows-abi-documentation">Non-Windows ABI documentation</h2>
+<p>Arm corporation ABI documentation (for ARM32 and ARM64) is <a href="https://developer.arm.com/architectures/system-architectures/software-standards/abi">here</a> and <a href="https://github.com/ARM-software/abi-aa">here</a>.</p>
+<p>The Linux System V x86_64 ABI is documented in <a href="https://github.com/hjl-tools/x86-psABI/wiki/x86-64-psABI-1.0.pdf">System V Application Binary Interface / AMD64 Architecture Processor Supplement</a>, with document source material <a href="https://gitlab.com/x86-psABIs/x86-64-ABI">here</a>.</p>
+<p>The LoongArch64 ABI documentation is <a href="https://github.com/loongson/LoongArch-Documentation/blob/main/docs/LoongArch-ELF-ABI-EN.adoc">here</a></p>
+<h1 id="general-unwindframe-layout">General Unwind/Frame Layout</h1>
+<p>For all non-x86 platforms, all methods must have unwind information so the garbage collector (GC) can unwind them (unlike native code in which a leaf method may be omitted).</p>
+<p>ARM and ARM64: Managed methods must always push LR on the stack, and create a minimal frame, so that the method can be properly hijacked using return address hijacking.</p>
+<h2 id="frame-pointer-chains">Frame pointer chains</h2>
+<p>A frame pointer chain exists when the frame pointer register points to a location on the stack containing the address of the saved previous frame pointer value (from a caller of the current function). This chaining is required is certain scenarios, such as:
+1. gdb debugger stack walking on Linux.
+2. ETW event trace stack walking.</p>
+<p>There are two considerations:
+1. Reserving the frame pointer register for stack walking, and not using it for other purposes, such as general-purpose code generation, and
+2. Creating a frame chain.</p>
+<p>Note that even if a function is not added to the frame chain, as long as the function does not modify the frame pointer, the existing frame chain is still viable, although that function will not appear when walking the chain. The JIT may have reasons to create and use a frame pointer register even if a frame chain is not created, such as to access main function local variables within an exception handling funclet.</p>
+<p>The frame pointer register is, for each architecture: ARM: r11, ARM64: x29, x86: EBP, x64: RBP.</p>
+<p>The JIT creates frame chains most of the time for all platforms <em>except</em> Windows x64. Very simple functions may not get added to the frame chain, with the intent to improve performance by reducing frame setup cost (the heuristics for this choice are in <code>Compiler::rpMustCreateEBPFrame()</code>). For Windows x64, unwinding will always be done using the generated unwind codes, and not simple frame chain traversal.</p>
+<p>Some additional links:
+- See <a href="https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/jit/arm64-jit-frame-layout.md">ARM64 JIT frame layout</a> for documentation on that architecture's frame design.
+- The CoreCLR change to always create RBP chains on Unix x64 is <a href="https://github.com/dotnet/coreclr/pull/4019">here</a> (issue with discussion <a href="https://github.com/dotnet/runtime/issues/4651">here</a>).</p>
+<h1 id="specialextra-parameters">Special/extra parameters</h1>
+<h2 id="the-this-pointer">The <code>this</code> pointer</h2>
+<p>The managed <code>this</code> pointer is treated like a new kind of argument not covered by the native ABI, so we chose to always pass it as the first argument in (AMD64) <code>RCX</code> or (ARM, ARM64) <code>R0</code>.</p>
+<p>AMD64-only: Up to .NET Framework 4.5, the managed <code>this</code> pointer was treated just like the native <code>this</code> pointer (meaning it was the second argument when the call used a return buffer and was passed in RDX instead of RCX). Starting with .NET Framework 4.5, it is always the first argument.</p>
+<h2 id="varargs">Varargs</h2>
+<p>Varargs refers to passing or receiving a variable number of arguments for a call.</p>
+<p>C# varargs, using the <code>params</code> keyword, are at the IL level just normal calls with a fixed number of parameters.</p>
+<p>Managed varargs (using C#'s pseudo-documented "...", <code>__arglist</code>, etc.) are implemented almost exactly like C++ varargs. The biggest difference is that the JIT adds a "vararg cookie" after the optional return buffer and the optional <code>this</code> pointer, but before any other user arguments. The callee must spill this cookie and all subsequent arguments into their home location, as they may be addressed via pointer arithmetic starting with the cookie as a base. The cookie happens to be to a pointer to a signature that the runtime can parse to (1) report any GC pointers within the variable portion of the arguments or (2) type-check (and properly walk over) any arguments extracted via ArgIterator. This is marked by <code>IMAGE_CEE_CS_CALLCONV_VARARG</code>, which should not be confused with <code>IMAGE_CEE_CS_CALLCONV_NATIVEVARARG</code>, which really is exactly native varargs (no cookie) and should only appear in PInvoke IL stubs, which properly handle pinning and other GC magic.</p>
+<p>On AMD64, just like native, any floating point arguments passed in floating point registers (including the fixed arguments) will be shadowed (i.e. duplicated) in the integer registers.</p>
+<p>On ARM and ARM64, just like native, nothing is put in the floating point registers.</p>
+<p>However, unlike native varargs, all floating point arguments are not promoted to double (<code>R8</code>), and instead retain their original type (<code>R4</code> or <code>R8</code>) (although this does not preclude an IL generator like managed C++ from explicitly injecting an upcast at the call-site and adjusting the call-site-sig appropriately). This leads to unexpected behavior when native C++ is ported to C# or even just managed via the different flavors of managed C++.</p>
+<p>Managed varargs are not supported in .NET Core.</p>
+<h2 id="generics">Generics</h2>
+<p><em>Shared generics</em>. In cases where the code address does not uniquely identify a generic instantiation of a method, then a 'generic instantiation parameter' is required. Often the <code>this</code> pointer can serve dual-purpose as the instantiation parameter. When the <code>this</code> pointer is not the generic parameter, the generic parameter is passed as an additional argument. On ARM and AMD64, it is passed after the optional return buffer and the optional <code>this</code> pointer, but before any user arguments. On ARM64 and RISC-V, the generic parameter is passed after the optional <code>this</code> pointer, but before any user arguments. On x86, if all arguments of the function including <code>this</code> pointer fit into argument registers (ECX and EDX) and we still have argument registers available, we store the hidden argument in the next available argument register. Otherwise it is passed as the last stack argument. For generic methods (where there is a type parameter directly on the method, as compared to the type), the generic parameter currently is a MethodDesc pointer (I believe an InstantiatedMethodDesc). For static methods (where there is no <code>this</code> pointer) the generic parameter is a MethodTable pointer/TypeHandle.</p>
+<p>Sometimes the VM asks the JIT to report and keep alive the generics parameter. In this case, it must be saved on the stack someplace and kept alive via normal GC reporting (if it was the <code>this</code> pointer, as compared to a MethodDesc or MethodTable) for the entire method except the prolog and epilog. Also note that the code to home it, must be in the range of code reported as the prolog in the GC info (which probably isn't the same as the range of code reported as the prolog in the unwind info).</p>
+<p>There is no defined/enforced/declared ordering between the generic parameter and the varargs cookie because the runtime does not support that combination. There are chunks of code in the VM and JITs that would appear to support that, but other places assert and disallow it, so nothing is tested, and I would assume there are bugs and differences (i.e. one JIT using a different ordering than the other JIT or the VM).</p>
+<h3 id="example">Example</h3>
+<div class="highlight"><pre><span></span><code>call([&quot;this&quot; pointer] [return buffer pointer] [generics context|varargs cookie] [userargs]*)
+</code></pre></div>
+<h2 id="amd64-only-by-value-value-types">AMD64-only: by-value value types</h2>
+<p>Just like native, AMD64 has implicit-byrefs. Any structure (value type in IL parlance) that is not 1, 2, 4, or 8 bytes in size (i.e., 3, 5, 6, 7, or &gt;= 9 bytes in size) that is declared to be passed by value, is instead passed by reference. For JIT generated code, it follows the native ABI where the passed-in reference is a pointer to a compiler generated temp local on the stack. However, there are some cases within remoting or reflection where apparently stackalloc is too hard, and so they pass in pointers within the GC heap, thus the JITed code must report these implicit byref parameters as interior pointers (BYREFs in JIT parlance), in case the callee is one of these reflection paths. Similarly, all writes must use checked write barriers.</p>
+<p>The AMD64 native calling conventions (Windows 64 and System V) require return buffer address to be returned by callee in RAX. JIT also follows this rule.</p>
+<h2 id="return-buffers">Return buffers</h2>
+<p>The same applies to some return buffers. See <code>MethodTable::IsStructRequiringStackAllocRetBuf()</code>. When that returns <code>false</code>, the return buffer might be on the heap, either due to reflection/remoting code paths mentioned previously or due to a JIT optimization where a call with a return buffer that then assigns to a field (on the GC heap) are changed into passing the field reference as the return buffer. Conversely, when it returns true, the JIT does not need to use a write barrier when storing to the return buffer, but it is still not guaranteed to be a compiler temp, and as such the JIT should not introduce spurious writes to the return buffer.</p>
+<p>NOTE: This optimization is now disabled for all platforms (<code>IsStructRequiringStackAllocRetBuf()</code> always returns <code>false</code>).</p>
+<p>ARM64-only: When a method returns a structure that is larger than 16 bytes the caller reserves a return buffer of sufficient size and alignment to hold the result. The address of the buffer is passed as an argument to the method in <code>R8</code> (defined in the JIT as <code>REG_ARG_RET_BUFF</code>). The callee isn't required to preserve the value stored in <code>R8</code>.</p>
+<h2 id="hidden-parameters">Hidden parameters</h2>
+<p><em>Stub dispatch</em> - when a virtual call uses a VSD stub, rather than back-patching the calling code (or disassembling it), the JIT must place the address of the stub used to load the call target, the "stub indirection cell", in (x86) <code>EAX</code> / (AMD64) <code>R11</code> / (AMD64 NativeAOT ABI) <code>R10</code> / (ARM) <code>R4</code> / (ARM NativeAOT ABI) <code>R12</code> / (ARM64) <code>R11</code>. In the JIT, this is encapsulated in the <code>VirtualStubParamInfo</code> class.</p>
+<p><em>Calli Pinvoke</em> - The VM wants the address of the PInvoke in (AMD64) <code>R10</code> / (ARM) <code>R12</code> / (ARM64) <code>R14</code> (In the JIT: <code>REG_PINVOKE_TARGET_PARAM</code>), and the signature (the pinvoke cookie) in (AMD64) <code>R11</code> / (ARM) <code>R4</code> / (ARM64) <code>R15</code> (in the JIT: <code>REG_PINVOKE_COOKIE_PARAM</code>).</p>
+<p><em>Normal PInvoke</em> - The VM shares IL stubs based on signatures, but wants the right method to show up in call stack and exceptions, so the MethodDesc for the exact PInvoke is passed in the (x86) <code>EAX</code> / (AMD64) <code>R10</code> / (ARM, ARM64) <code>R12</code> (in the JIT: <code>REG_SECRET_STUB_PARAM</code>). Then in the IL stub, when the JIT gets <code>CORJIT_FLG_PUBLISH_SECRET_PARAM</code>, it must move the register into a compiler temp. The value is returned for the intrinsic <code>NI_System_StubHelpers_GetStubContext</code>.</p>
+<h2 id="small-primitive-returns">Small primitive returns</h2>
+<p>Primitive value types smaller than 32-bits are widened to 32-bits: signed small types are sign extended and unsigned small types are zero extended. This can be different from the standard calling conventions that may leave the state of unused bits in the return register undefined.</p>
+<h1 id="pinvokes">PInvokes</h1>
+<p>The convention is that any method with an InlinedCallFrame (either an IL stub or a normal method with an inlined PInvoke) saves/restores all non-volatile integer registers in its prolog/epilog respectively. This is done so that the InlinedCallFrame can just contain a return address, a stack pointer and a frame pointer. Then using just those three it can start a full stack walk using the normal RtlVirtualUnwind.</p>
+<p>When encountering a PInvoke, the JIT will query the VM if the GC transition should be suppressed. Suppression of the GC transition is indicated by the addition of an attribute on the PInvoke definition. If the VM indicates the GC transition is to be suppressed, the PInvoke frame will be omitted in either the IL stub or inlined scenario and a GC Poll will be inserted near the unmanaged call site. If an enclosing function contains more than one inlined PInvoke but not all have requested a suppression of the GC transition a PInvoke frame will still be constructed for the other inlined PInvokes.</p>
+<p>For AMD64, a method with an InlinedCallFrame must use RBP as the frame register.</p>
+<p>For ARM and ARM64, we will also always use a frame pointer (R11). That is partially due to the frame chaining requirement. However, the VM also requires it for PInvokes with InlinedCallFrames.</p>
+<p>For ARM, the VM also has a dependency on <code>REG_SAVED_LOCALLOC_SP</code>.</p>
+<p>All these dependencies show up in the implementation of <code>InlinedCallFrame::UpdateRegDisplay</code>.</p>
+<p>JIT32 only generates one epilog (and causes all returns to branch to it) when there are PInvokes/InlinedCallFrame in the current method.</p>
+<h2 id="per-frame-pinvoke-initialization">Per-frame PInvoke initialization</h2>
+<p>The InlinedCallFrame is initialized once at the head of IL stubs and once in each path that does an inlined PInvoke.</p>
+<p>In JIT64 this happens in blocks that actually contain calls, but pushing it out of loops that have landing pads, and then looking for dominator blocks. For IL stubs and methods with EH, we give up and place the initialization in the first block.</p>
+<p>In RyuJIT/JIT32 (ARM), all methods are treated like JIT64's IL stubs (meaning the per-frame initialization happens once just after the prolog).</p>
+<p>The JIT generates a call to <code>CORINFO_HELP_INIT_PINVOKE_FRAME</code> passing the address of the InlinedCallFrame and either NULL or the secret parameter for IL stubs. <code>JIT_InitPInvokeFrame</code> initializes the InlinedCallFrame and sets it to point to the current Frame chain top. Then it returns the current thread's native Thread object.</p>
+<p>On AMD64, the JIT generates code to save RSP and RBP into the InlinedCallFrame.</p>
+<p>For IL stubs only, the per-frame initialization includes setting <code>Thread-&gt;m_pFrame</code> to the InlinedCallFrame (effectively 'pushing' the Frame).</p>
+<h2 id="per-call-site-pinvoke-work">Per-call-site PInvoke work</h2>
+<p>The below is performed when the GC transition is not suppressed.</p>
+<ol>
+<li>For direct calls, the JITed code sets <code>InlinedCallFrame-&gt;m_pDatum</code> to the MethodDesc of the call target.<ul>
+<li>For JIT64, indirect calls within IL stubs sets it to the secret parameter (this seems redundant, but it might have changed since the per-frame initialization?).</li>
+<li>For JIT32 (ARM) indirect calls, it sets this member to the size of the pushed arguments, according to the comments. The implementation however always passed 0.</li>
+</ul>
+</li>
+<li>For JIT64/AMD64 only: Next for non-IL stubs, the InlinedCallFrame is 'pushed' by setting <code>Thread-&gt;m_pFrame</code> to point to the InlinedCallFrame (recall that the per-frame initialization already set <code>InlinedCallFrame-&gt;m_pNext</code> to point to the previous top). For IL stubs this step is accomplished in the per-frame initialization.</li>
+<li>The Frame is made active by setting <code>InlinedCallFrame-&gt;m_pCallerReturnAddress</code>.</li>
+<li>The code then toggles the GC mode by setting <code>Thread-&gt;m_fPreemptiveGCDisabled = 0</code>.</li>
+<li>Starting now, no GC pointers may be live in registers. RyuJit LSRA meets this requirement by adding special refPosition <code>RefTypeKillGCRefs</code> before unmanaged calls and special helpers.</li>
+<li>Then comes the actual call/PInvoke.</li>
+<li>The GC mode is set back by setting <code>Thread-&gt;m_fPreemptiveGCDisabled = 1</code>.</li>
+<li>Then we check to see if <code>g_TrapReturningThreads</code> is set (non-zero). If it is, we call <code>CORINFO_HELP_STOP_FOR_GC</code>.<ul>
+<li>For ARM, this helper call preserves the return register(s): <code>R0</code>, <code>R1</code>, <code>S0</code>, and <code>D0</code>.</li>
+<li>For AMD64, the generated code must manually preserve the return value of the PInvoke by moving it to a non-volatile register or a stack location.</li>
+</ul>
+</li>
+<li>Starting now, GC pointers may once again be live in registers.</li>
+<li>Clear the <code>InlinedCallFrame-&gt;m_pCallerReturnAddress</code> back to 0.</li>
+<li>For JIT64/AMD64 only: For non-IL stubs 'pop' the Frame chain by resetting <code>Thread-&gt;m_pFrame</code> back to <code>InlinedCallFrame.m_pNext</code>.</li>
+</ol>
+<p>Saving/restoring all the non-volatile registers helps by preventing any registers that are unused in the current frame from accidentally having a live GC pointer value from a parent frame. The argument and return registers are 'safe' because they cannot be GC refs. Any refs should have been pinned elsewhere and instead passed as native pointers.</p>
+<p>For IL stubs, the Frame chain isn't popped at the call site, so instead it must be popped right before the epilog and right before any jmp calls. It looks like we do not support tail calls from PInvoke IL stubs?</p>
+<h1 id="exception-handling">Exception handling</h1>
+<p>This section describes the conventions the JIT needs to follow when generating code to implement managed exception handling (EH). The JIT and VM must agree on these conventions for a correct implementation.</p>
+<h2 id="funclets">Funclets</h2>
+<p>For all platforms except Windows/x86 on CoreCLR, all managed EH handlers (finally, fault, filter, filter-handler, and catch) are extracted into their own 'funclets'. To the OS they are treated just like first class functions (separate PDATA and XDATA (<code>RUNTIME_FUNCTION</code> entry), etc.). The CLR currently treats them just like part of the parent function in many ways. The main function and all funclets must be allocated in a single code allocation (see hot cold splitting). They 'share' GC info. Only the main function prolog can be hot patched.</p>
+<p>The only way to enter a handler funclet is via a call. In the case of an exception, the call is from the VM's EH subsystem as part of exception dispatch/unwind. In the non-exceptional case, this is called local unwind or a non-local exit. In C# this is accomplished by simply falling-through/out of a try body or an explicit goto. In IL this is always accomplished via a LEAVE opcode, within a try body, targeting an IL offset outside the try body. In such cases the call is from the JITed code of the parent function.</p>
+<p>For Windows/x86 on CoreCLR, all handlers are generated within the method body, typically in lexical order. A nested try/catch is generated completely within the EH region in which it is nested. These handlers are essentially "in-line funclets", but they do not look like normal functions: they do not have a normal prolog or epilog, although they do have special entry/exit and register conventions. Also, nested handlers are not un-nested as for funclets: the code for a nested handler is generated within the handler in which it is nested.</p>
+<p>For Windows/x86 on NativeAOT and Linux/x86, funclets are used just like on other platforms.</p>
+<h2 id="cloned-finallys">Cloned finallys</h2>
+<p>JIT64 attempts to speed the normal control flow by 'inlining' a called finally along the 'normal' control flow (i.e., leaving a try body in a non-exceptional manner via C# fall-through). Because the VM semantics for non-rude Thread.Abort dictate that handlers will not be aborted, the JIT must mark these 'inlined' finally bodies. These show up as special entries at the end of the EH tables and are marked with <code>COR_ILEXCEPTION_CLAUSE_FINALLY | COR_ILEXCEPTION_CLAUSE_DUPLICATED</code>, and the try_start, try_end, and handler_start are all the same: the start of the cloned finally.</p>
+<p>RyuJit also implements finally cloning, for all supported architectures. However, the implementation does not yet handle the thread abort case; cloned finally bodies are not guaranteed to remain intact and are not reported to the runtime. Because of this, finally cloning is disabled for VMs that support thread abort (desktop clr).</p>
+<p>JIT32 does not implement finally cloning.</p>
+<h2 id="invoking-finallysnon-local-exits">Invoking Finallys/Non-local exits</h2>
+<p>In order to have proper forward progress and <code>Thread.Abort</code> semantics, there are restrictions on where a call-to-finally can be, and what the call site must look like. The return address can <strong>NOT</strong> be in the corresponding try body (otherwise the VM would think the finally protects itself). The return address <strong>MUST</strong> be within any outer protected region (so exceptions from the finally body are properly handled).</p>
+<p>JIT64, and RyuJIT for non-x86, creates something similar to a jump island: a block of code outside the try body that calls the finally and then branches to the final target of the leave/non-local-exit. This jump island is then marked in the EH tables as if it were a cloned finally. The cloned finally clause prevents a Thread.Abort from firing before entering the handler. By having the return address outside of the try body we satisfy the other constraint.</p>
+<h2 id="threadabortexception-considerations">ThreadAbortException considerations</h2>
+<p>There are three kinds of thread abort: (1) rude thread abort, that cannot be stopped, and doesn't run (all?) handlers, (2) calls to the <code>Thread.Abort()</code> api, and (3) asynchronous thread abort, injected from another thread.</p>
+<p>Note that ThreadAbortException is fully available in the desktop framework, and is heavily used in ASP.NET, for example. However, it is not supported in .NET Core, CoreCLR, or the Windows 8 "modern app profile". Nonetheless, the JIT generates ThreadAbort-compatible code on all platforms.</p>
+<p>For non-rude thread abort, the VM walks the stack, running any catch handler that catches ThreadAbortException (or a parent, like System.Exception, or System.Object), and running finallys. There is one very particular characteristic of ThreadAbortException: if a catch handler has caught ThreadAbortException, and the handler returns from handling the exception without calling Thread.ResetAbort(), then the VM <em>automatically re-raises ThreadAbortException</em>. To do so, it uses the resume address that the catch handler returned as the effective address where the re-raise is considered to have been raised. This is the address of the label that is specified by a LEAVE opcode within the catch handler. There are cases where the JIT must insert synthetic "step blocks" such that this label is within an appropriate enclosing "try" region, to ensure that the re-raise can be caught by an enclosing catch handler.</p>
+<p>For example:</p>
+<div class="highlight"><pre><span></span><code><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">// try 1</span>
+<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">// try 2</span>
+<span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="n">Threading</span><span class="p">.</span><span class="n">Thread</span><span class="p">.</span><span class="n">CurrentThread</span><span class="p">.</span><span class="n">Abort</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="n">Threading</span><span class="p">.</span><span class="n">ThreadAbortException</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">// catch 2</span>
+<span class="w">        </span><span class="p">...</span>
+<span class="w">        </span><span class="n">LEAVE</span><span class="w"> </span><span class="n">L</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="n">Exception</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">// catch 1</span>
+<span class="w">     </span><span class="p">...</span>
+<span class="p">}</span>
+<span class="n">L</span><span class="p">:</span>
+</code></pre></div>
+<p>In this case, if the address returned in catch 2 corresponding to label L is outside try 1, then the ThreadAbortException re-raised by the VM will not be caught by catch 1, as is expected. The JIT needs to insert a block such that this is the effective code generation:</p>
+<div class="highlight"><pre><span></span><code><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">// try 1</span>
+<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">// try 2</span>
+<span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="n">Threading</span><span class="p">.</span><span class="n">Thread</span><span class="p">.</span><span class="n">CurrentThread</span><span class="p">.</span><span class="n">Abort</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="n">Threading</span><span class="p">.</span><span class="n">ThreadAbortException</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">// catch 2</span>
+<span class="w">        </span><span class="p">...</span>
+<span class="w">        </span><span class="n">LEAVE</span><span class="w"> </span><span class="n">L</span><span class="err">&#39;</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">L</span><span class="err">&#39;</span><span class="p">:</span><span class="w"> </span><span class="n">LEAVE</span><span class="w"> </span><span class="n">L</span><span class="p">;</span>
+<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="n">Exception</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">// catch 1</span>
+<span class="w">     </span><span class="p">...</span>
+<span class="p">}</span>
+<span class="n">L</span><span class="p">:</span>
+</code></pre></div>
+<p>Similarly, the automatic re-raise address for a ThreadAbortException can't be within a finally handler, or the VM will abort the re-raise and swallow the exception. This can happen due to call-to-finally thunks marked as "cloned finally", as described above. For example (this is pseudo-assembly-code, not C#):</p>
+<div class="highlight"><pre><span></span><code><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">// try 1</span>
+<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">// try 2</span>
+<span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="n">Threading</span><span class="p">.</span><span class="n">Thread</span><span class="p">.</span><span class="n">CurrentThread</span><span class="p">.</span><span class="n">Abort</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="n">Threading</span><span class="p">.</span><span class="n">ThreadAbortException</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">// catch 2</span>
+<span class="w">        </span><span class="p">...</span>
+<span class="w">        </span><span class="n">LEAVE</span><span class="w"> </span><span class="n">L</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span><span class="w"> </span><span class="k">finally</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">// finally 1</span>
+<span class="w">     </span><span class="p">...</span>
+<span class="p">}</span>
+<span class="n">L</span><span class="p">:</span>
+</code></pre></div>
+<p>This would generate something like:</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="c1">// beginning of &#39;try 1&#39;</span>
+<span class="w">    </span><span class="c1">// beginning of &#39;try 2&#39;</span>
+<span class="w">    </span><span class="nf">System.Threading.Thread.CurrentThread.Abort</span><span class="p">()</span><span class="c1">;</span>
+<span class="w">    </span><span class="c1">// end of &#39;try 2&#39;</span>
+<span class="w">    </span><span class="c1">// beginning of call-to-finally &#39;cloned finally&#39; region</span>
+<span class="nl">L1:</span><span class="w"> </span><span class="nf">call</span><span class="w"> </span><span class="no">finally1</span>
+<span class="w">    </span><span class="nf">nop</span>
+<span class="w">    </span><span class="c1">// end of call-to-finally &#39;cloned finally&#39; region</span>
+<span class="w">    </span><span class="c1">// end of &#39;try 1&#39;</span>
+<span class="w">    </span><span class="c1">// function epilog</span>
+<span class="w">    </span><span class="nf">ret</span>
+
+<span class="nl">Catch2:</span>
+<span class="w">    </span><span class="c1">// do something</span>
+<span class="w">    </span><span class="nf">lea</span><span class="w"> </span><span class="no">rax</span><span class="p">,</span><span class="w"> </span><span class="err">&amp;</span><span class="no">L1</span><span class="c1">; // load up resume address</span>
+<span class="w">    </span><span class="nf">ret</span>
+
+<span class="nl">Finally1:</span>
+<span class="w">    </span><span class="c1">// do something</span>
+<span class="w">    </span><span class="nf">ret</span>
+</code></pre></div>
+<p>Note that the JIT must already insert a "step" block so the finally will be called. However, this isn't sufficient to support ThreadAbortException processing, because "L1" is marked as "cloned finally". In this case, the JIT must insert another step block that is within "try 1" but outside the cloned finally block, that will allow for correct re-raise semantics. For example:</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="c1">// beginning of &#39;try 1&#39;</span>
+<span class="w">    </span><span class="c1">// beginning of &#39;try 2&#39;</span>
+<span class="w">    </span><span class="nf">System.Threading.Thread.CurrentThread.Abort</span><span class="p">()</span><span class="c1">;</span>
+<span class="w">    </span><span class="c1">// end of &#39;try 2&#39;</span>
+<span class="nf">L1</span><span class="err">&#39;</span><span class="p">:</span><span class="w">    </span><span class="no">nop</span>
+<span class="w">    </span><span class="c1">// beginning of call-to-finally &#39;cloned finally&#39; region</span>
+<span class="nl">L1:</span><span class="w"> </span><span class="nf">call</span><span class="w"> </span><span class="no">finally1</span>
+<span class="w">    </span><span class="nf">nop</span>
+<span class="w">    </span><span class="c1">// end of call-to-finally &#39;cloned finally&#39; region</span>
+<span class="w">    </span><span class="c1">// end of &#39;try 1&#39;</span>
+<span class="w">    </span><span class="c1">// function epilog</span>
+<span class="w">    </span><span class="nf">ret</span>
+
+<span class="nl">Catch2:</span>
+<span class="w">    </span><span class="c1">// do something</span>
+<span class="w">    </span><span class="nf">lea</span><span class="w"> </span><span class="no">rax</span><span class="p">,</span><span class="w"> </span><span class="err">&amp;</span><span class="no">L1</span><span class="err">&#39;</span><span class="c1">; // load up resume address</span>
+<span class="w">    </span><span class="nf">ret</span>
+
+<span class="nl">Finally1:</span>
+<span class="w">    </span><span class="c1">// do something</span>
+<span class="w">    </span><span class="nf">ret</span>
+</code></pre></div>
+<p>Note that JIT64 does not implement this properly. The C# compiler used to always insert all necessary "step" blocks. The Roslyn C# compiler at one point did not, but then was changed to once again insert them.</p>
+<h2 id="the-pspsym-and-funclet-parameters">The PSPSym and funclet parameters</h2>
+<p>The <em>PSPSym</em> (which stands for Previous Stack Pointer Symbol) is a pointer-sized local variable used to access locals from the main function body.</p>
+<p>NativeAOT does not use PSPSym. For filter funclets the VM sets the frame register to be the same as the parent function. For second pass funclets the VM restores all non-volatile registers. The same convention is used across all platforms.</p>
+<p>CoreCLR uses PSPSym for all platforms except x86: the frame pointer on x86 is always preserved when the handlers are invoked.</p>
+<p>First, two definitions.</p>
+<p><em>Caller-SP</em> is the value of the stack pointer in a function's caller before the call instruction is executed. That is, when function A calls function B, Caller-SP for B is the value of the stack pointer immediately before the call instruction in A (calling B) was executed. Note that this definition holds for both AMD64, which pushes the return value when a call instruction is executed, and for ARM, which doesn't. For AMD64, Caller-SP is the address above the call return address.</p>
+<p><em>Initial-SP</em> is the initial value of the stack pointer after the fixed-size portion of the frame has been allocated. That is, before any "alloca"-type allocations.</p>
+<p>The value stored in PSPSym is the value of Initial-SP for AMD64 or Caller-SP for other platforms, for the main function. The stack offset of the PSPSym is reported to the VM in the GC information header. The value reported in the GC information is the offset of the PSPSym from Initial-SP for AMD64 or Caller-SP for other platforms. (Note that both the value stored, and the way the value is reported to the VM, differs between architectures. In particular, note that most things in the GC information header are reported as offsets relative to Caller-SP, but PSPSym on AMD64 is one exception, and maybe the only exception.)</p>
+<p>The VM uses the PSPSym to find other locals it cares about (such as the generics context in a funclet frame). The JIT uses it to re-establish the frame pointer register, so that the frame pointer is the same value in a funclet as it is in the main function body.</p>
+<p>When a funclet is called, it is passed the <em>Establisher Frame Pointer</em>. For AMD64 this is true for all funclets and it is passed as the first argument in RCX, but for ARM and ARM64 this is only true for first pass funclets (currently just filters) and it is passed as the second argument in R1. The Establisher Frame Pointer is a stack pointer of an interesting "parent" frame in the exception processing system. For the CLR, it points either to the main function frame or a dynamically enclosing funclet frame from the same function, for the funclet being invoked. The value of the Establisher Frame Pointer is Initial-SP on AMD64, Caller-SP on x86, ARM, and ARM64.</p>
+<p>Using the establisher frame, the funclet wants to load the value of the PSPSym. Since we don't know if the Establisher Frame is from the main function or a funclet, we design the main function and funclet frame layouts to place the PSPSym at an identical, small, constant offset from the Establisher Frame in each case. (This is also required because we only report a single offset to the PSPSym in the GC information, and that offset must be valid for the main function and all of its funclets). Then, the funclet uses this known offset to compute the PSPSym address and read its value. From this, it can compute the value of the frame pointer (which is a constant offset from the PSPSym value) and set the frame register to be the same as the parent function. Also, the funclet writes the value of the PSPSym to its own frame's PSPSym. This "copying" of the PSPSym happens for every funclet invocation, in particular, for every nested funclet invocation.</p>
+<p>On ARM and ARM64, for all second pass funclets (finally, fault, catch, and filter-handler) the VM restores all non-volatile registers to their values within the parent frame. This includes the frame register (<code>R11</code>). Thus, the PSPSym is not used to recompute the frame pointer register in this case, though the PSPSym is copied to the funclet's frame, as for all funclets.</p>
+<p>Catch, Filter, and Filter-handlers also get an Exception object (GC ref) as an argument (<code>REG_EXCEPTION_OBJECT</code>). On AMD64 it is the second argument and thus passed in RDX. On ARM and ARM64 this is the first argument and passed in R0.</p>
+<p>(Note that the JIT64 source code contains a comment that says, "The current CLR doesn't always pass the correct establisher frame to the funclet. Funclet may receive establisher frame of funclet when expecting that of original routine." It indicates this is the reason that a PSPSym is required in all funclets as well as the main function, whereas if the establisher frame was correctly reported, the PSPSym could be omitted in some cases.)</p>
+<h2 id="funclet-return-values">Funclet Return Values</h2>
+<p>The filter funclet returns a simple boolean value in the normal return register (x86: <code>EAX</code>, AMD64: <code>RAX</code>, ARM/ARM64: <code>R0</code>). Non-zero indicates to the VM/EH subsystem that the corresponding filter-handler will handle the exception (i.e. begin the second pass). Zero indicates to the VM/EH subsystem that the exception is <strong>not</strong> handled, and it should continue looking for another filter or catch.</p>
+<p>The catch and filter-handler funclets return a code address in the normal return register that indicates where the VM should resume execution after unwinding the stack and cleaning up from the exception. This address should be somewhere in the parent funclet (or main function if the catch or filter-handler is not nested within any other funclet). Because an IL 'leave' opcode can exit out of arbitrary nesting of funclets and try bodies, the JIT is often required to inject step blocks. These are intermediate branch target(s) that then branch to the next outermost target until the real target can be directly reached via the native ABI constraints. These step blocks can also invoke finallys (see <em>Invoking Finallys/Non-local exits</em>).</p>
+<p>Finally and fault funclets do not have a return value.</p>
+<h2 id="register-values-and-exception-handling">Register values and exception handling</h2>
+<p>Exception handling imposes certain restrictions on the usage of registers in functions with exception handling.</p>
+<p>CoreCLR and "desktop" CLR behave the same way. Windows and non-Windows implementations of the CLR both follow these rules.</p>
+<p>Some definitions:</p>
+<p><em>Non-volatile</em> (aka <em>callee-saved</em> or <em>preserved</em>) registers are those defined by the ABI that a function call preserves. Non-volatile registers include the frame pointer and the stack pointer, among others.</p>
+<p><em>Volatile</em> (aka <em>caller-saved</em> or <em>trashed</em>) registers are those defined by the ABI that a function call does not preserve, and thus might have a different value when the function returns.</p>
+<h3 id="registers-on-entry-to-a-funclet">Registers on entry to a funclet</h3>
+<p>When an exception occurs, the VM is invoked to do some processing. If the exception is within a "try" region, it eventually calls a corresponding handler (which also includes calling filters). The exception location within a function might be where a "throw" instruction executes, the point of a processor exception like null pointer dereference or divide by zero, or the point of a call where the callee threw an exception but did not catch it.</p>
+<p>On AMD64, all register values that existed at the exception point in the corresponding "try" region are trashed on entry to the funclet. That is, the only registers that have known values are those of the funclet parameters.</p>
+<p>On ARM and ARM64, all registers are restored to their values at the exception point.</p>
+<p>On x86: TBD.</p>
+<h3 id="registers-on-return-from-a-funclet">Registers on return from a funclet</h3>
+<p>When a funclet finishes execution, and the VM returns execution to the function (or an enclosing funclet, if there is EH clause nesting), the non-volatile registers are restored to the values they held at the exception point. Note that the volatile registers have been trashed.</p>
+<p>Any register value changes made in the funclet are lost. If a funclet wants to make a variable change known to the main function (or the funclet that contains the "try" region), that variable change needs to be made to the shared main function stack frame.</p>
+<h2 id="windowsx86-eh-considerations">Windows/x86 EH considerations</h2>
+<p>The Windows/x86 model is somewhat different than non-Windows/x86 model. Windows/X86-specific concerns are mentioned here.</p>
+<h3 id="catch-filter-handler-regions">catch / filter-handler regions</h3>
+<p>When leaving a <code>catch</code> or <code>filter-handler</code> region, the JIT calls the helper <code>CORINFO_JIT_ENDCATCH</code> (implemented in the VM by the <code>JIT_EndCatch</code> function) before transferring control to the target location. The code to call to <code>CORINFO_JIT_ENDCATCH</code> is within the catch region itself.</p>
+<h3 id="finally-fault-regions">finally / fault regions</h3>
+<p>"finally" clauses are invoked in the non-exceptional code by the generated JIT code, and in the exceptional case by the VM. "fault" clauses are only executed in exceptional cases by the VM.</p>
+<p>On entry to the finally or fault, the top of the stack is the address that should be jumped to on exit from the finally, using a "pop eax; jmp eax" sequence. A simple 'ret' could be used, but we avoid it to avoid potentially creating an unbalanced processor call/ret buffer stack, and messing up call/ret prediction.</p>
+<p>There are no register or other stack arguments to a 'finally' or 'fault'.</p>
+<h3 id="shadowsp-slots">ShadowSP slots</h3>
+<p>X86 exception handlers (e.g., catch, finally) do not establish their own frames. They don't (really) have prologs and epilogs. However, they do use the stack, and need to restore the stack pointer of the enclosing exception handling region when the handler completes executing.</p>
+<p>To implement this requirement, for any function with EH, we create a frame-local variable to store a stack of "Shadow SP" values, or ShadowSP slots. In the JIT, the local var is called lvaShadowSPslotsVar, and in dumps it is called "EHSlots". The variable is created in lvaMarkLocalVars() and is sized as follows:
+1. 1 slot is reserved for the VM (for ICodeManager::FixContext(ppEndRegion)).
+2. 1 slot for each handler nesting level (total: ehMaxHndNestingCount).
+3. 1 slot for a filter (we do this even if there aren't any filters; size optimization opportunity to not do this if there are no filters?)
+4. 1 slot for zero termination</p>
+<p>Note that the since a slot on x86 is 4 bytes, the minimum size is 16 bytes. The idea is to have 1 slot for each handler that could be possibly be invoked at the same time. For example, for:</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="p">...</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="p">...</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="p">...</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+</code></pre></div>
+<p>When the inner 'catch' is running, the outer 'catch' is also conceptually "on the stack", or in the middle of execution. So the maximum handler nesting count would be 2.</p>
+<p>The ShadowSP slots are filled in from the highest address downwards to the lowest address. The highest slot is reserved. The first address with a zero is a zero terminator. So, we always zero terminate by setting the second-to-highest slot to zero in the function prolog (if we didn't zero initialize all locals anyway).</p>
+<p>When calling a finally, we set the appropriate level to 0xFC (aka "finally call") and zero terminate the next-lower address.</p>
+<p>Thus, calling a finally from JIT generated code looks like:</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nf">mov</span><span class="w">      </span><span class="no">dword</span><span class="w"> </span><span class="no">ptr</span><span class="w"> </span><span class="p">[</span><span class="no">L_02</span><span class="err">+</span><span class="mi">0x4</span><span class="w"> </span><span class="no">ebp-10H</span><span class="p">],</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="c1">// This must happen before the 0xFC is written</span>
+<span class="w">    </span><span class="nf">mov</span><span class="w">      </span><span class="no">dword</span><span class="w"> </span><span class="no">ptr</span><span class="w"> </span><span class="p">[</span><span class="no">L_02</span><span class="err">+</span><span class="mi">0x8</span><span class="w"> </span><span class="no">ebp-0CH</span><span class="p">],</span><span class="w"> </span><span class="mi">252</span><span class="w"> </span><span class="c1">// 0xFC</span>
+<span class="w">    </span><span class="nf">push</span><span class="w">     </span><span class="no">G_M52300_IG07</span>
+<span class="w">    </span><span class="nf">jmp</span><span class="w">      </span><span class="no">SHORT</span><span class="w"> </span><span class="no">G_M52300_IG04</span>
+</code></pre></div>
+<p>In this case, <code>G_M52300_IG07</code> is not the address after the 'jmp', so a simple 'call' wouldn't work.</p>
+<p>The code this finally returns to looks like this:</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nf">mov</span><span class="w">      </span><span class="no">dword</span><span class="w"> </span><span class="no">ptr</span><span class="w"> </span><span class="p">[</span><span class="no">L_02</span><span class="err">+</span><span class="mi">0x8</span><span class="w"> </span><span class="no">ebp-0CH</span><span class="p">],</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="nf">jmp</span><span class="w">      </span><span class="no">SHORT</span><span class="w"> </span><span class="no">G_M52300_IG05</span>
+</code></pre></div>
+<p>In this case, it zeros out the ShadowSP slot that it previously set to 0xFC, then jumps to the address that is the actual target of the leave from the finally.</p>
+<p>The JIT does this "end finally restore" by creating a GT_END_LFIN tree node, with the appropriate stack level as an operand, that generates this code.</p>
+<p>In the case of an exceptional 'finally' invocation, the VM sets up the 'return address' to whatever address it wants the JIT to return to.</p>
+<p>For catch handlers, the VM is completely in control of filling and reading the ShadowSP slots; the JIT just makes sure there is enough space.</p>
+<h3 id="shadowsp-slots-frame-location">ShadowSP slots frame location</h3>
+<p>The ShadowSP slots are required to live in a very particular location, reported via the GC info header. Note that the GC info header does not contain an actual pointer or offset to the ShadowSP slots variable. Instead, the VM calculates the location from other data that does exist in the GC info header, as a negative offset from the EBP frame pointer (which must be established in functions with EH) using the function <code>GetFirstBaseSPslotPtr()</code> / <code>GetStartShadowSPSlotsOffset()</code>. The VM thus assumes the following frame layout:</p>
+<ol>
+<li>callee-saved registers &lt;= EBP points to the top of this range</li>
+<li>GS cookie</li>
+<li>1 slot if localloc is used (Saved localloc SP?)</li>
+<li>1 slot for CORINFO_GENERICS_CTXT_FROM_PARAMTYPEARG -- assumed for any function with EH, to avoid adding a flag to the GC info about whether it exists or not.</li>
+<li>ShadowSP slots</li>
+</ol>
+<p>(note, these don't have to be in this order for this calculation, but they possibly do need to be in this order for other calculations.) See also <code>GetEndShadowSPSlotsOffset()</code>.</p>
+<p>The VM walks the ShadowSP slots in the function <code>GetHandlerFrameInfo()</code>, and sets it in various functions such as <code>EECodeManager::FixContext()</code>.</p>
+<h3 id="jit-implementation-finally">JIT implementation: finally</h3>
+<p>An aside on the JIT implementation for x86.</p>
+<p>The JIT creates BBJ_CALLFINALLY/BBJ_ALWAYS pairs for calling the 'finally' clause. The BBJ_CALLFINALLY block will have a series of CORINFO_JIT_ENDCATCH calls appended at the end, if we need to "leave" a series of nested catches before calling the finally handler (due to a single 'leave' opcode attempting to leave multiple levels of different types of handlers). Then, a GT_END_LFIN statement with the finally clause handler nesting level as an argument is added to the step block where the finally returns to. This is used to generate code to zero out the appropriate level of the ShadowSP slot array after the finally has been executed. The BBJ_CALLFINALLY block itself generates the code to insert the 0xFC value into the ShadowSP slot array. If the 'finally' is invoked by the VM, in exceptional cases, then the VM itself updates the ShadowSP slot array before invoking the 'finally'.</p>
+<p>At the end of a finally or filter, a GT_RETFILT is inserted. For a finally, this is a TYP_VOID which is just a placeholder. For a filter, it takes an argument which evaluates to the return value from the filter. On legacy JIT, this tree triggers the generation of both the return value load (for filters) and the "funclet" exit sequence, which is either a "pop eax; jmp eax" for a finally, or a "ret" for a filter. When processing the BBJ_EHFINALLYRET or BBJ_EHFILTERRET block itself (at the end of code generation for the block), nothing is generated. In RyuJIT, the GT_RETFILT only loads up the return value (for filters) and does nothing for finally, and the block type processing after all the tree processing triggers the exit sequence to be generated. There is no real difference between these, except to centralize all "exit sequence" generation in the same place.</p>
+<h1 id="eh-info-gc-info-and-hot-cold-splitting">EH Info, GC Info, and Hot &amp; Cold Splitting</h1>
+<p>All GC info offsets and EH info offsets treat the function and funclets as if it was one big method body. Thus all offsets are relative to the start of the main method. Funclets are assumed to always be at the end of (after) all of the main function code. Thus if the main function has any cold code, all funclets must be cold. Or conversely, if there is any hot funclet code, all of the main method must be hot.</p>
+<h2 id="eh-clause-ordering">EH clause ordering</h2>
+<p>EH clauses must be sorted inner-to-outer, first-to-last based on IL offset of the try start/try end pair. The only exceptions are cloned finallys, which always appear at the end.</p>
+<h2 id="how-eh-affects-gc-inforeporting">How EH affects GC info/reporting</h2>
+<p>Because a main function body will <strong>always</strong> be on the stack when one of its funclets is on the stack, the GC info must be careful not to double-report. JIT64 accomplished this by having all named locals appear in the parent method frame, anything shared between the function and funclets was homed to the stack, and only the parent function reported stack locals (funclets might report local registers). JIT32 and RyuJIT (for AMD64, ARM, and ARM64) take the opposite direction. The leaf-most funclet is responsible for reporting everything that might be live out of a funclet (in the case of a filter, this might resume back in the original method body). This is accomplished with the GC header flag WantsReportOnlyLeaf (JIT32 and RyuJIT set it, JIT64 doesn't) and the VM tracking if it has already seen a funclet for a given frame. Once JIT64 is fully retired, we should be able to remove this flag from GC info.</p>
+<p>There is one "corner case" in the VM implementation of WantsReportOnlyLeaf model that has implications for the code the JIT is allowed to generate. Consider this function with nested exception handling:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">runtest</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">throw</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="nf">UserException3</span><span class="p">(</span><span class="n">ThreadId</span><span class="p">);</span><span class="w"> </span><span class="c1">// 1</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">UserException3</span><span class="w"> </span><span class="n">e</span><span class="p">){</span>
+<span class="w">            </span><span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Exception3 was caught&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="k">throw</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="nf">UserException4</span><span class="p">(</span><span class="n">ThreadId</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">UserException4</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">// 2</span>
+<span class="w">        </span><span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&quot;Exception4 was caught&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>When the inner "throw new UserException4" is executed, the exception handling first pass finds that the outer catch handler will handle the exception. The exception handling second pass unwinds stack frames back to the "runtest" frame, and then executes the catch handler. There is a period of time during which the original catch handler ("catch (UserException3 e)") is no longer on the stack, but before the new catch handler is executed. During this time, a GC might occur. In this case, the VM needs to make sure to report GC roots properly for the "runtest" function. The inner catch has been unwound, so we can't report that. We don't want to report at "// 1", which is still on the stack, because that effectively is "going backwards" in execution, and doesn't properly represent what object references are live. We need to report live object references at the next location where execution will occur. This is the "// 2" location. However, we can't report the first location of the catch funclet, as that will be non-interruptible. The VM instead looks forward for the first interruptible point in that handler, and reports live references that the JIT reports for that location. This will be the first location after the handler prolog. There are several implications of this implementation for the JIT. It requires that:</p>
+<ol>
+<li>Methods which have EH clauses are fully interruptible.</li>
+<li>All catch funclets have an interruptible point immediately after the prolog.</li>
+<li>The first interruptible point in the catch funclet reports the following live objects on the stack<ul>
+<li>Only objects that are shared with parent method i.e. no additional stack object which is live only in catch funclet and not live in parent method.</li>
+<li>All shared objects which are referenced in catch funclet and any subsequent control flow are reported live.</li>
+</ul>
+</li>
+</ol>
+<h2 id="filter-gc-semantics">Filter GC semantics</h2>
+<p>Filters are invoked in the 1st pass of EH processing and as such execution might resume back at the faulting address, or in the filter-handler, or someplace else. Because the VM must allow GC's to occur during and after a filter invocation, but before the EH subsystem knows where it will resume, we need to keep everything alive at both the faulting address <strong>and</strong> within the filter. This is accomplished by 3 means: (1) the VM's stackwalker and GCInfoDecoder report as live both the filter frame and its corresponding parent frame, (2) the JIT encodes all stack slots that are live within the filter as being pinned, and (3) the JIT reports as live (and possible zero-initializes) anything live-out of the filter. Because of (1) it is likely that a stack variable that is live within the filter and the try body will be double reported. During the mark phase of the GC double reporting is not a problem. The problem only arises if the object is relocated: if the same location is reported twice, the GC will try to relocate the address stored at that location twice. Thus we prevent the object from being relocated by pinning it, which leads us to why we must do (2). (3) is done so that after the filter returns, we can still safely incur a GC before executing the filter-handler or any outer handler within the same frame. For the same reason, control must exit a filter region via its final block (in other words, a filter region must terminate with the instruction that leaves the filter region, and the program may not exit the filter region via other paths).</p>
+<h2 id="duplicated-clauses">Duplicated Clauses</h2>
+<p>Duplicated clauses are a special set of entries in the EH tables to assist the VM. Specifically, if handler 'A' is also protected by an outer EH clause 'B', then the JIT must emit a duplicated clause, a duplicate of 'B', that marks the whole handler 'A' (which is now lexically disjoint for the range of code for the corresponding try body 'A') as being protected by the handler for 'B'.</p>
+<p>Duplicated clauses are not needed for x86 and for NativeAOT ABI.</p>
+<p>During exception dispatch the VM uses these duplicated clauses to know when to skip any frames between the handler and its parent function. After skipping to the parent function, due to a duplicated clause, the VM searches for a regular/non-duplicate clause in the parent function. The order of duplicated clauses is important. They should appear after all of the main function clauses. They should still follow the normal sorting rules (inner-to-outer, top-to-bottom), but because the try-start/try-end will all be the same for a given handler, they should maintain the ordering, regarding inner-to-outer, as the corresponding original clause.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code>A: try {
+B:  ...
+C:  try {
+D:      ...
+E:      try {
+F:          ...
+G:      }
+H:      catch {
+I:          ...
+J:      }
+K:      ...
+L:  }
+M:  finally {
+N:      ...
+O:  }
+P:  ...
+Q: }
+R: catch {
+S:  ...
+T: }
+</code></pre></div>
+<p>In MSIL this would generate 3 EH clauses:</p>
+<div class="highlight"><pre><span></span><code>.try E-G catch H-J
+.try C-L finally M-O
+.try A-Q catch R-T
+</code></pre></div>
+<p>The native code would be laid out as follows (the order of the handlers is irrelevant except they are after the main method body) with their corresponding (fake) native offsets:</p>
+<div class="highlight"><pre><span></span><code>A: -&gt; 1
+B: -&gt; 2
+C: -&gt; 3
+D: -&gt; 4
+E: -&gt; 5
+F: -&gt; 6
+G: -&gt; 7
+K: -&gt; 8
+L: -&gt; 9
+P: -&gt; 10
+Q: -&gt; 11
+H: -&gt; 12
+I: -&gt; 13
+J: -&gt; 14
+M: -&gt; 15
+N: -&gt; 16
+O: -&gt; 17
+R: -&gt; 18
+S: -&gt; 19
+T: -&gt; 20
+</code></pre></div>
+<p>The native EH clauses would be listed as follows:</p>
+<div class="highlight"><pre><span></span><code>1. .try 5-7 catch 12-14 (top-most &amp; inner-most first)
+2. .try 3-9 finally 15-17 (top-most &amp; next inner-most)
+3. .try 1-11 catch 18-20 (top-most &amp; outer-most)
+4. .try 12-14 finally 15-17 duplicated (inner-most because clause 2 is inside clause 3, top-most because handler H-J is first)
+5. .try 12-14 catch 18-20 duplicated
+6. .try 15-17 catch 18-20
+</code></pre></div>
+<p>If the handlers were in a different order, then clause 6 might appear before clauses 4 and 5, but never in between.</p>
+<h2 id="clauses-covering-the-same-try-region">Clauses covering the same try region</h2>
+<p>Several consecutive clauses may cover the same <code>try</code> block. A clause covering the same region as the previous one is marked by the <code>COR_ILEXCEPTION_CLAUSE_SAMETRY</code> flag. When exception ex1 is thrown while running handler for another exception ex2 and the exception ex2 escapes the ex1's handler frame, this enables the runtime to skip clauses that cover the same <code>try</code> block as the clause that handled the ex1.
+This flag is used by the NativeAOT and also a new exception handling mechanism in CoreCLR. The NativeAOT doesn't store that flag in the encoded clause data, but rather injects a dummy clause between the clauses with same <code>try</code> block. CoreCLR keeps that flag as part of the runtime representation of the clause data. The current CoreCLR exception handling doesn't use it, but <a href="https://github.com/dotnet/runtime/issues/77568">a new exception handling mechanism</a> that's being developed is taking advantage of it.</p>
+<h2 id="gc-interruptibility-and-eh">GC Interruptibility and EH</h2>
+<p>The VM assumes that anytime a thread is stopped, it must be at a GC safe point, or the current frame is non-resumable (i.e. a throw that will never be caught in the same frame). Thus effectively all methods with EH must be fully interruptible (or at a minimum all try bodies). Currently the GC info appears to support mixing of partially interruptible and fully-interruptible regions within the same method, but no JIT uses this, so use at your own risk.</p>
+<p>The debugger always wants to stop at GC safe points, and thus debuggable code should be fully interruptible to maximize the places where the debugger can safely stop. If the JIT creates non-interruptible regions within fully interruptible code, the code should ensure that each sequence point begins on an interruptible instruction.</p>
+<p>AMD64/JIT64 only: The JIT will add an interruptible NOP if needed.</p>
+<h2 id="security-object">Security Object</h2>
+<p>The security object is a GC pointer and must be reported as such, and kept alive the duration of the method.</p>
+<h2 id="gs-cookie">GS Cookie</h2>
+<p>The GS Cookie is not a GC object, but still needs to be reported. It can only have one lifetime due to how it is encoded/reported in the GC info. Since the GS Cookie ceases being valid once we pop the stack, the epilog cannot be part of the live range. Since we only get one live range that means there cannot be any code (except funclets) after the epilog in methods with a GS cookie.</p>
+<h2 id="nops-and-other-padding">NOPs and other Padding</h2>
+<h3 id="amd64-padding-info">AMD64 padding info</h3>
+<p>The unwind callbacks don't know if the current frame is a leaf or a return address. Consequently, the JIT must ensure that the return address of a call is in the same region as the call. Specifically, the JIT must add a NOP (or some other instruction) after any call that otherwise would directly precede the start of a try body, the end of a try body, or the end of a method.</p>
+<p>The OS has an optimization in the unwinder such that if an unwind results in a PC being within (or at the start of) an epilog, it assumes that frame is unimportant and unwinds again. Since the CLR considers every frame important, it does not want this double-unwind behavior and requires the JIT to place a NOP (or other instruction) between any call and any epilog.</p>
+<h3 id="arm-and-arm64-padding-info">ARM and ARM64 padding info</h3>
+<p>The OS unwinder uses the <code>RUNTIME_FUNCTION</code> extents to determine which function or funclet to unwind out of. The net result is that a call (bl opcode) to <code>IL_Throw</code> cannot be the last thing. So similar to AMD64 the JIT must inject an opcode (a breakpoint in this case) when the <code>bl IL_Throw</code> would otherwise be the last opcode of a function or funclet, the last opcode before the end of the hot section, or (this might be an x86-ism leaking into ARM) the last before a "special throw block".</p>
+<h1 id="profiler-hooks">Profiler Hooks</h1>
+<p>If the JIT gets passed <code>CORJIT_FLG_PROF_ENTERLEAVE</code>, then the JIT might need to insert native entry/exit/tail call probes. To determine for sure, the JIT must call GetProfilingHandle. This API returns as out parameters, the true dynamic boolean indicating if the JIT should actually insert the probes and a parameter to pass to the callbacks (typed as void*), with an optional indirection (used for NGEN). This parameter is always the first argument to all of the call-outs (thus placed in the usual first argument register <code>RCX</code> (AMD64) or <code>R0</code> (ARM, ARM64)).</p>
+<p>Outside of the prolog (in a GC interruptible location), the JIT injects a call to <code>CORINFO_HELP_PROF_FCN_ENTER</code>. For AMD64,  on Windows all argument registers will be homed into their caller-allocated stack locations (similar to varargs), on Unix all argument registers will be stored in the inner structure. For ARM and ARM64, all arguments are prespilled (again similar to varargs).</p>
+<p>After computing the return value and storing it in the correct register, but before any epilog code (including before a possible GS cookie check), the JIT injects a call to <code>CORINFO_HELP_PROF_FCN_LEAVE</code>. For AMD64 this call must preserve the return register: <code>RAX</code> or <code>XMM0</code> on Windows and <code>RAX</code> and <code>RDX</code> or <code>XMM0</code> and <code>XMM1</code> on Unix. For ARM, the return value will be moved from <code>R0</code> to <code>R2</code> (if it was in <code>R0</code>), <code>R1</code>, <code>R2</code>, and <code>S0/D0</code> must be preserved by the callee (longs will be <code>R2</code>, <code>R1</code> - note the unusual ordering of the registers, floats in <code>S0</code>, doubles in <code>D0</code>, smaller integrals in <code>R2</code>).</p>
+<p>TODO: describe ARM64 profile leave conventions.</p>
+<p>Before the argument setup (but after any argument side-effects) for any tail calls or jump calls, the JIT injects a call to <code>CORINFO_HELP_PROF_FCN_TAILCALL</code>. Note that it is NOT called for self-recursive tail calls turned into loops.</p>
+<p>For ARM tail calls, the JIT actually loads the outgoing arguments first, and then just before the profiler call-out, spills the argument in <code>R0</code> to another non-volatile register, makes the call (passing the callback parameter in <code>R0</code>), and then restores <code>R0</code>.</p>
+<p>For AMD64, all probes receive a second parameter (passed in <code>RDX</code> according to the default argument rules) which is the address of the start of the arguments' home location (equivalent to the value of the caller's stack pointer).</p>
+<p>TODO: describe ARM64 tail call convention.</p>
+<p>On Linux/x86 the profiling hooks are declared with the <code>__cdecl</code> attribute.  In cdecl (which stands for C declaration), subroutine arguments are passed on the stack. Integer values and memory addresses are returned in the EAX register, floating point values in the ST0 x87 register. Registers EAX, ECX, and EDX are caller-saved, and the rest are callee-saved. The x87 floating point registers ST0 to ST7 must be empty (popped or freed) when calling a new function, and ST1 to ST7 must be empty on exiting a function. ST0 must also be empty when not used for returning a value. Returned values of managed-code are formed before the leave/tailcall profiling hooks, so they should be saved in these hooks and restored on returning from them. The instruction <code>ret</code> for assembler implementations of profiling hooks should be without a parameter.</p>
+<p>JIT32 only generates one epilog (and causes all returns to branch to it) when there are profiler hooks.</p>
+<h1 id="synchronized-methods">Synchronized Methods</h1>
+<p>JIT32/RyuJIT only generates one epilog (and causes all returns to branch to it) when a method is synchronized. See <code>Compiler::fgAddSyncMethodEnterExit()</code>. The user code is wrapped in a try/finally. Outside/before the try body, the code initializes a boolean to false. <code>CORINFO_HELP_MON_ENTER</code> or <code>CORINFO_HELP_MON_ENTER_STATIC</code> are called, passing the lock object (the <code>this</code> pointer for instance methods or the Type object for static methods) and the address of the boolean. If the lock is acquired, the boolean is set to true (as an 'atomic' operation in the sense that a Thread.Abort/EH/GC/etc. cannot interrupt the Thread when the boolean does not match the acquired state of the lock). JIT32/RyuJIT follows the exact same logic and arguments for placing the call to <code>CORINFO_HELP_MON_EXIT</code> /  <code>CORINFO_HELP_MON_EXIT_STATIC</code> in the finally.</p>
+<h1 id="rejit">Rejit</h1>
+<p>For AMD64 to support profiler attach scenarios, the JIT can be required to ensure every generated method is hot patchable (see <code>CORJIT_FLG_PROF_REJIT_NOPS</code>). The way we do this is to ensure that the first 5 bytes of code are non-interruptible and there is no branch target within those bytes (includes calls/returns). Thus the VM can stop all threads (like for a GC) and safely replace those 5 bytes with a branch to a new version of the method (presumably instrumented by a profiler). The JIT adds NOPs or increases the size of the prolog reported in the GC info to accomplish these 2 requirements.</p>
+<p>In a function with exception handling, only the main function is affected; the funclet prologs are not made hot patchable.</p>
+<h1 id="edit-and-continue">Edit and Continue</h1>
+<p>Edit and Continue (EnC) is a special flavor of un-optimized code. The debugger has to be able to reliably remap a method state (instruction pointer and local variables) from original method code to edited method code. This puts constraints on the method stack layout performed by the JIT. The key constraint is that the addresses of the existing locals must stay the same after the edit. This constraint is required because the address of the local could have been stored in the method state.</p>
+<p>In the current design, the JIT does not have access to the previous versions of the method and so it has to assume the worst case. EnC is designed for simplicity, not for performance of the generated code.</p>
+<p>EnC is currently enabled on x86, x64 and ARM64 only, but the same principles would apply if it is ever enabled on other platforms.</p>
+<p>The following sections describe the various Edit and Continue code conventions that must be followed.</p>
+<h2 id="enc-flag-in-gcinfo">EnC flag in GCInfo</h2>
+<p>The JIT records the fact that it has followed conventions for EnC code in GC Info. On x64/ARM64, this flag is implied by recording the size of the stack frame region preserved between EnC edits (<code>GcInfoEncoder::SetSizeOfEditAndContinuePreservedArea</code>). For x64 the size of this region is increased to include <code>RSI</code> and <code>RDI</code>, so that <code>rep stos</code> can be used for block initialization and block moves. ARM64 saves only the FP and LR registers when EnC is enabled and does not use other callee saved registers.</p>
+<p>To successfully perform EnC transitions the runtime needs to know the size of the stack frames it is transitioning between. For x64 code the size can be extracted from unwind codes. This is not possible for arm64 code as the frames are set up in such a way that the unwind codes do not allow to retrieve this value. Therefore, on ARM64 the GC info contains also the size of the fixed stack frame to be used for EnC purposes.</p>
+<h2 id="allocating-local-variables-backward">Allocating local variables backward</h2>
+<p>This is required to preserve addresses of the existing locals when an EnC edit appends new ones. In other words, the first local must be allocated at the highest stack address. Special care has to be taken to deal with alignment. The total size of the method frame can either grow (more locals added) or shrink (fewer temps needed) after the edit. The VM zeros out newly added locals.</p>
+<h2 id="fixed-set-of-callee-saved-registers">Fixed set of callee-saved registers</h2>
+<p>This eliminates need to deal with the different sets in the VM, and makes preservation of local addresses easier. There are plenty of volatile registers and so lack of non-volatile registers does not heavily impact quality of non-optimized code.
+x64 currently saves RBP, RSI and RDI while ARM64 saves just FP and LR.</p>
+<h2 id="enc-is-supported-for-methods-with-eh">EnC is supported for methods with EH</h2>
+<p>However, EnC remap is not supported inside funclets. The stack layout of funclets does not matter for EnC.</p>
+<h2 id="considerations-with-regards-to-pspsym">Considerations with regards to PSPSym</h2>
+<p>As explained previously in this document, on x64 we have Initial RSP == PSPSym. For EnC methods, as we disallow remappings after localloc (see below), we furthermore have RBP == PSPSym.
+For ARM64 we have Caller SP == PSPSym and the FP points to the previously saved FP/LR pair. For EnC the JIT always sets up the stack frame so that the FP/LR pair is at Caller SP - 16 and does not save any additional callee saves.
+These invariants allow the VM to compute new value of the frame pointer and PSPSym after the edit without any additional information. Note that the frame pointer and PSPSym do not change values or location on ARM64. However, EH may be added to a function in which case a new PSPSym needs to be materialized, even on ARM64. Location of PSPSym is found via GC info.</p>
+<h2 id="localloc">Localloc</h2>
+<p>Localloc is allowed in EnC code, but remap is disallowed after the method has executed a localloc instruction. VM uses the invariants above (<code>RSP == RBP</code> on x64, <code>FP + 16 == SP + stack size</code> on ARM64) to detect whether localloc was executed by the method.</p>
+<h2 id="security-object_1">Security object</h2>
+<p>This does not require any special handling by the JIT on x64/arm64. (Different from x86). The security object is copied over by the VM during remap if necessary. Location of security object is found via GC info.</p>
+<h2 id="synchronized-methods_1">Synchronized methods</h2>
+<p>The extra state created by the JIT for synchronized methods (lock taken flag) must be preserved during remap. The JIT stores this state in the preserved region, and increases the size of the preserved region reported in GC info accordingly.</p>
+<h2 id="generics_1">Generics</h2>
+<p>EnC is supported for adding and editing generic methods and methods on generic types and generic methods on non-generic types.</p>
+<h1 id="system-v-x86_64-support">System V x86_64 support</h1>
+<p>This section relates mostly to calling conventions on System V systems (such as Ubuntu Linux and Mac OS X).
+The general rules outlined in the System V x86_64 ABI documentation are followed with a few exceptions, described below:</p>
+<ol>
+<li>The hidden argument for by-value passed structs is always after the <code>this</code> parameter (if there is one). This is a difference with the System V ABI and affects only the internal JIT calling conventions. For PInvoke calls the hidden argument is always the first parameter since there is no <code>this</code> parameter in this case (except for the <code>CallConvMemberFunction</code> case).</li>
+<li>Managed structs that have no fields are always passed by-value on the stack.</li>
+<li>The JIT proactively generates frame register frames (with <code>RBP</code> as a frame register) in order to aid the native OS tooling for stack unwinding and the like.</li>
+<li>All the other internal VM contracts for PInvoke, EH, and generic support remains in place. Please see the relevant sections above for more details. Note, however, that the registers used are different on System V due to the different calling convention. For example, the integer argument registers are, in order, RDI, RSI, RDX, RCX, R8, and R9. Thus, where the first argument (typically, the <code>this</code> pointer) on Windows AMD64 goes in RCX, on System V it goes in RDI, and so forth.</li>
+<li>Structs with explicit layout are always passed by value on the stack.</li>
+<li>The following table describes register usage according to the System V x86_64 ABI</li>
+</ol>
+<div class="highlight"><pre><span></span><code>| Register      | Usage                                   | Preserved across  |
+|               |                                         | function calls    |
+|---------------|-----------------------------------------|-------------------|
+| %rax          | temporary register; with variable argu- | No                |
+|               | ments passes information about the      |                   |
+|               | number of SSE registers used;           |                   |
+|               | 1st return argument                     |                   |
+| %rbx          | callee-saved register; optionally used  | Yes               |
+|               | as base pointer                         |                   |
+| %rcx          | used to pass 4st integer argument to    | No                |
+|               | to functions                            |                   |
+| %rdx          | used to pass 3rd argument to functions  | No                |
+|               | 2nd return register                     |                   |
+| %rsp          | stack pointer                           | Yes               |
+| %rbp          | callee-saved register; optionally used  | Yes               |
+|               | as frame pointer                        |                   |
+| %rsi          | used to pass 2nd argument to functions  | No                |
+| %rdi          | used to pass 1st argument to functions  | No                |
+| %r8           | used to pass 5th argument to functions  | No                |
+| %r9           | used to pass 6th argument to functions  | No                |
+| %r10          | temporary register, used for passing a  | No                |
+|               | function&#39;s static chain pointer         |                   |
+| %r11          | temporary register                      | No                |
+| %r12-%r15     | callee-saved registers                  | Yes               |
+| %xmm0-%xmm1   | used to pass and return floating point  | No                |
+|               | arguments                               |                   |
+| %xmm2-%xmm7   | used to pass floating point arguments   | No                |
+| %xmm8-%xmm31  | temporary registers                     | No                |
+</code></pre></div>
+<h1 id="calling-convention-specifics-for-x86">Calling convention specifics for x86</h1>
+<p>Unlike the other architectures that RyuJIT supports, the managed x86 calling convention is different than the default native calling convention. This is true for both Windows and Unix x86.</p>
+<p>The standard managed calling convention is a variation on the Windows x86 fastcall convention. It differs primarily in the order in which arguments are pushed on the stack.</p>
+<p>The only values that can be passed in registers are managed and unmanaged pointers, object references, and the built-in integer types int8, unsigned int8, int16, unsigned int16, int32, unsigned it32, native int, native unsigned int, and enums and value types with only one 4-byte integer primitive-type field. Enums are passed as their underlying type. All floating-point values and 8-byte integer values are passed on the stack. When the return type is a value type that cannot be passed in a register, the caller shall create a buffer to hold the result and pass the address of this buffer as a hidden parameter.</p>
+<p>Arguments are passed in left-to-right order, starting with the <code>this</code> pointer (for instance and virtual methods), followed by the return buffer pointer if needed, followed by the user-specified argument values. The first of these that can be placed in a register is put into ECX, the next in EDX, and all subsequent ones are passed on the stack. This is in contrast with the x86 native calling conventions, which push arguments onto the stack in right-to-left order.</p>
+<p>The return value is handled as follows:</p>
+<ol>
+<li>Floating-point values are returned on the top of the hardware FP stack.</li>
+<li>Integers up to 32 bits long are returned in EAX.</li>
+<li>64-bit integers are passed with EAX holding the least significant 32 bits and EDX holding the most significant 32 bits.</li>
+<li>All other cases require the use of a return buffer, through which the value is returned.</li>
+</ol>
+<p>In addition, there is a guarantee that if a return buffer is used a value is stored there only upon ordinary exit from the method. The buffer is not allowed to be used for temporary storage within the method and its contents will be unaltered if an exception occurs while executing the method.</p>
+<h1 id="control-flow-guard-cfg-support-on-windows">Control Flow Guard (CFG) support on Windows</h1>
+<p>Control Flow Guard (CFG) is a security mitigation available in Windows.
+When CFG is enabled, the operating system maintains data structures that can be used to verify whether an address is to be considered a valid indirect call target.
+This mechanism is exposed through two different helper functions, each with different characteristics.</p>
+<p>The first mechanism is a validator that takes the target address as an argument and fails fast if the address is not an expected indirect call target; otherwise, it does nothing and returns.
+The second mechanism is a dispatcher that takes the target address in a non-standard register; on successful validation of the address, it jumps directly to the target function.
+Windows makes the dispatcher available only on ARM64 and x64, while the validator is available on all platforms.
+However, the JIT supports CFG only on ARM64 and x64, with CFG by default being disabled for these platforms.
+The expected use of the CFG feature is for NativeAOT scenarios that are running in constrained environments where CFG is required.</p>
+<p>The helpers are exposed to the JIT as standard JIT helpers <code>CORINFO_HELP_VALIDATE_INDIRECT_CALL</code> and <code>CORINFO_HELP_DISPATCH_INDIRECT_CALL</code>.</p>
+<p>To use the validator the JIT expands indirect calls into a call to the validator followed by a call to the validated address.
+For the dispatcher the JIT will transform calls to pass the target along but otherwise set up the call as normal.</p>
+<p>Note that "indirect call" here refers to any call that is not to an immediate (in the instruction stream) address.
+For example, even direct calls may emit indirect call instructions in JIT codegen due to e.g. tiering or if they have not been compiled yet; these are expanded with the CFG mechanism as well.</p>
+<p>The next sections describe the calling convention that the JIT expects from these helpers.</p>
+<h2 id="cfg-details-for-arm64">CFG details for ARM64</h2>
+<p>On ARM64, <code>CORINFO_HELP_VALIDATE_INDIRECT_CALL</code> takes the call address in <code>x15</code>.
+In addition to the usual registers it preserves all float registers, <code>x0</code>-<code>x8</code> and <code>x15</code>.</p>
+<p><code>CORINFO_HELP_DISPATCH_INDIRECT_CALL</code> takes the call address in <code>x9</code>.
+The JIT does not use the dispatch helper by default due to worse branch predictor performance.
+Therefore it will expand all indirect calls via the validation helper and a manual call.</p>
+<h2 id="cfg-details-for-x64">CFG details for x64</h2>
+<p>On x64, <code>CORINFO_HELP_VALIDATE_INDIRECT_CALL</code> takes the call address in <code>rcx</code>.
+In addition to the usual registers it also preserves all float registers and <code>rcx</code> and <code>r10</code>; furthermore, shadow stack space is not required to be allocated.</p>
+<p><code>CORINFO_HELP_DISPATCH_INDIRECT_CALL</code> takes the call address in <code>rax</code> and it reserves the right to use and trash <code>r10</code> and <code>r11</code>.
+The JIT uses the dispatch helper on x64 whenever possible as it is expected that the code size benefits outweighs the less accurate branch prediction.
+However, note that the use of <code>r11</code> in the dispatcher makes it incompatible with VSD calls where the JIT must fall back to the validator and a manual call.</p>
+<h1 id="notes-on-memsetmemcpy">Notes on Memset/Memcpy</h1>
+<p>Generally, <code>memset</code> and <code>memcpy</code> do not provide any guarantees of atomicity. This implies that they should only be used when the memory being modified by <code>memset</code>/<code>memcpy</code> is not observable by any other thread (including GC), or when there are no atomicity requirements according to our <a href="../../specs/Memory-model.md">Memory Model</a>. It's especially important when we modify heap containing managed pointers - those must be updated atomically, e.g. using pointer-sized <code>mov</code> instruction (managed pointers are always aligned) - see <a href="../../specs/Memory-model.md#Atomic-memory-accesses">Atomic Memory Access</a>. It's worth noting that by "update" it's implied "set to zero", otherwise, we need a write barrier.</p>
+<p>Examples:</p>
+<div class="highlight"><pre><span></span><code><span class="k">struct</span><span class="w"> </span><span class="nc">MyStruct</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">long</span><span class="w"> </span><span class="n">a</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">string</span><span class="w"> </span><span class="n">b</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">void</span><span class="w"> </span><span class="nf">Test1</span><span class="p">(</span><span class="k">ref</span><span class="w"> </span><span class="n">MyStruct</span><span class="w"> </span><span class="n">m</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// We&#39;re not allowed to use memset here</span>
+<span class="w">    </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">MyStruct</span><span class="w"> </span><span class="nf">Test2</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// We can use memset here</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7c377c4.min.js"></script>
+      
+    
+  </body>
+</html>

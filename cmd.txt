@@ -48,3 +48,9 @@ git log -n 1 --format="%h" --abbrev=40 -- docs/design/coreclr/botr
 
 git checkout --orphan botr
 
+
+
+========
+
+pip install mkdocs-minify-plugin
+

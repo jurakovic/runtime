@@ -1,6 +1,14 @@
+# site
 site_name: The Book of the Runtime
-docs_dir: 'botr'
+site_url: https://jurakovic.github.io/runtime/
+
+# repo
+repo_name: jurakovic/runtime
 repo_url: https://github.com/jurakovic/runtime
+edit_uri: edit/main/docs/design/coreclr/botr/
+
+# docs
+docs_dir: 'botr'
 
 theme:
   name: material
@@ -15,15 +23,28 @@ theme:
         name: Switch to dark mode
     - media: '(prefers-color-scheme: dark)'
       scheme: slate
-      primary: indigo
+      primary: black
       accent: indigo
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+  features:
+    - content.action.view
+    - navigation.footer
 
 plugins:
   - search
   - awesome-pages
+  - minify:
+      minify_html: true
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/jurakovic/runtime
+    - icon: fontawesome/brands/github
+      link: https://github.com/dotnet/runtime
 
 markdown_extensions:
   - pymdownx.highlight

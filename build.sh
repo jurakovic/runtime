@@ -1,16 +1,16 @@
 #!/bin/bash
 
-mkdocs_config=$(git show botr-init:mkdocs.yml)
+mkdocs_config=$(cat mkdocs.yml)
 
 #curr=$(git log -n 1 --format="%h" --abbrev=40 -- docs/design/coreclr/botr)
 curr=$(curl -s "https://api.github.com/repos/dotnet/runtime/commits?path=docs/design/coreclr/botr&per_page=1" | jq -r '.[0].sha')
-prev=$(git show botr-init:commit.txt)
+prev="foo" #$(git cat commit.txt)
 
 if [ ! $curr = $prev ]
 then
   echo "diff"
 
-  git checkout docs-init
+  git checkout main
 
   cd docs/design/coreclr
 
@@ -21,7 +21,7 @@ else
   echo "no diff"
 fi;
 
-git checkout botr-init
+git checkout update #botr
 cd ../../..
 
 if [ ! $curr = $prev ]

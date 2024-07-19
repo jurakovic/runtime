@@ -1,5 +1,6 @@
 site_name: The Book of the Runtime
 docs_dir: 'botr'
+repo_url: https://github.com/jurakovic/runtime
 
 theme:
   name: material

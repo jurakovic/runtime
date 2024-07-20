@@ -5,6 +5,7 @@ site_url: https://jurakovic.github.io/runtime/
 # repo
 repo_name: dotnet/runtime
 repo_url: https://github.com/dotnet/runtime
+edit_uri: edit/main/docs/design/coreclr/botr/
 
 # docs
 docs_dir: 'botr'

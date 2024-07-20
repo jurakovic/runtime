@@ -4,44 +4,56 @@ mkdocs_config=$(cat mkdocs.yml)
 
 #curr=$(git log -n 1 --format="%h" --abbrev=40 -- docs/design/coreclr/botr)
 curr="foo" #$(curl -s "https://api.github.com/repos/dotnet/runtime/commits?path=docs/design/coreclr/botr&per_page=1" | jq -r '.[0].sha')
-prev="bar" #$(git cat commit.txt)
+prev="foo" #$(git cat commit.txt)
 
-if [ ! $curr = $prev ]
+if [ $curr = $prev ]
 then
-  echo "diff"
-
-  git checkout main
-
-  cd docs/design/coreclr
-
-  rm -rf docs_temp
-  echo "$mkdocs_config" | mkdocs build --site-dir ../../../docs_temp -f -
-
+  echo "There are no changes"
+  read -p "Continue with build anyway? (y/n) " yn
 else
-  echo "no diff"
-fi;
+  echo "There are changes"
+  read -p "Continue with build? (y/n) " yn
+fi
 
-git checkout update #botr
+if [ ! $yn = "y" ]; then exit 0; fi;
+
+# get current branch
+branch=$(git branch --show-current)
+
+echo "Checking out 'main' branch"
+git checkout main
+
+cd docs/design/coreclr
+
+# clear any leftovers
+rm -rf docs_temp
+
+echo "Staring mkdocs build"
+echo "$mkdocs_config" | mkdocs build --site-dir ../../../docs_temp -f -
+
+echo "Checking out '$branch' branch"
+git checkout $branch
 cd ../../..
 
-if [ ! $curr = $prev ]
-then
+# clear any leftovers
+rm -rf docs
 
-  rm -rf docs
-  mv docs_temp docs
+# rename
+mv docs_temp docs
 
-  # change dotnet repo to fork; fix js api
-  find docs -type f -iwholename "*.html" -exec sed -i -r 's/(href="https:\/\/github.com\/)(dotnet)(\/runtime" title="Go to repository")/\1jurakovic\3/' {} +
-  find docs/assets/javascripts -type f -iwholename "*.min.js" -exec sed -i -r 's/(https:\/\/api.github.com\/repos\/)(\$\{e\}\/\$\{t\})/\1dotnet\/runtime/' {} +
+# change dotnet repo to fork; fix api url
+find docs -type f -iwholename "*.html" -exec sed -i -r 's/(href="https:\/\/github.com\/)(dotnet)(\/runtime" title="Go to repository")/\1jurakovic\3/' {} +
+find docs/assets/javascripts -type f -iwholename "*.min.js" -exec sed -i -r 's/(https:\/\/api.github.com\/repos\/)(\$\{e\}\/\$\{t\})/\1dotnet\/runtime/' {} +
 
-  # change view raw url
-  find docs -type f -iwholename "*.html" -exec sed -i -r 's/(href="https:\/\/github\.com\/dotnet\/runtime\/)(raw)(.*" title="View source of this page")/\1blob\3/' {} +
+# change view url
+find docs -type f -iwholename "*.html" -exec sed -i -r 's/(href="https:\/\/github\.com\/dotnet\/runtime\/)(raw)(.*" title="View source of this page")/\1blob\3/' {} +
 
-  # fix chapters url
-  sed -i -r 's/(href=")(..\/botr)(">All Book of the Runtime \(BOTR\) chapters on GitHub)/\1https:\/\/github.com\/dotnet\/runtime\/blob\/main\/docs\/design\/coreclr\/botr\3/' docs/index.html
+# fix chapters url
+sed -i -r 's/(href=")(..\/botr)(">All Book of the Runtime \(BOTR\) chapters on GitHub)/\1https:\/\/github.com\/dotnet\/runtime\/blob\/main\/docs\/design\/coreclr\/botr\3/' docs/index.html
 
-  #echo "$curr" > commit.txt
+#echo "$curr" > commit.txt
 
-  #git add .
-  #git commit -m "$curr"
-fi;
+#git add .
+#git commit -m "$curr"
+
+echo "Done"

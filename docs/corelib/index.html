@@ -1,151 +1,1189 @@
-<!doctype html><html lang=en class=no-js> <head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><link href=https://jurakovic.github.io/runtime/corelib/ rel=canonical><link href=../stackwalking/ rel=prev><link href=../dac-notes/ rel=next><link rel=icon href=../assets/images/favicon.png><meta name=generator content="mkdocs-1.5.3, mkdocs-material-9.5.3"><title>System.Private.CoreLib and calling into the runtime - The Book of the Runtime</title><link rel=stylesheet href=../assets/stylesheets/main.50c56a3b.min.css><link rel=stylesheet href=../assets/stylesheets/palette.06af60db.min.css><link rel=preconnect href=https://fonts.gstatic.com crossorigin><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback"><style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style><script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script></head> <body dir=ltr data-md-color-scheme=default data-md-color-primary=indigo data-md-color-accent=indigo> <input class=md-toggle data-md-toggle=drawer type=checkbox id=__drawer autocomplete=off> <input class=md-toggle data-md-toggle=search type=checkbox id=__search autocomplete=off> <label class=md-overlay for=__drawer></label> <div data-md-component=skip> <a href=#systemprivatecorelib-and-calling-into-the-runtime class=md-skip> Skip to content </a> </div> <div data-md-component=announce> </div> <header class="md-header md-header--shadow" data-md-component=header> <nav class="md-header__inner md-grid" aria-label=Header> <a href=.. title="The Book of the Runtime" class="md-header__button md-logo" aria-label="The Book of the Runtime" data-md-component=logo> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg> </a> <label class="md-header__button md-icon" for=__drawer> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg> </label> <div class=md-header__title data-md-component=header-title> <div class=md-header__ellipsis> <div class=md-header__topic> <span class=md-ellipsis> The Book of the Runtime </span> </div> <div class=md-header__topic data-md-component=header-topic> <span class=md-ellipsis> System.Private.CoreLib and calling into the runtime </span> </div> </div> </div> <form class=md-header__option data-md-component=palette> <input class=md-option data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme=default data-md-color-primary=indigo data-md-color-accent=indigo aria-label="Switch to dark mode" type=radio name=__palette id=__palette_0> <label class="md-header__button md-icon" title="Switch to dark mode" for=__palette_1 hidden> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg> </label> <input class=md-option data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme=slate data-md-color-primary=black data-md-color-accent=indigo aria-label="Switch to light mode" type=radio name=__palette id=__palette_1> <label class="md-header__button md-icon" title="Switch to light mode" for=__palette_0 hidden> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg> </label> </form> <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script> <label class="md-header__button md-icon" for=__search> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg> </label> <div class=md-search data-md-component=search role=dialog> <label class=md-search__overlay for=__search></label> <div class=md-search__inner role=search> <form class=md-search__form name=search> <input type=text class=md-search__input name=query aria-label=Search placeholder=Search autocapitalize=off autocorrect=off autocomplete=off spellcheck=false data-md-component=search-query required> <label class="md-search__icon md-icon" for=__search> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg> </label> <nav class=md-search__options aria-label=Search> <button type=reset class="md-search__icon md-icon" title=Clear aria-label=Clear tabindex=-1> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg> </button> </nav> </form> <div class=md-search__output> <div class=md-search__scrollwrap data-md-scrollfix> <div class=md-search-result data-md-component=search-result> <div class=md-search-result__meta> Initializing search </div> <ol class=md-search-result__list role=presentation></ol> </div> </div> </div> </div> </div> <div class=md-header__source> <a href=https://github.com/jurakovic/runtime title="Go to repository" class=md-source data-md-component=source> <div class="md-source__icon md-icon"> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 448 512"><!-- Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg> </div> <div class=md-source__repository> jurakovic/runtime </div> </a> </div> </nav> </header> <div class=md-container data-md-component=container> <main class=md-main data-md-component=main> <div class="md-main__inner md-grid"> <div class="md-sidebar md-sidebar--primary" data-md-component=sidebar data-md-type=navigation> <div class=md-sidebar__scrollwrap> <div class=md-sidebar__inner> <nav class="md-nav md-nav--primary" aria-label=Navigation data-md-level=0> <label class=md-nav__title for=__drawer> <a href=.. title="The Book of the Runtime" class="md-nav__button md-logo" aria-label="The Book of the Runtime" data-md-component=logo> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg> </a> The Book of the Runtime </label> <div class=md-nav__source> <a href=https://github.com/jurakovic/runtime title="Go to repository" class=md-source data-md-component=source> <div class="md-source__icon md-icon"> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 448 512"><!-- Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg> </div> <div class=md-source__repository> jurakovic/runtime </div> </a> </div> <ul class=md-nav__list data-md-scrollfix> <li class=md-nav__item> <a href=.. class=md-nav__link> <span class=md-ellipsis> Introduction </span> </a> </li> <li class=md-nav__item> <a href=../botr-faq/ class=md-nav__link> <span class=md-ellipsis> Book of the Runtime FAQ </span> </a> </li> <li class=md-nav__item> <a href=../intro-to-clr/ class=md-nav__link> <span class=md-ellipsis> Introduction to the Common Language Runtime </span> </a> </li> <li class=md-nav__item> <a href=../garbage-collection/ class=md-nav__link> <span class=md-ellipsis> Garbage Collection Design </span> </a> </li> <li class=md-nav__item> <a href=../threading/ class=md-nav__link> <span class=md-ellipsis> Threading </span> </a> </li> <li class=md-nav__item> <a href=../type-system/ class=md-nav__link> <span class=md-ellipsis> Type System </span> </a> </li> <li class=md-nav__item> <a href=../type-loader/ class=md-nav__link> <span class=md-ellipsis> Type Loader </span> </a> </li> <li class=md-nav__item> <a href=../method-descriptor/ class=md-nav__link> <span class=md-ellipsis> Method Descriptor </span> </a> </li> <li class=md-nav__item> <a href=../virtual-stub-dispatch/ class=md-nav__link> <span class=md-ellipsis> Virtual Stub Dispatch </span> </a> </li> <li class=md-nav__item> <a href=../stackwalking/ class=md-nav__link> <span class=md-ellipsis> Stack Walking </span> </a> </li> <li class="md-nav__item md-nav__item--active"> <input class="md-nav__toggle md-toggle" type=checkbox id=__toc> <a href=./ class="md-nav__link md-nav__link--active"> <span class=md-ellipsis> System.Private.CoreLib and calling into the runtime </span> </a> </li> <li class=md-nav__item> <a href=../dac-notes/ class=md-nav__link> <span class=md-ellipsis> Data Access Component (DAC) Notes </span> </a> </li> <li class=md-nav__item> <a href=../profiling/ class=md-nav__link> <span class=md-ellipsis> Profiling </span> </a> </li> <li class=md-nav__item> <a href=../profilability/ class=md-nav__link> <span class=md-ellipsis> Implementing Profilability </span> </a> </li> <li class=md-nav__item> <a href=../exceptions/ class=md-nav__link> <span class=md-ellipsis> What Every Dev needs to Know About Exceptions in the Runtime </span> </a> </li> <li class=md-nav__item> <a href=../readytorun-overview/ class=md-nav__link> <span class=md-ellipsis> ReadyToRun Overview </span> </a> </li> <li class=md-nav__item> <a href=../clr-abi/ class=md-nav__link> <span class=md-ellipsis> CLR ABI </span> </a> </li> <li class=md-nav__item> <a href=../xplat-minidump-generation/ class=md-nav__link> <span class=md-ellipsis> Cross-platform Minidumps </span> </a> </li> <li class=md-nav__item> <a href=../mixed-mode/ class=md-nav__link> <span class=md-ellipsis> Mixed Mode Assemblies </span> </a> </li> <li class=md-nav__item> <a href=../guide-for-porting/ class=md-nav__link> <span class=md-ellipsis> Guide For Porting </span> </a> </li> <li class=md-nav__item> <a href=../vectors-and-intrinsics/ class=md-nav__link> <span class=md-ellipsis> Vectors and Intrinsics </span> </a> </li> <li class=md-nav__item> <a href=../ilc-architecture/ class=md-nav__link> <span class=md-ellipsis> ILC Compiler Architecture </span> </a> </li> <li class=md-nav__item> <a href=../managed-type-system/ class=md-nav__link> <span class=md-ellipsis> Managed Type System Overview </span> </a> </li> <li class=md-nav__item> <a href=../r2r-perfmap-format/ class=md-nav__link> <span class=md-ellipsis> Ready to run PerfMap format </span> </a> </li> <li class=md-nav__item> <a href=../readytorun-format/ class=md-nav__link> <span class=md-ellipsis> ReadyToRun File Format </span> </a> </li> <li class=md-nav__item> <a href=../shared-generics/ class=md-nav__link> <span class=md-ellipsis> Shared Generics Design </span> </a> </li> </ul> </nav> </div> </div> </div> <div class="md-sidebar md-sidebar--secondary" data-md-component=sidebar data-md-type=toc> <div class=md-sidebar__scrollwrap> <div class=md-sidebar__inner> <nav class="md-nav md-nav--secondary" aria-label="Table of contents"> </nav> </div> </div> </div> <div class=md-content data-md-component=content> <article class="md-content__inner md-typeset"> <a href=https://github.com/jurakovic/runtime/raw/main/docs/design/coreclr/botr/corelib.md title="View source of this page" class="md-content__button md-icon"> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.15 8.15 0 0 1-1.23-2Z"/></svg> </a> <h1 id=systemprivatecorelib-and-calling-into-the-runtime><code>System.Private.CoreLib</code> and calling into the runtime</h1> <h1 id=introduction>Introduction</h1> <p><code>System.Private.CoreLib.dll</code> is the assembly for defining the core parts of the type system, and a good portion of the Base Class Library in .NET Framework. It was originally named <code>mscorlib</code> in .NET Core, though many places in the code and documentation still refer to it as <code>mscorlib</code>. This document will endeavour to stick to using <code>System.Private.CoreLib</code> or CoreLib. Base data types live in this assembly, and it has a tight coupling with the CLR. Here you will learn exactly how and why CoreLib is special and the basics about calling into the CLR from managed code via QCall and FCall methods. It also discusses calling from within the CLR into managed code.</p> <h2 id=dependencies>Dependencies</h2> <p>Since CoreLib defines base data types like <code>Object</code>, <code>Int32</code>, and <code>String</code>, CoreLib cannot depend on other managed assemblies. However, there is a strong dependency between CoreLib and the CLR. Many of the types in CoreLib need to be accessed from native code, so the layout of many managed types is defined both in managed code and in native code inside the CLR. Additionally, some fields may be defined only in Debug, Checked, or Release builds, so typically CoreLib must be compiled separately for each type of build.</p> <p><code>System.Private.CoreLib.dll</code> builds separately for 64 bit and 32 bit, and some public constants it exposes differ by bitness. By using these constants, such as <code>IntPtr.Size</code>, most libraries above CoreLib should not need to build separately for 32 bit vs. 64 bit.</p> <h2 id=what-makes-systemprivatecorelib-special>What makes <code>System.Private.CoreLib</code> special?</h2> <p>CoreLib has several unique properties, many of which are due to its tight coupling to the CLR.</p> <ul> <li>CoreLib defines the core types necessary to implement the CLR's Virtual Object System, such as the base data types (<code>Object</code>, <code>Int32</code>, <code>String</code>, etc).</li> <li>The CLR must load CoreLib on startup to load certain system types.</li> <li>Can only have one CoreLib loaded in the process at a time, due to layout issues. Loading multiple CoreLibs would require formalizing a contract of behavior, FCall methods, and datatype layout between CLR and CoreLib, and keeping that contract relatively stable across versions.</li> <li>CoreLib's types are used heavily for native interop and managed exceptions should map correctly to native error codes/formats.</li> <li>The CLR's multiple JIT compilers may special case a small group of certain methods in CoreLib for performance reasons, both in terms of optimizing away the method (such as <code>Math.Cos(double)</code>), or calling a method in peculiar ways (such as <code>Array.Length</code>, or some implementation details on <code>StringBuilder</code> for getting the current thread).</li> <li>CoreLib will need to call into native code, via P/Invoke where appropriate, primarily into the underlying operating system or occasionally a platform adaptation layer.</li> <li>CoreLib will require calling into the CLR to expose some CLR-specific functionality, such as triggering a garbage collection, to load classes, or to interact with the type system in a non-trivial way. This requires a bridge between managed code and native, "manually managed" code within the CLR.</li> <li>The CLR will need to call into managed code to call managed methods, and to get at certain functionality that is only implemented in managed code.</li> </ul> <h1 id=interface-between-managed-and-clr-code>Interface between managed and CLR code</h1> <p>To reiterate, the needs of managed code in CoreLib include:</p> <ul> <li>The ability to access fields of some managed data structures in both managed code and "manually managed" code within the CLR.</li> <li>Managed code must be able to call into the CLR.</li> <li>The CLR must be able to call managed code.</li> </ul> <p>To implement these, we need a way for the CLR to specify and optionally verify the layout of a managed object in native code, a managed mechanism for calling into native code, and a native mechanism for calling into managed code.</p> <p>The managed mechanism for calling into native code must also support the special managed calling convention used by <code>String</code>'s constructors, where the constructor allocates the memory used by the object (instead of the typical convention where the constructor is called after the GC allocates memory).</p> <p>The CLR provides a <a href=https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/binder.cpp><code>mscorlib</code> binder</a> internally, providing a mapping between unmanaged types and fields to managed types and fields. The binder will look up and load classes and allows the calling of managed methods. It also performs simple verification to ensure the correctness of any layout information specified in both managed and native code. The binder ensures that the managed class attempting to load exists in mscorlib, has been loaded, and the field offsets are correct. It also needs the ability to differentiate between method overloads with different signatures.</p> <h1 id=calling-from-managed-to-native-code>Calling from managed to native code</h1> <p>Two techniques exist for calling into the CLR from managed code. FCall allows you to call directly into the CLR code, and provides a lot of flexibility in terms of manipulating objects, though it is easy to cause GC holes by not tracking object references correctly. QCall also allows you to call into the CLR via the P/Invoke, but is much harder to accidentally mis-use. FCalls are identified in managed code as extern methods with the <a href=https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.methodimploptions><code>MethodImplOptions.InternalCall</code></a> bit set. QCalls are marked <code>static extern</code> methods similar to regular P/Invokes, but are directed toward a library called <code>"QCall"</code>.</p> <p>There is a small variant of FCall called HCall (for Helper call) for implementing JIT helpers. The HCall is intended for doing things like accessing multi-dimensional array elements, range checks, etc. The only difference between HCall and FCall is that HCall methods won't show up in an exception stack trace.</p> <h3 id=choosing-between-fcall-qcall-pinvoke-and-writing-in-managed-code>Choosing between FCall, QCall, P/Invoke, and writing in managed code</h3> <p>First, remember that you should be writing as much as possible in managed code. You avoid a raft of potential GC hole issues, you get a better debugging experience, and the code is often simpler.</p> <p>Reasons to write FCalls in the past generally fell into three camps: missing language features, better performance, or implementing unique interactions with the runtime. C# now has almost every useful language feature that you could get from C++, including unsafe code and stack-allocated buffers, and this eliminates the first two reasons for FCalls. We have ported some parts of the CLR that were heavily reliant on FCalls to managed code in the past (such as Reflection, some Encoding, and String operations) and we intend to continue this momentum.</p> <p>If the only reason you're defining a FCall method is to call a native method, you should be using P/Invoke to call the method directly. <a href=https://learn.microsoft.com/dotnet/api/system.runtime.interopservices.dllimportattribute>P/Invoke</a> is the public native method interface and should be doing everything you need in a correct manner.</p> <p>If you still need to implement a feature inside the runtime, consider if there is a way to reduce the frequency of transitioning to native code. Can you write the common case in managed and only call into native for some rare corner cases? You're usually best off keeping as much as possible in managed code.</p> <p>QCalls are the preferred mechanism going forward. You should only use FCalls when you are "forced" to. This happens when there is common "short path" through the code that is important to optimize. This short path should not be more than a few hundred instructions, cannot allocate GC memory, take locks or throw exceptions (<code>GC_NOTRIGGER</code>, <code>NOTHROWS</code>). In all other circumstances (and especially when you enter a FCall and then simply erect HelperMethodFrame), you should be using QCall.</p> <p>FCalls were specifically designed for short paths of code that must be optimized. They allowed explicit control over when erecting a frame was done. However, it is error prone and not worth the complexity for many APIs. QCalls are essentially P/Invokes into the CLR. In the event the performance of an FCall is required consider creating a QCall and marking it with <a href=https://learn.microsoft.com/dotnet/api/system.runtime.interopservices.suppressgctransitionattribute><code>SuppressGCTransitionAttribute</code></a>.</p> <p>As a result, QCalls give you some advantageous marshaling for <code>SafeHandle</code>s automatically – your native method just takes a <code>HANDLE</code> type, and can be used without worrying whether someone will free the handle while in that method body. The resulting FCall method would need to use a <code>SafeHandleHolder</code> and may need to protect the <code>SafeHandle</code>, etc. Leveraging the P/Invoke marshaler can avoid this additional plumbing code.</p> <h2 id=qcall-functional-behavior>QCall functional behavior</h2> <p>QCalls are very much like a normal P/Invoke from CoreLib to CLR. Unlike FCalls, QCalls will marshal all arguments as unmanaged types like a normal P/Invoke. QCall also switch to preemptive GC mode like a normal P/Invoke. These two features should make QCalls easier to write reliably compared to FCalls. QCalls are not prone to GC holes and GC starvation bugs that are common with FCalls.</p> <p>QCalls perform better than FCalls that erect a <code>HelperMethodFrame</code>. The overhead is about 1.4x less compared to FCall w/ <code>HelperMethodFrame</code> overhead on x86 and x64.</p> <p>The preferred types for QCall arguments are primitive types that are efficiently handled by the P/Invoke marshaler (<code>INT32</code>, <code>LPCWSTR</code>, <code>BOOL</code>). Notice that <code>BOOL</code> is the correct boolean flavor for QCall arguments. On the other hand, <code>CLR_BOOL</code> is the correct boolean flavor for FCall arguments.</p> <p>The pointers to common unmanaged EE structures should be wrapped into handle types. This is to make the managed implementation type safe and avoid falling into unsafe C# everywhere. See AssemblyHandle in <a href=https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/qcall.h>vm\qcall.h</a> for an example.</p> <p>Passing object references in and out of QCalls is done by wrapping a pointer to a local variable in a handle. It is intentionally cumbersome and should be avoided if reasonably possible. See the <code>StringHandleOnStack</code> in the example below. Returning objects, especially strings, from QCalls is the only common pattern where passing the raw objects is widely acceptable. (For reasoning on why this set of restrictions helps make QCalls less prone to GC holes, read the <a href=#gcholes>"GC Holes, FCall, and QCall"</a> section below.)</p> <p>QCalls should be implemented with a C-style method signature. This makes it easier for AOT tooling in the future to connect a QCall on the managed side to the implementation on the native side.</p> <h3 id=qcall-example-managed>QCall example - managed</h3> <p>Do not replicate the comments into your actual QCall implementation. This is for illustrative purposes.</p> <div class=highlight><pre><span></span><code><span class=k>class</span><span class=w> </span><span class=nc>Foo</span>
-<span class=p>{</span>
-<span class=w>    </span><span class=c1>// All QCalls should have the following DllImport attribute</span>
-<span class=w>    </span><span class=na>[DllImport(RuntimeHelpers.QCall, EntryPoint = &quot;Foo_BarInternal&quot;, CharSet = CharSet.Unicode)]</span>
 
-<span class=w>    </span><span class=c1>// QCalls should always be static extern.</span>
-<span class=w>    </span><span class=k>private</span><span class=w> </span><span class=k>static</span><span class=w> </span><span class=k>extern</span><span class=w> </span><span class=kt>bool</span><span class=w> </span><span class=nf>BarInternal</span><span class=p>(</span><span class=kt>int</span><span class=w> </span><span class=n>flags</span><span class=p>,</span><span class=w> </span><span class=kt>string</span><span class=w> </span><span class=n>inString</span><span class=p>,</span><span class=w> </span><span class=n>StringHandleOnStack</span><span class=w> </span><span class=n>retString</span><span class=p>);</span>
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://jurakovic.github.io/runtime/corelib/">
+      
+      
+        <link rel="prev" href="../stackwalking/">
+      
+      
+        <link rel="next" href="../dac-notes/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.3">
+    
+    
+      
+        <title>System.Private.CoreLib and calling into the runtime - The Book of the Runtime</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.50c56a3b.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
 
-<span class=w>    </span><span class=c1>// Many QCalls have a thin managed wrapper around them to perform</span>
-<span class=w>    </span><span class=c1>// as much work prior to the transition as possible. An example would be</span>
-<span class=w>    </span><span class=c1>// argument validation which is easier in managed than native code.</span>
-<span class=w>    </span><span class=k>public</span><span class=w> </span><span class=kt>string</span><span class=w> </span><span class=nf>Bar</span><span class=p>(</span><span class=kt>int</span><span class=w> </span><span class=n>flags</span><span class=p>)</span>
-<span class=w>    </span><span class=p>{</span>
-<span class=w>        </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>flags</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=m>0</span><span class=p>)</span>
-<span class=w>            </span><span class=k>throw</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=nf>ArgumentException</span><span class=p>(</span><span class=s>&quot;Invalid flags&quot;</span><span class=p>);</span>
 
-<span class=w>        </span><span class=kt>string</span><span class=w> </span><span class=n>retString</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>null</span><span class=p>;</span>
-<span class=w>        </span><span class=c1>// The strings are returned from QCalls by taking address</span>
-<span class=w>        </span><span class=c1>// of a local variable using StringHandleOnStack</span>
-<span class=w>        </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=n>BarInternal</span><span class=p>(</span><span class=n>flags</span><span class=p>,</span><span class=w> </span><span class=k>this</span><span class=p>.</span><span class=n>Id</span><span class=p>,</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>StringHandleOnStack</span><span class=p>(</span><span class=k>ref</span><span class=w> </span><span class=n>retString</span><span class=p>)))</span>
-<span class=w>            </span><span class=n>FatalError</span><span class=p>();</span>
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
 
-<span class=w>        </span><span class=k>return</span><span class=w> </span><span class=n>retString</span><span class=p>;</span>
-<span class=w>    </span><span class=p>}</span>
-<span class=p>}</span>
-</code></pre></div> <h3 id=qcall-example-unmanaged>QCall example - unmanaged</h3> <p>Do not replicate the comments into your actual QCall implementation.</p> <p>The QCall entrypoint has to be registered in tables in <a href=https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/qcallentrypoints.cpp>vm\qcallentrypoints.cpp</a> using the <code>DllImportEntry</code> macro. See <a href=#register>"Registering your QCall or FCall Method"</a> below.</p> <div class=highlight><pre><span></span><code><span class=c1>// All QCalls should be free functions and tagged with QCALLTYPE and extern &quot;C&quot;</span>
-<span class=k>extern</span><span class=w> </span><span class=s>&quot;C&quot;</span><span class=w> </span><span class=n>BOOL</span><span class=w> </span><span class=n>QCALLTYPE</span><span class=w> </span><span class=n>Foo_BarInternal</span><span class=p>(</span><span class=kt>int</span><span class=w> </span><span class=n>flags</span><span class=p>,</span><span class=w> </span><span class=n>LPCWSTR</span><span class=w> </span><span class=n>wszString</span><span class=p>,</span><span class=w> </span><span class=n>QCall</span><span class=o>::</span><span class=n>StringHandleOnStack</span><span class=w> </span><span class=n>retString</span><span class=p>)</span>
-<span class=p>{</span>
-<span class=w>    </span><span class=c1>// All QCalls should have QCALL_CONTRACT.</span>
-<span class=w>    </span><span class=c1>// It is alias for THROWS; GC_TRIGGERS; MODE_PREEMPTIVE.</span>
-<span class=w>    </span><span class=n>QCALL_CONTRACT</span><span class=p>;</span>
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#systemprivatecorelib-and-calling-into-the-runtime" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
 
-<span class=w>    </span><span class=c1>// Optionally, use QCALL_CHECK instead and the expanded form of the contract</span>
-<span class=w>    </span><span class=c1>// if you want to specify preconditions:</span>
-<span class=w>    </span><span class=c1>// CONTRACTL {</span>
-<span class=w>    </span><span class=c1>//     QCALL_CHECK;</span>
-<span class=w>    </span><span class=c1>//     PRECONDITION(wszString != NULL);</span>
-<span class=w>    </span><span class=c1>// } CONTRACTL_END;</span>
+  
 
-<span class=w>    </span><span class=c1>// The only line between QCALL_CONTRACT and BEGIN_QCALL</span>
-<span class=w>    </span><span class=c1>// should be the return value declaration if there is one.</span>
-<span class=w>    </span><span class=n>BOOL</span><span class=w> </span><span class=n>retVal</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>FALSE</span><span class=p>;</span>
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="The Book of the Runtime" class="md-header__button md-logo" aria-label="The Book of the Runtime" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
 
-<span class=w>    </span><span class=c1>// The body has to be enclosed in BEGIN_QCALL/END_QCALL macro.</span>
-<span class=w>    </span><span class=c1>// It is necessary for exception handling.</span>
-<span class=w>    </span><span class=n>BEGIN_QCALL</span><span class=p>;</span>
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            The Book of the Runtime
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              System.Private.CoreLib and calling into the runtime
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jurakovic/runtime" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dotnet/runtime
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
 
-<span class=w>    </span><span class=c1>// Argument validation would ideally be in managed, but in some cases</span>
-<span class=w>    </span><span class=c1>// needs to be done in native. If argument validation is done in</span>
-<span class=w>    </span><span class=c1>// managed asserting in native is warranted.</span>
-<span class=w>    </span><span class=n>_ASSERTE</span><span class=p>(</span><span class=n>flags</span><span class=w> </span><span class=o>!=</span><span class=w> </span><span class=mi>0</span><span class=p>);</span>
 
-<span class=w>    </span><span class=c1>// No need to worry about GC moving strings passed into QCall.</span>
-<span class=w>    </span><span class=c1>// Marshalling pins them for us.</span>
-<span class=w>    </span><span class=n>printf</span><span class=p>(</span><span class=s>&quot;%S</span><span class=se>\n</span><span class=s>&quot;</span><span class=p>,</span><span class=w> </span><span class=n>wszString</span><span class=p>);</span>
 
-<span class=w>    </span><span class=c1>// This is the most efficient way to return strings back</span>
-<span class=w>    </span><span class=c1>// to managed code. No need to use StringBuilder.</span>
-<span class=w>    </span><span class=n>retString</span><span class=p>.</span><span class=n>Set</span><span class=p>(</span><span class=sa>L</span><span class=s>&quot;Hello&quot;</span><span class=p>);</span>
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="The Book of the Runtime" class="md-nav__button md-logo" aria-label="The Book of the Runtime" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
 
-<span class=w>    </span><span class=c1>// You can not return from inside of BEGIN_QCALL/END_QCALL.</span>
-<span class=w>    </span><span class=c1>// The return value has to be passed out in helper variable.</span>
-<span class=w>    </span><span class=n>retVal</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>TRUE</span><span class=p>;</span>
+    </a>
+    The Book of the Runtime
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jurakovic/runtime" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dotnet/runtime
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+  
 
-<span class=w>    </span><span class=n>END_QCALL</span><span class=p>;</span>
+      </a>
+    </li>
+  
 
-<span class=w>    </span><span class=k>return</span><span class=w> </span><span class=n>retVal</span><span class=p>;</span>
-<span class=p>}</span>
-</code></pre></div> <h2 id=fcall-functional-behavior>FCall functional behavior</h2> <p>FCalls allow more flexibility in terms of passing object references around, but with higher code complexity and more opportunities to make mistakes. Additionally, FCall methods must either erect a helper method frame along their common code paths, or for any FCall of non-trivial length, explicitly poll for whether a garbage collection must occur. Failing to do so will lead to starvation issues if managed code repeatedly calls the FCall method in a tight loop, because FCalls execute while the thread only allows the GC to run in a cooperative manner.</p> <p>FCalls require a lot of boilerplate code, too much to describe here. Refer to <a href=https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/fcall.h>fcall.h</a> for details.</p> <h3 id=gc-holes-fcall-and-qcall><a name=gcholes></a> GC holes, FCall, and QCall</h3> <p>A more complete discussion on GC holes can be found in the <a href=../../../coding-guidelines/clr-code-guide.md>CLR Code Guide</a>. Look for <a href=../../../coding-guidelines/clr-code-guide.md#2.1>"Is your code GC-safe?"</a>. This tailored discussion motivates some of the reasons why FCall and QCall have some of their strange conventions.</p> <p>Object references passed as parameters to FCall methods are not GC-protected, meaning that if a GC occurs, those references will point to the old location in memory of an object, not the new location. For this reason, FCalls usually follow the discipline of accepting something like <code>StringObject*</code> as their parameter type, then explicitly converting that to a <code>STRINGREF</code> before doing operations that may trigger a GC. If you expect to use an object reference later, you must GC protect object references before triggering a GC.</p> <p>All GC heap allocations within an FCall method must happen within a helper method frame. If you allocate memory on the GC heap, the GC may collect dead objects and move objects around in unpredictable ways, with some low probability. For this reason, you must manually report any object references in your method to the GC, so that if a garbage collection occurs, your object reference will be updated to refer to the new location in memory. Any pointers into managed objects (like arrays or Strings) within your code will not be updated automatically, and must be re-fetched after any operation that may allocate memory and before your first usage. Reporting a reference can be done via the <code>GCPROTECT_*</code> macros or as parameters when erecting a helper method frame.</p> <p>Failing to properly report an <code>OBJECTREF</code> or to update an interior pointer is commonly referred to as a "GC hole", because the <code>OBJECTREF</code> class will do some validation that it points to a valid object every time you dereference it in Debug and Checked builds. When an <code>OBJECTREF</code> pointing to an invalid object is dereferenced, an assert will trigger saying something like "Detected an invalid object reference. Possible GC hole?". This assert is unfortunately easy to hit when writing "manually managed" code.</p> <p>Note that QCall's programming model is restrictive to sidestep GC holes by forcing you to pass in the address of an object reference on the stack. This guarantees that the object reference is GC protected by the JIT's reporting logic, and that the actual object reference will not move because it is not allocated in the GC heap. QCall is our recommended approach, precisely because it makes GC holes harder to write.</p> <h3 id=fcall-epilog-walker-for-x86>FCall epilog walker for x86</h3> <p>The managed stack walker needs to be able to find its way from FCalls. It is relative easy on newer platforms that define conventions for stack unwinding as part of the ABI. The stack unwinding conventions are not defined by an ABI for x86. The runtime works around this by implementing an epilog walker. The epilog walker computes the FCall return address and callee save registers by simulating the FCall execution. This imposes limits on what constructs are allowed in the FCall implementation.</p> <p>Complex constructs like stack allocated objects with destructors or exception handling in the FCall implementation may confuse the epilog walker. This can lead to GC holes or crashes during stack walking. There is no comprehensive list of what constructs should be avoided to prevent this class of bugs. An FCall implementation that is fine one day may break with the next C++ compiler update. We depend on stress runs and code coverage to find bugs in this area.</p> <p>Setting a breakpoint inside an FCall implementation may confuse the epilog walker. It leads to an "Invalid breakpoint in a helpermethod frame epilog" assert inside <a href=https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/i386/gmsx86.cpp>vm\i386\gmsx86.cpp</a>.</p> <h3 id=fcall-example-managed>FCall example – managed</h3> <p>Here's a real-world example from the <code>String</code> class:</p> <div class=highlight><pre><span></span><code><span class=k>public</span><span class=w> </span><span class=k>partial</span><span class=w> </span><span class=k>sealed</span><span class=w> </span><span class=k>class</span><span class=w> </span><span class=nc>String</span>
-<span class=p>{</span>
-<span class=w>    </span><span class=na>[MethodImpl(MethodImplOptions.InternalCall)]</span>
-<span class=w>    </span><span class=k>private</span><span class=w> </span><span class=k>extern</span><span class=w> </span><span class=kt>string?</span><span class=w> </span><span class=n>IsInterned</span><span class=p>();</span>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../botr-faq/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Book of the Runtime FAQ
+  </span>
+  
 
-<span class=w>    </span><span class=k>public</span><span class=w> </span><span class=k>static</span><span class=w> </span><span class=kt>string?</span><span class=w> </span><span class=n>IsInterned</span><span class=p>(</span><span class=kt>string</span><span class=w> </span><span class=n>str</span><span class=p>)</span>
-<span class=w>    </span><span class=p>{</span>
-<span class=w>        </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>str</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=k>null</span><span class=p>)</span>
-<span class=w>        </span><span class=p>{</span>
-<span class=w>            </span><span class=k>throw</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=nf>ArgumentNullException</span><span class=p>(</span><span class=n>nameof</span><span class=p>(</span><span class=n>str</span><span class=p>));</span>
-<span class=w>        </span><span class=p>}</span>
+      </a>
+    </li>
+  
 
-<span class=w>        </span><span class=k>return</span><span class=w> </span><span class=n>str</span><span class=p>.</span><span class=n>IsInterned</span><span class=p>();</span>
-<span class=w>    </span><span class=p>}</span>
-<span class=p>}</span>
-</code></pre></div> <h3 id=fcall-example-unmanaged>FCall example – unmanaged</h3> <p>The FCall entrypoint has to be registered in tables in <a href=https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/ecalllist.h>vm\ecalllist.h</a> using <code>FCFuncEntry</code> macro. See <a href=#register>"Registering your QCall or FCall Method"</a>.</p> <p>This method is an instance method in managed code, with the "this" parameter passed as the first argument. We use <code>StringObject*</code> as the argument type, then copy it into a <code>STRINGREF</code> so we get some error checking when we use it.</p> <div class=highlight><pre><span></span><code><span class=n>FCIMPL1</span><span class=p>(</span><span class=n>Object</span><span class=o>*</span><span class=p>,</span><span class=w> </span><span class=n>AppDomainNative</span><span class=o>::</span><span class=n>IsStringInterned</span><span class=p>,</span><span class=w> </span><span class=n>StringObject</span><span class=o>*</span><span class=w> </span><span class=n>pStringUNSAFE</span><span class=p>)</span>
-<span class=p>{</span>
-<span class=w>    </span><span class=n>FCALL_CONTRACT</span><span class=p>;</span>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intro-to-clr/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction to the Common Language Runtime
+  </span>
+  
 
-<span class=w>    </span><span class=n>STRINGREF</span><span class=w>       </span><span class=n>refString</span><span class=w>   </span><span class=o>=</span><span class=w> </span><span class=n>ObjectToSTRINGREF</span><span class=p>(</span><span class=n>pStringUNSAFE</span><span class=p>);</span>
-<span class=w>    </span><span class=n>STRINGREF</span><span class=o>*</span><span class=w>      </span><span class=n>prefRetVal</span><span class=w>  </span><span class=o>=</span><span class=w> </span><span class=nb>NULL</span><span class=p>;</span>
+      </a>
+    </li>
+  
 
-<span class=w>    </span><span class=n>HELPER_METHOD_FRAME_BEGIN_RET_1</span><span class=p>(</span><span class=n>refString</span><span class=p>);</span>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../garbage-collection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Garbage Collection Design
+  </span>
+  
 
-<span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>refString</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=nb>NULL</span><span class=p>)</span>
-<span class=w>        </span><span class=n>COMPlusThrow</span><span class=p>(</span><span class=n>kArgumentNullException</span><span class=p>,</span><span class=w> </span><span class=n>W</span><span class=p>(</span><span class=s>&quot;ArgumentNull_String&quot;</span><span class=p>));</span>
+      </a>
+    </li>
+  
 
-<span class=w>    </span><span class=n>prefRetVal</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>GetAppDomain</span><span class=p>()</span><span class=o>-&gt;</span><span class=n>IsStringInterned</span><span class=p>(</span><span class=o>&amp;</span><span class=n>refString</span><span class=p>);</span>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../threading/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Threading
+  </span>
+  
 
-<span class=w>    </span><span class=n>HELPER_METHOD_FRAME_END</span><span class=p>();</span>
+      </a>
+    </li>
+  
 
-<span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>prefRetVal</span><span class=w> </span><span class=o>==</span><span class=w> </span><span class=nb>NULL</span><span class=p>)</span>
-<span class=w>        </span><span class=k>return</span><span class=w> </span><span class=nb>NULL</span><span class=p>;</span>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../type-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Type System
+  </span>
+  
 
-<span class=w>    </span><span class=k>return</span><span class=w> </span><span class=n>OBJECTREFToObject</span><span class=p>(</span><span class=o>*</span><span class=n>prefRetVal</span><span class=p>);</span>
-<span class=p>}</span>
-<span class=n>FCIMPLEND</span>
-</code></pre></div> <h2 id=registering-your-qcall-or-fcall-method><a name=register></a> Registering your QCall or FCall method</h2> <p>The CLR must know the name of your QCall and FCall methods, both in terms of the managed class and method names, as well as which native methods to call. For FCalls, registration is done in <a href=https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/ecalllist.h>ecalllist.h</a>, with two arrays. The first array maps namespace and class names to an array of function elements. That array of function elements then maps individual method names and signatures to function pointers.</p> <p>Say we defined an FCall method for <code>String.IsInterned()</code>, in the example above. First, we need to ensure that we have an array of function elements for the String class.</p> <div class=highlight><pre><span></span><code><span class=c1>// Note these have to remain sorted by name:namespace pair</span>
-<span class=w>    </span><span class=p>...</span>
-<span class=w>    </span><span class=n>FCClassElement</span><span class=p>(</span><span class=s>&quot;String&quot;</span><span class=p>,</span><span class=w> </span><span class=s>&quot;System&quot;</span><span class=p>,</span><span class=w> </span><span class=n>gStringFuncs</span><span class=p>)</span>
-<span class=w>    </span><span class=p>...</span>
-</code></pre></div> <p>Second, we must then ensure that <code>gStringFuncs</code> contains a proper entry for <code>IsInterned</code>. Note that if a method name has multiple overloads then we can specify a signature:</p> <div class=highlight><pre><span></span><code><span class=n>FCFuncStart</span><span class=p>(</span><span class=n>gStringFuncs</span><span class=p>)</span>
-<span class=w>    </span><span class=p>...</span>
-<span class=w>    </span><span class=n>FCFuncElement</span><span class=p>(</span><span class=s>&quot;IsInterned&quot;</span><span class=p>,</span><span class=w> </span><span class=n>AppDomainNative</span><span class=o>::</span><span class=n>IsStringInterned</span><span class=p>)</span>
-<span class=w>    </span><span class=p>...</span>
-<span class=n>FCFuncEnd</span><span class=p>()</span>
-</code></pre></div> <p>QCalls are registered in <a href=https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/qcallentrypoints.cpp>qcallentrypoints.cpp</a> in the <code>s_QCall</code> array with the <code>DllImportEntry</code> macro as follows:</p> <div class=highlight><pre><span></span><code><span class=k>static</span><span class=w> </span><span class=k>const</span><span class=w> </span><span class=n>Entry</span><span class=w> </span><span class=n>s_QCall</span><span class=p>[]</span><span class=w> </span><span class=o>=</span>
-<span class=p>{</span>
-<span class=w>    </span><span class=p>...</span>
-<span class=w>    </span><span class=n>DllImportEntry</span><span class=p>(</span><span class=n>MyQCall</span><span class=p>),</span>
-<span class=w>    </span><span class=p>...</span>
-<span class=p>};</span>
-</code></pre></div> <h2 id=naming-convention>Naming convention</h2> <p>FCalls and QCalls should not be publicly exposed. Instead wrap the actual FCall or QCall and provide a API approved name.</p> <p>The internal FCall or QCall should use the "Internal" suffix to disambiguate the name of the FCall or QCall from public entry point (e.g. the public entry point does error checking and then calls shared worker function with exactly same signature). This is no different from how you would deal with this situation in pure managed code in BCL.</p> <h1 id=types-with-a-managedunmanaged-duality>Types with a managed/unmanaged duality</h1> <p>Certain managed types must have a representation available in both managed and native code. You could ask whether the canonical definition of a type is in managed code or native code within the CLR, but the answer doesn't matter – the key thing is they must both be identical. This will allow the CLR's native code to access fields within a managed object in a fast and efficient manner. There is a more complex way of using essentially the CLR's equivalent of Reflection over <code>MethodTable</code>s and <code>FieldDesc</code>s to retrieve field values, but this doesn't perform as well as desired and isn't very usable. For commonly used types, it makes sense to declare a data structure in native code and keep the two in sync.</p> <p>The CLR provides a binder for this purpose. After you define your managed and native classes, you should provide some clues to the binder to help ensure that the field offsets remain the same to quickly spot when someone accidentally adds a field to only one definition of a type.</p> <p>In <a href=https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/corelib.h>corelib.h</a>, use macros ending in "_U" to describe a type, the name of fields in managed code, and the name of fields in a corresponding native data structure. Additionally, you can specify a list of methods, and reference them by name when you attempt to call them later.</p> <div class=highlight><pre><span></span><code><span class=n>DEFINE_CLASS_U</span><span class=p>(</span><span class=n>SAFE_HANDLE</span><span class=p>,</span><span class=w>         </span><span class=n>Interop</span><span class=p>,</span><span class=w>                </span><span class=n>SafeHandle</span><span class=p>,</span><span class=w>         </span><span class=n>SafeHandle</span><span class=p>)</span>
-<span class=n>DEFINE_FIELD</span><span class=p>(</span><span class=n>SAFE_HANDLE</span><span class=p>,</span><span class=w>           </span><span class=n>HANDLE</span><span class=p>,</span><span class=w>                 </span><span class=n>handle</span><span class=p>)</span>
-<span class=n>DEFINE_FIELD_U</span><span class=p>(</span><span class=n>SAFE_HANDLE</span><span class=p>,</span><span class=w>         </span><span class=n>STATE</span><span class=p>,</span><span class=w>                  </span><span class=n>_state</span><span class=p>,</span><span class=w>                     </span><span class=n>SafeHandle</span><span class=p>,</span><span class=w>            </span><span class=n>m_state</span><span class=p>)</span>
-<span class=n>DEFINE_FIELD_U</span><span class=p>(</span><span class=n>SAFE_HANDLE</span><span class=p>,</span><span class=w>         </span><span class=n>OWNS_HANDLE</span><span class=p>,</span><span class=w>            </span><span class=n>_ownsHandle</span><span class=p>,</span><span class=w>                </span><span class=n>SafeHandle</span><span class=p>,</span><span class=w>            </span><span class=n>m_ownsHandle</span><span class=p>)</span>
-<span class=n>DEFINE_FIELD_U</span><span class=p>(</span><span class=n>SAFE_HANDLE</span><span class=p>,</span><span class=w>         </span><span class=n>INITIALIZED</span><span class=p>,</span><span class=w>            </span><span class=n>_fullyInitialized</span><span class=p>,</span><span class=w>          </span><span class=n>SafeHandle</span><span class=p>,</span><span class=w>            </span><span class=n>m_fullyInitialized</span><span class=p>)</span>
-<span class=n>DEFINE_METHOD</span><span class=p>(</span><span class=n>SAFE_HANDLE</span><span class=p>,</span><span class=w>          </span><span class=n>GET_IS_INVALID</span><span class=p>,</span><span class=w>         </span><span class=n>get_IsInvalid</span><span class=p>,</span><span class=w>              </span><span class=n>IM_RetBool</span><span class=p>)</span>
-<span class=n>DEFINE_METHOD</span><span class=p>(</span><span class=n>SAFE_HANDLE</span><span class=p>,</span><span class=w>          </span><span class=n>RELEASE_HANDLE</span><span class=p>,</span><span class=w>         </span><span class=n>ReleaseHandle</span><span class=p>,</span><span class=w>              </span><span class=n>IM_RetBool</span><span class=p>)</span>
-<span class=n>DEFINE_METHOD</span><span class=p>(</span><span class=n>SAFE_HANDLE</span><span class=p>,</span><span class=w>          </span><span class=n>DISPOSE</span><span class=p>,</span><span class=w>                </span><span class=n>Dispose</span><span class=p>,</span><span class=w>                    </span><span class=n>IM_RetVoid</span><span class=p>)</span>
-<span class=n>DEFINE_METHOD</span><span class=p>(</span><span class=n>SAFE_HANDLE</span><span class=p>,</span><span class=w>          </span><span class=n>DISPOSE_BOOL</span><span class=p>,</span><span class=w>           </span><span class=n>Dispose</span><span class=p>,</span><span class=w>                    </span><span class=n>IM_Bool_RetVoid</span><span class=p>)</span>
-</code></pre></div> <p>Then, you can use the <code>REF&lt;T&gt;</code> template to create a type name like <code>SAFEHANDLEREF</code>. All the error checking from <code>OBJECTREF</code> is built into the <code>REF&lt;T&gt;</code> template, and you can freely dereference this <code>SAFEHANDLEREF</code> and use fields off of it in native code. You still must GC protect these references.</p> <h1 id=calling-into-managed-code-from-unmanaged-code>Calling into managed code from unmanaged code</h1> <p>Clearly there are places where the CLR must call into managed code from native. For this purpose, we have added a <code>MethodDescCallSite</code> class to handle a lot of plumbing for you. Conceptually, all you need to do is find the <code>MethodDesc*</code> for the method you want to call, find a managed object for the "this" pointer (if you're calling an instance method), pass in an array of arguments, and deal with the return value. Internally, you'll need to potentially toggle your thread's state to allow the GC to run in preemptive mode, etc.</p> <p>Here's a simplified example. Note how this instance uses the binder described in the previous section to call <code>SafeHandle</code>'s virtual <code>ReleaseHandle</code> method.</p> <div class=highlight><pre><span></span><code><span class=kt>void</span><span class=w> </span><span class=nf>SafeHandle::RunReleaseMethod</span><span class=p>(</span><span class=n>SafeHandle</span><span class=o>*</span><span class=w> </span><span class=n>psh</span><span class=p>)</span>
-<span class=p>{</span>
-<span class=w>    </span><span class=n>CONTRACTL</span><span class=w> </span><span class=p>{</span>
-<span class=w>        </span><span class=n>THROWS</span><span class=p>;</span>
-<span class=w>        </span><span class=n>GC_TRIGGERS</span><span class=p>;</span>
-<span class=w>        </span><span class=n>MODE_COOPERATIVE</span><span class=p>;</span>
-<span class=w>    </span><span class=p>}</span><span class=w> </span><span class=n>CONTRACTL_END</span><span class=p>;</span>
+      </a>
+    </li>
+  
 
-<span class=w>    </span><span class=n>SAFEHANDLEREF</span><span class=w> </span><span class=n>sh</span><span class=p>(</span><span class=n>psh</span><span class=p>);</span>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../type-loader/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Type Loader
+  </span>
+  
 
-<span class=w>    </span><span class=n>GCPROTECT_BEGIN</span><span class=p>(</span><span class=n>sh</span><span class=p>);</span>
+      </a>
+    </li>
+  
 
-<span class=w>    </span><span class=n>MethodDescCallSite</span><span class=w> </span><span class=n>releaseHandle</span><span class=p>(</span><span class=n>s_pReleaseHandleMethod</span><span class=p>,</span><span class=w> </span><span class=n>METHOD__SAFE_HANDLE__RELEASE_HANDLE</span><span class=p>,</span><span class=w> </span><span class=p>(</span><span class=n>OBJECTREF</span><span class=o>*</span><span class=p>)</span><span class=o>&amp;</span><span class=n>sh</span><span class=p>,</span><span class=w> </span><span class=n>TypeHandle</span><span class=p>(),</span><span class=w> </span><span class=n>TRUE</span><span class=p>);</span>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../method-descriptor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Method Descriptor
+  </span>
+  
 
-<span class=w>    </span><span class=n>ARG_SLOT</span><span class=w> </span><span class=n>releaseArgs</span><span class=p>[]</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=p>{</span><span class=w> </span><span class=n>ObjToArgSlot</span><span class=p>(</span><span class=n>sh</span><span class=p>)</span><span class=w> </span><span class=p>};</span>
-<span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=o>!</span><span class=p>(</span><span class=n>BOOL</span><span class=p>)</span><span class=n>releaseHandle</span><span class=p>.</span><span class=n>Call_RetBool</span><span class=p>(</span><span class=n>releaseArgs</span><span class=p>))</span><span class=w> </span><span class=p>{</span>
-<span class=w>        </span><span class=n>MDA_TRIGGER_ASSISTANT</span><span class=p>(</span><span class=n>ReleaseHandleFailed</span><span class=p>,</span><span class=w> </span><span class=n>ReportViolation</span><span class=p>)(</span><span class=n>sh</span><span class=o>-&gt;</span><span class=n>GetTypeHandle</span><span class=p>(),</span><span class=w> </span><span class=n>sh</span><span class=o>-&gt;</span><span class=n>m_handle</span><span class=p>);</span>
-<span class=w>    </span><span class=p>}</span>
+      </a>
+    </li>
+  
 
-<span class=w>    </span><span class=n>GCPROTECT_END</span><span class=p>();</span>
-<span class=p>}</span>
-</code></pre></div> <h1 id=interactions-with-other-subsystems>Interactions with other subsystems</h1> <h2 id=debugger>Debugger</h2> <p>One limitation of FCalls today is that you cannot easily debug both managed code and FCalls easily in Visual Studio's Interop (or mixed mode) debugging. Setting a breakpoint today in an FCall and debugging with Interop debugging just doesn't work. This most likely won't be fixed.</p> <h1 id=physical-architecture>Physical architecture</h1> <p>When the CLR starts up, CoreLib is loaded by a method called <code>SystemDomain::LoadBaseSystemClasses()</code>. Here, the base data types and other similar classes (like <code>Exception</code>) are loaded, and appropriate global pointers are set up to refer to CoreLib's types.</p> <p>For FCalls, look in <a href=https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/fcall.h>fcall.h</a> for infrastructure, and <a href=https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/ecalllist.h>ecalllist.h</a> to properly inform the runtime about your FCall method.</p> <p>For QCalls, look in <a href=https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/qcall.h>qcall.h</a> for associated infrastructure, and <a href=https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/qcallentrypoints.cpp>qcallentrypoints.cpp</a> to properly inform the runtime about your QCall method.</p> <p>More general infrastructure and some native type definitions can be found in <a href=https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/object.h>object.h</a>. The binder uses <code>mscorlib.h</code> to associate managed and native classes.</p> </article> </div> <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script> </div> </main> <footer class=md-footer> <nav class="md-footer__inner md-grid" aria-label=Footer> <a href=../stackwalking/ class="md-footer__link md-footer__link--prev" aria-label="Previous: Stack Walking"> <div class="md-footer__button md-icon"> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg> </div> <div class=md-footer__title> <span class=md-footer__direction> Previous </span> <div class=md-ellipsis> Stack Walking </div> </div> </a> <a href=../dac-notes/ class="md-footer__link md-footer__link--next" aria-label="Next: Data Access Component (DAC) Notes"> <div class=md-footer__title> <span class=md-footer__direction> Next </span> <div class=md-ellipsis> Data Access Component (DAC) Notes </div> </div> <div class="md-footer__button md-icon"> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg> </div> </a> </nav> <div class="md-footer-meta md-typeset"> <div class="md-footer-meta__inner md-grid"> <div class=md-copyright> </div> <div class=md-social> <a href=https://github.com/jurakovic/runtime target=_blank rel=noopener title=github.com class=md-social__link> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 496 512"><!-- Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg> </a> <a href=https://github.com/dotnet/runtime target=_blank rel=noopener title=github.com class=md-social__link> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 496 512"><!-- Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg> </a> </div> </div> </div> </footer> </div> <div class=md-dialog data-md-component=dialog> <div class="md-dialog__inner md-typeset"></div> </div> <script id=__config type=application/json>{"base": "..", "features": ["content.action.view", "navigation.footer"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script> <script src=../assets/javascripts/bundle.d7c377c4.min.js></script> </body> </html>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../virtual-stub-dispatch/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Virtual Stub Dispatch
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stackwalking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Stack Walking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    System.Private.CoreLib and calling into the runtime
+  </span>
+  
+
+      </a>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dac-notes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Access Component (DAC) Notes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../profiling/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Profiling
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../profilability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Implementing Profilability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exceptions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    What Every Dev needs to Know About Exceptions in the Runtime
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readytorun-overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ReadyToRun Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clr-abi/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CLR ABI
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xplat-minidump-generation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cross-platform Minidumps
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mixed-mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mixed Mode Assemblies
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-for-porting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guide For Porting
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vectors-and-intrinsics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vectors and Intrinsics
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ilc-architecture/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ILC Compiler Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../managed-type-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Managed Type System Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../r2r-perfmap-format/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ready to run PerfMap format
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readytorun-format/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ReadyToRun File Format
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shared-generics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shared Generics Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+    
+      
+    
+    <a href="https://github.com/dotnet/runtime/blob/master/docs/corelib.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.15 8.15 0 0 1-1.23-2Z"/></svg>
+    </a>
+  
+
+
+<h1 id="systemprivatecorelib-and-calling-into-the-runtime"><code>System.Private.CoreLib</code> and calling into the runtime</h1>
+<h1 id="introduction">Introduction</h1>
+<p><code>System.Private.CoreLib.dll</code> is the assembly for defining the core parts of the type system, and a good portion of the Base Class Library in .NET Framework. It was originally named <code>mscorlib</code> in .NET Core, though many places in the code and documentation still refer to it as <code>mscorlib</code>. This document will endeavour to stick to using <code>System.Private.CoreLib</code> or CoreLib. Base data types live in this assembly, and it has a tight coupling with the CLR. Here you will learn exactly how and why CoreLib is special and the basics about calling into the CLR from managed code via QCall and FCall methods. It also discusses calling from within the CLR into managed code.</p>
+<h2 id="dependencies">Dependencies</h2>
+<p>Since CoreLib defines base data types like <code>Object</code>, <code>Int32</code>, and <code>String</code>, CoreLib cannot depend on other managed assemblies. However, there is a strong dependency between CoreLib and the CLR. Many of the types in CoreLib need to be accessed from native code, so the layout of many managed types is defined both in managed code and in native code inside the CLR. Additionally, some fields may be defined only in Debug, Checked, or Release builds, so typically CoreLib must be compiled separately for each type of build.</p>
+<p><code>System.Private.CoreLib.dll</code> builds separately for 64 bit and 32 bit, and some public constants it exposes differ by bitness. By using these constants, such as <code>IntPtr.Size</code>, most libraries above CoreLib should not need to build separately for 32 bit vs. 64 bit.</p>
+<h2 id="what-makes-systemprivatecorelib-special">What makes <code>System.Private.CoreLib</code> special?</h2>
+<p>CoreLib has several unique properties, many of which are due to its tight coupling to the CLR.</p>
+<ul>
+<li>CoreLib defines the core types necessary to implement the CLR's Virtual Object System, such as the base data types (<code>Object</code>, <code>Int32</code>, <code>String</code>, etc).</li>
+<li>The CLR must load CoreLib on startup to load certain system types.</li>
+<li>Can only have one CoreLib loaded in the process at a time, due to layout issues. Loading multiple CoreLibs would require formalizing a contract of behavior, FCall methods, and datatype layout between CLR and CoreLib, and keeping that contract relatively stable across versions.</li>
+<li>CoreLib's types are used heavily for native interop and managed exceptions should map correctly to native error codes/formats.</li>
+<li>The CLR's multiple JIT compilers may special case a small group of certain methods in CoreLib for performance reasons, both in terms of optimizing away the method (such as <code>Math.Cos(double)</code>), or calling a method in peculiar ways (such as <code>Array.Length</code>, or some implementation details on <code>StringBuilder</code> for getting the current thread).</li>
+<li>CoreLib will need to call into native code, via P/Invoke where appropriate, primarily into the underlying operating system or occasionally a platform adaptation layer.</li>
+<li>CoreLib will require calling into the CLR to expose some CLR-specific functionality, such as triggering a garbage collection, to load classes, or to interact with the type system in a non-trivial way. This requires a bridge between managed code and native, "manually managed" code within the CLR.</li>
+<li>The CLR will need to call into managed code to call managed methods, and to get at certain functionality that is only implemented in managed code.</li>
+</ul>
+<h1 id="interface-between-managed-and-clr-code">Interface between managed and CLR code</h1>
+<p>To reiterate, the needs of managed code in CoreLib include:</p>
+<ul>
+<li>The ability to access fields of some managed data structures in both managed code and "manually managed" code within the CLR.</li>
+<li>Managed code must be able to call into the CLR.</li>
+<li>The CLR must be able to call managed code.</li>
+</ul>
+<p>To implement these, we need a way for the CLR to specify and optionally verify the layout of a managed object in native code, a managed mechanism for calling into native code, and a native mechanism for calling into managed code.</p>
+<p>The managed mechanism for calling into native code must also support the special managed calling convention used by <code>String</code>'s constructors, where the constructor allocates the memory used by the object (instead of the typical convention where the constructor is called after the GC allocates memory).</p>
+<p>The CLR provides a <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/binder.cpp"><code>mscorlib</code> binder</a> internally, providing a mapping between unmanaged types and fields to managed types and fields. The binder will look up and load classes and allows the calling of managed methods. It also performs simple verification to ensure the correctness of any layout information specified in both managed and native code. The binder ensures that the managed class attempting to load exists in mscorlib, has been loaded, and the field offsets are correct. It also needs the ability to differentiate between method overloads with different signatures.</p>
+<h1 id="calling-from-managed-to-native-code">Calling from managed to native code</h1>
+<p>Two techniques exist for calling into the CLR from managed code. FCall allows you to call directly into the CLR code, and provides a lot of flexibility in terms of manipulating objects, though it is easy to cause GC holes by not tracking object references correctly. QCall also allows you to call into the CLR via the P/Invoke, but is much harder to accidentally mis-use. FCalls are identified in managed code as extern methods with the <a href="https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.methodimploptions"><code>MethodImplOptions.InternalCall</code></a> bit set. QCalls are marked <code>static extern</code> methods similar to regular P/Invokes, but are directed toward a library called <code>"QCall"</code>.</p>
+<p>There is a small variant of FCall called HCall (for Helper call) for implementing JIT helpers. The HCall is intended for doing things like accessing multi-dimensional array elements, range checks, etc. The only difference between HCall and FCall is that HCall methods won't show up in an exception stack trace.</p>
+<h3 id="choosing-between-fcall-qcall-pinvoke-and-writing-in-managed-code">Choosing between FCall, QCall, P/Invoke, and writing in managed code</h3>
+<p>First, remember that you should be writing as much as possible in managed code. You avoid a raft of potential GC hole issues, you get a better debugging experience, and the code is often simpler.</p>
+<p>Reasons to write FCalls in the past generally fell into three camps: missing language features, better performance, or implementing unique interactions with the runtime. C# now has almost every useful language feature that you could get from C++, including unsafe code and stack-allocated buffers, and this eliminates the first two reasons for FCalls. We have ported some parts of the CLR that were heavily reliant on FCalls to managed code in the past (such as Reflection, some Encoding, and String operations) and we intend to continue this momentum.</p>
+<p>If the only reason you're defining a FCall method is to call a native method, you should be using P/Invoke to call the method directly. <a href="https://learn.microsoft.com/dotnet/api/system.runtime.interopservices.dllimportattribute">P/Invoke</a> is the public native method interface and should be doing everything you need in a correct manner.</p>
+<p>If you still need to implement a feature inside the runtime, consider if there is a way to reduce the frequency of transitioning to native code. Can you write the common case in managed and only call into native for some rare corner cases? You're usually best off keeping as much as possible in managed code.</p>
+<p>QCalls are the preferred mechanism going forward. You should only use FCalls when you are "forced" to. This happens when there is common "short path" through the code that is important to optimize. This short path should not be more than a few hundred instructions, cannot allocate GC memory, take locks or throw exceptions (<code>GC_NOTRIGGER</code>, <code>NOTHROWS</code>). In all other circumstances (and especially when you enter a FCall and then simply erect HelperMethodFrame), you should be using QCall.</p>
+<p>FCalls were specifically designed for short paths of code that must be optimized. They allowed explicit control over when erecting a frame was done. However, it is error prone and not worth the complexity for many APIs. QCalls are essentially P/Invokes into the CLR. In the event the performance of an FCall is required consider creating a QCall and marking it with <a href="https://learn.microsoft.com/dotnet/api/system.runtime.interopservices.suppressgctransitionattribute"><code>SuppressGCTransitionAttribute</code></a>.</p>
+<p>As a result, QCalls give you some advantageous marshaling for <code>SafeHandle</code>s automatically – your native method just takes a <code>HANDLE</code> type, and can be used without worrying whether someone will free the handle while in that method body. The resulting FCall method would need to use a <code>SafeHandleHolder</code> and may need to protect the <code>SafeHandle</code>, etc. Leveraging the P/Invoke marshaler can avoid this additional plumbing code.</p>
+<h2 id="qcall-functional-behavior">QCall functional behavior</h2>
+<p>QCalls are very much like a normal P/Invoke from CoreLib to CLR. Unlike FCalls, QCalls will marshal all arguments as unmanaged types like a normal P/Invoke. QCall also switch to preemptive GC mode like a normal P/Invoke. These two features should make QCalls easier to write reliably compared to FCalls. QCalls are not prone to GC holes and GC starvation bugs that are common with FCalls.</p>
+<p>QCalls perform better than FCalls that erect a <code>HelperMethodFrame</code>. The overhead is about 1.4x less compared to FCall w/ <code>HelperMethodFrame</code> overhead on x86 and x64.</p>
+<p>The preferred types for QCall arguments are primitive types that are efficiently handled by the P/Invoke marshaler (<code>INT32</code>, <code>LPCWSTR</code>, <code>BOOL</code>). Notice that <code>BOOL</code> is the correct boolean flavor for QCall arguments. On the other hand, <code>CLR_BOOL</code> is the correct boolean flavor for FCall arguments.</p>
+<p>The pointers to common unmanaged EE structures should be wrapped into handle types. This is to make the managed implementation type safe and avoid falling into unsafe C# everywhere. See AssemblyHandle in <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/qcall.h">vm\qcall.h</a> for an example.</p>
+<p>Passing object references in and out of QCalls is done by wrapping a pointer to a local variable in a handle. It is intentionally cumbersome and should be avoided if reasonably possible. See the <code>StringHandleOnStack</code> in the example below. Returning objects, especially strings, from QCalls is the only common pattern where passing the raw objects is widely acceptable. (For reasoning on why this set of restrictions helps make QCalls less prone to GC holes, read the <a href="#gcholes">"GC Holes, FCall, and QCall"</a> section below.)</p>
+<p>QCalls should be implemented with a C-style method signature. This makes it easier for AOT tooling in the future to connect a QCall on the managed side to the implementation on the native side.</p>
+<h3 id="qcall-example-managed">QCall example - managed</h3>
+<p>Do not replicate the comments into your actual QCall implementation. This is for illustrative purposes.</p>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Foo</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// All QCalls should have the following DllImport attribute</span>
+<span class="w">    </span><span class="na">[DllImport(RuntimeHelpers.QCall, EntryPoint = &quot;Foo_BarInternal&quot;, CharSet = CharSet.Unicode)]</span>
+
+<span class="w">    </span><span class="c1">// QCalls should always be static extern.</span>
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="k">extern</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">BarInternal</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">flags</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">inString</span><span class="p">,</span><span class="w"> </span><span class="n">StringHandleOnStack</span><span class="w"> </span><span class="n">retString</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Many QCalls have a thin managed wrapper around them to perform</span>
+<span class="w">    </span><span class="c1">// as much work prior to the transition as possible. An example would be</span>
+<span class="w">    </span><span class="c1">// argument validation which is easier in managed than native code.</span>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="nf">Bar</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">flags</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">flags</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="m">0</span><span class="p">)</span>
+<span class="w">            </span><span class="k">throw</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="nf">ArgumentException</span><span class="p">(</span><span class="s">&quot;Invalid flags&quot;</span><span class="p">);</span>
+
+<span class="w">        </span><span class="kt">string</span><span class="w"> </span><span class="n">retString</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">null</span><span class="p">;</span>
+<span class="w">        </span><span class="c1">// The strings are returned from QCalls by taking address</span>
+<span class="w">        </span><span class="c1">// of a local variable using StringHandleOnStack</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">BarInternal</span><span class="p">(</span><span class="n">flags</span><span class="p">,</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="n">Id</span><span class="p">,</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">StringHandleOnStack</span><span class="p">(</span><span class="k">ref</span><span class="w"> </span><span class="n">retString</span><span class="p">)))</span>
+<span class="w">            </span><span class="n">FatalError</span><span class="p">();</span>
+
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">retString</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="qcall-example-unmanaged">QCall example - unmanaged</h3>
+<p>Do not replicate the comments into your actual QCall implementation.</p>
+<p>The QCall entrypoint has to be registered in tables in <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/qcallentrypoints.cpp">vm\qcallentrypoints.cpp</a> using the <code>DllImportEntry</code> macro. See <a href="#register">"Registering your QCall or FCall Method"</a> below.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// All QCalls should be free functions and tagged with QCALLTYPE and extern &quot;C&quot;</span>
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="w"> </span><span class="n">BOOL</span><span class="w"> </span><span class="n">QCALLTYPE</span><span class="w"> </span><span class="n">Foo_BarInternal</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">flags</span><span class="p">,</span><span class="w"> </span><span class="n">LPCWSTR</span><span class="w"> </span><span class="n">wszString</span><span class="p">,</span><span class="w"> </span><span class="n">QCall</span><span class="o">::</span><span class="n">StringHandleOnStack</span><span class="w"> </span><span class="n">retString</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// All QCalls should have QCALL_CONTRACT.</span>
+<span class="w">    </span><span class="c1">// It is alias for THROWS; GC_TRIGGERS; MODE_PREEMPTIVE.</span>
+<span class="w">    </span><span class="n">QCALL_CONTRACT</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Optionally, use QCALL_CHECK instead and the expanded form of the contract</span>
+<span class="w">    </span><span class="c1">// if you want to specify preconditions:</span>
+<span class="w">    </span><span class="c1">// CONTRACTL {</span>
+<span class="w">    </span><span class="c1">//     QCALL_CHECK;</span>
+<span class="w">    </span><span class="c1">//     PRECONDITION(wszString != NULL);</span>
+<span class="w">    </span><span class="c1">// } CONTRACTL_END;</span>
+
+<span class="w">    </span><span class="c1">// The only line between QCALL_CONTRACT and BEGIN_QCALL</span>
+<span class="w">    </span><span class="c1">// should be the return value declaration if there is one.</span>
+<span class="w">    </span><span class="n">BOOL</span><span class="w"> </span><span class="n">retVal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FALSE</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// The body has to be enclosed in BEGIN_QCALL/END_QCALL macro.</span>
+<span class="w">    </span><span class="c1">// It is necessary for exception handling.</span>
+<span class="w">    </span><span class="n">BEGIN_QCALL</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// Argument validation would ideally be in managed, but in some cases</span>
+<span class="w">    </span><span class="c1">// needs to be done in native. If argument validation is done in</span>
+<span class="w">    </span><span class="c1">// managed asserting in native is warranted.</span>
+<span class="w">    </span><span class="n">_ASSERTE</span><span class="p">(</span><span class="n">flags</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// No need to worry about GC moving strings passed into QCall.</span>
+<span class="w">    </span><span class="c1">// Marshalling pins them for us.</span>
+<span class="w">    </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;%S</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">wszString</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// This is the most efficient way to return strings back</span>
+<span class="w">    </span><span class="c1">// to managed code. No need to use StringBuilder.</span>
+<span class="w">    </span><span class="n">retString</span><span class="p">.</span><span class="n">Set</span><span class="p">(</span><span class="sa">L</span><span class="s">&quot;Hello&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// You can not return from inside of BEGIN_QCALL/END_QCALL.</span>
+<span class="w">    </span><span class="c1">// The return value has to be passed out in helper variable.</span>
+<span class="w">    </span><span class="n">retVal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TRUE</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">END_QCALL</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">retVal</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="fcall-functional-behavior">FCall functional behavior</h2>
+<p>FCalls allow more flexibility in terms of passing object references around, but with higher code complexity and more opportunities to make mistakes. Additionally, FCall methods must either erect a helper method frame along their common code paths, or for any FCall of non-trivial length, explicitly poll for whether a garbage collection must occur. Failing to do so will lead to starvation issues if managed code repeatedly calls the FCall method in a tight loop, because FCalls execute while the thread only allows the GC to run in a cooperative manner.</p>
+<p>FCalls require a lot of boilerplate code, too much to describe here. Refer to <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/fcall.h">fcall.h</a> for details.</p>
+<h3 id="gc-holes-fcall-and-qcall"><a name="gcholes"></a> GC holes, FCall, and QCall</h3>
+<p>A more complete discussion on GC holes can be found in the <a href="../../../coding-guidelines/clr-code-guide.md">CLR Code Guide</a>. Look for <a href="../../../coding-guidelines/clr-code-guide.md#2.1">"Is your code GC-safe?"</a>. This tailored discussion motivates some of the reasons why FCall and QCall have some of their strange conventions.</p>
+<p>Object references passed as parameters to FCall methods are not GC-protected, meaning that if a GC occurs, those references will point to the old location in memory of an object, not the new location. For this reason, FCalls usually follow the discipline of accepting something like <code>StringObject*</code> as their parameter type, then explicitly converting that to a <code>STRINGREF</code> before doing operations that may trigger a GC. If you expect to use an object reference later, you must GC protect object references before triggering a GC.</p>
+<p>All GC heap allocations within an FCall method must happen within a helper method frame. If you allocate memory on the GC heap, the GC may collect dead objects and move objects around in unpredictable ways, with some low probability. For this reason, you must manually report any object references in your method to the GC, so that if a garbage collection occurs, your object reference will be updated to refer to the new location in memory. Any pointers into managed objects (like arrays or Strings) within your code will not be updated automatically, and must be re-fetched after any operation that may allocate memory and before your first usage. Reporting a reference can be done via the <code>GCPROTECT_*</code> macros or as parameters when erecting a helper method frame.</p>
+<p>Failing to properly report an <code>OBJECTREF</code> or to update an interior pointer is commonly referred to as a "GC hole", because the <code>OBJECTREF</code> class will do some validation that it points to a valid object every time you dereference it in Debug and Checked builds. When an <code>OBJECTREF</code> pointing to an invalid object is dereferenced, an assert will trigger saying something like "Detected an invalid object reference. Possible GC hole?". This assert is unfortunately easy to hit when writing "manually managed" code.</p>
+<p>Note that QCall's programming model is restrictive to sidestep GC holes by forcing you to pass in the address of an object reference on the stack. This guarantees that the object reference is GC protected by the JIT's reporting logic, and that the actual object reference will not move because it is not allocated in the GC heap. QCall is our recommended approach, precisely because it makes GC holes harder to write.</p>
+<h3 id="fcall-epilog-walker-for-x86">FCall epilog walker for x86</h3>
+<p>The managed stack walker needs to be able to find its way from FCalls. It is relative easy on newer platforms that define conventions for stack unwinding as part of the ABI. The stack unwinding conventions are not defined by an ABI for x86. The runtime works around this by implementing an epilog walker. The epilog walker computes the FCall return address and callee save registers by simulating the FCall execution. This imposes limits on what constructs are allowed in the FCall implementation.</p>
+<p>Complex constructs like stack allocated objects with destructors or exception handling in the FCall implementation may confuse the epilog walker. This can lead to GC holes or crashes during stack walking. There is no comprehensive list of what constructs should be avoided to prevent this class of bugs. An FCall implementation that is fine one day may break with the next C++ compiler update. We depend on stress runs and code coverage to find bugs in this area.</p>
+<p>Setting a breakpoint inside an FCall implementation may confuse the epilog walker. It leads to an "Invalid breakpoint in a helpermethod frame epilog" assert inside <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/i386/gmsx86.cpp">vm\i386\gmsx86.cpp</a>.</p>
+<h3 id="fcall-example-managed">FCall example – managed</h3>
+<p>Here's a real-world example from the <code>String</code> class:</p>
+<div class="highlight"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">partial</span><span class="w"> </span><span class="k">sealed</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">String</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="na">[MethodImpl(MethodImplOptions.InternalCall)]</span>
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">extern</span><span class="w"> </span><span class="kt">string?</span><span class="w"> </span><span class="n">IsInterned</span><span class="p">();</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">string?</span><span class="w"> </span><span class="n">IsInterned</span><span class="p">(</span><span class="kt">string</span><span class="w"> </span><span class="n">str</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">str</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="k">null</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="k">throw</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="nf">ArgumentNullException</span><span class="p">(</span><span class="n">nameof</span><span class="p">(</span><span class="n">str</span><span class="p">));</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">str</span><span class="p">.</span><span class="n">IsInterned</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="fcall-example-unmanaged">FCall example – unmanaged</h3>
+<p>The FCall entrypoint has to be registered in tables in <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/ecalllist.h">vm\ecalllist.h</a> using <code>FCFuncEntry</code> macro. See <a href="#register">"Registering your QCall or FCall Method"</a>.</p>
+<p>This method is an instance method in managed code, with the "this" parameter passed as the first argument. We use <code>StringObject*</code> as the argument type, then copy it into a <code>STRINGREF</code> so we get some error checking when we use it.</p>
+<div class="highlight"><pre><span></span><code><span class="n">FCIMPL1</span><span class="p">(</span><span class="n">Object</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">AppDomainNative</span><span class="o">::</span><span class="n">IsStringInterned</span><span class="p">,</span><span class="w"> </span><span class="n">StringObject</span><span class="o">*</span><span class="w"> </span><span class="n">pStringUNSAFE</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">FCALL_CONTRACT</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">STRINGREF</span><span class="w">       </span><span class="n">refString</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">ObjectToSTRINGREF</span><span class="p">(</span><span class="n">pStringUNSAFE</span><span class="p">);</span>
+<span class="w">    </span><span class="n">STRINGREF</span><span class="o">*</span><span class="w">      </span><span class="n">prefRetVal</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">HELPER_METHOD_FRAME_BEGIN_RET_1</span><span class="p">(</span><span class="n">refString</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">refString</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span>
+<span class="w">        </span><span class="n">COMPlusThrow</span><span class="p">(</span><span class="n">kArgumentNullException</span><span class="p">,</span><span class="w"> </span><span class="n">W</span><span class="p">(</span><span class="s">&quot;ArgumentNull_String&quot;</span><span class="p">));</span>
+
+<span class="w">    </span><span class="n">prefRetVal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetAppDomain</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">IsStringInterned</span><span class="p">(</span><span class="o">&amp;</span><span class="n">refString</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">HELPER_METHOD_FRAME_END</span><span class="p">();</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">prefRetVal</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">OBJECTREFToObject</span><span class="p">(</span><span class="o">*</span><span class="n">prefRetVal</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="n">FCIMPLEND</span>
+</code></pre></div>
+<h2 id="registering-your-qcall-or-fcall-method"><a name="register"></a> Registering your QCall or FCall method</h2>
+<p>The CLR must know the name of your QCall and FCall methods, both in terms of the managed class and method names, as well as which native methods to call. For FCalls, registration is done in <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/ecalllist.h">ecalllist.h</a>, with two arrays. The first array maps namespace and class names to an array of function elements. That array of function elements then maps individual method names and signatures to function pointers.</p>
+<p>Say we defined an FCall method for <code>String.IsInterned()</code>, in the example above. First, we need to ensure that we have an array of function elements for the String class.</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Note these have to remain sorted by name:namespace pair</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="w">    </span><span class="n">FCClassElement</span><span class="p">(</span><span class="s">&quot;String&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;System&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">gStringFuncs</span><span class="p">)</span>
+<span class="w">    </span><span class="p">...</span>
+</code></pre></div>
+<p>Second, we must then ensure that <code>gStringFuncs</code> contains a proper entry for <code>IsInterned</code>. Note that if a method name has multiple overloads then we can specify a signature:</p>
+<div class="highlight"><pre><span></span><code><span class="n">FCFuncStart</span><span class="p">(</span><span class="n">gStringFuncs</span><span class="p">)</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="w">    </span><span class="n">FCFuncElement</span><span class="p">(</span><span class="s">&quot;IsInterned&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">AppDomainNative</span><span class="o">::</span><span class="n">IsStringInterned</span><span class="p">)</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="n">FCFuncEnd</span><span class="p">()</span>
+</code></pre></div>
+<p>QCalls are registered in <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/qcallentrypoints.cpp">qcallentrypoints.cpp</a> in the <code>s_QCall</code> array with the <code>DllImportEntry</code> macro as follows:</p>
+<div class="highlight"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">Entry</span><span class="w"> </span><span class="n">s_QCall</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="w">    </span><span class="n">DllImportEntry</span><span class="p">(</span><span class="n">MyQCall</span><span class="p">),</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="p">};</span>
+</code></pre></div>
+<h2 id="naming-convention">Naming convention</h2>
+<p>FCalls and QCalls should not be publicly exposed. Instead wrap the actual FCall or QCall and provide a API approved name.</p>
+<p>The internal FCall or QCall should use the "Internal" suffix to disambiguate the name of the FCall or QCall from public entry point (e.g. the public entry point does error checking and then calls shared worker function with exactly same signature). This is no different from how you would deal with this situation in pure managed code in BCL.</p>
+<h1 id="types-with-a-managedunmanaged-duality">Types with a managed/unmanaged duality</h1>
+<p>Certain managed types must have a representation available in both managed and native code. You could ask whether the canonical definition of a type is in managed code or native code within the CLR, but the answer doesn't matter – the key thing is they must both be identical. This will allow the CLR's native code to access fields within a managed object in a fast and efficient manner. There is a more complex way of using essentially the CLR's equivalent of Reflection over <code>MethodTable</code>s and <code>FieldDesc</code>s to retrieve field values, but this doesn't perform as well as desired and isn't very usable. For commonly used types, it makes sense to declare a data structure in native code and keep the two in sync.</p>
+<p>The CLR provides a binder for this purpose. After you define your managed and native classes, you should provide some clues to the binder to help ensure that the field offsets remain the same to quickly spot when someone accidentally adds a field to only one definition of a type.</p>
+<p>In <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/corelib.h">corelib.h</a>, use macros ending in "_U" to describe a type, the name of fields in managed code, and the name of fields in a corresponding native data structure. Additionally, you can specify a list of methods, and reference them by name when you attempt to call them later.</p>
+<div class="highlight"><pre><span></span><code><span class="n">DEFINE_CLASS_U</span><span class="p">(</span><span class="n">SAFE_HANDLE</span><span class="p">,</span><span class="w">         </span><span class="n">Interop</span><span class="p">,</span><span class="w">                </span><span class="n">SafeHandle</span><span class="p">,</span><span class="w">         </span><span class="n">SafeHandle</span><span class="p">)</span>
+<span class="n">DEFINE_FIELD</span><span class="p">(</span><span class="n">SAFE_HANDLE</span><span class="p">,</span><span class="w">           </span><span class="n">HANDLE</span><span class="p">,</span><span class="w">                 </span><span class="n">handle</span><span class="p">)</span>
+<span class="n">DEFINE_FIELD_U</span><span class="p">(</span><span class="n">SAFE_HANDLE</span><span class="p">,</span><span class="w">         </span><span class="n">STATE</span><span class="p">,</span><span class="w">                  </span><span class="n">_state</span><span class="p">,</span><span class="w">                     </span><span class="n">SafeHandle</span><span class="p">,</span><span class="w">            </span><span class="n">m_state</span><span class="p">)</span>
+<span class="n">DEFINE_FIELD_U</span><span class="p">(</span><span class="n">SAFE_HANDLE</span><span class="p">,</span><span class="w">         </span><span class="n">OWNS_HANDLE</span><span class="p">,</span><span class="w">            </span><span class="n">_ownsHandle</span><span class="p">,</span><span class="w">                </span><span class="n">SafeHandle</span><span class="p">,</span><span class="w">            </span><span class="n">m_ownsHandle</span><span class="p">)</span>
+<span class="n">DEFINE_FIELD_U</span><span class="p">(</span><span class="n">SAFE_HANDLE</span><span class="p">,</span><span class="w">         </span><span class="n">INITIALIZED</span><span class="p">,</span><span class="w">            </span><span class="n">_fullyInitialized</span><span class="p">,</span><span class="w">          </span><span class="n">SafeHandle</span><span class="p">,</span><span class="w">            </span><span class="n">m_fullyInitialized</span><span class="p">)</span>
+<span class="n">DEFINE_METHOD</span><span class="p">(</span><span class="n">SAFE_HANDLE</span><span class="p">,</span><span class="w">          </span><span class="n">GET_IS_INVALID</span><span class="p">,</span><span class="w">         </span><span class="n">get_IsInvalid</span><span class="p">,</span><span class="w">              </span><span class="n">IM_RetBool</span><span class="p">)</span>
+<span class="n">DEFINE_METHOD</span><span class="p">(</span><span class="n">SAFE_HANDLE</span><span class="p">,</span><span class="w">          </span><span class="n">RELEASE_HANDLE</span><span class="p">,</span><span class="w">         </span><span class="n">ReleaseHandle</span><span class="p">,</span><span class="w">              </span><span class="n">IM_RetBool</span><span class="p">)</span>
+<span class="n">DEFINE_METHOD</span><span class="p">(</span><span class="n">SAFE_HANDLE</span><span class="p">,</span><span class="w">          </span><span class="n">DISPOSE</span><span class="p">,</span><span class="w">                </span><span class="n">Dispose</span><span class="p">,</span><span class="w">                    </span><span class="n">IM_RetVoid</span><span class="p">)</span>
+<span class="n">DEFINE_METHOD</span><span class="p">(</span><span class="n">SAFE_HANDLE</span><span class="p">,</span><span class="w">          </span><span class="n">DISPOSE_BOOL</span><span class="p">,</span><span class="w">           </span><span class="n">Dispose</span><span class="p">,</span><span class="w">                    </span><span class="n">IM_Bool_RetVoid</span><span class="p">)</span>
+</code></pre></div>
+<p>Then, you can use the <code>REF&lt;T&gt;</code> template to create a type name like <code>SAFEHANDLEREF</code>. All the error checking from <code>OBJECTREF</code> is built into the <code>REF&lt;T&gt;</code> template, and you can freely dereference this <code>SAFEHANDLEREF</code> and use fields off of it in native code. You still must GC protect these references.</p>
+<h1 id="calling-into-managed-code-from-unmanaged-code">Calling into managed code from unmanaged code</h1>
+<p>Clearly there are places where the CLR must call into managed code from native. For this purpose, we have added a <code>MethodDescCallSite</code> class to handle a lot of plumbing for you. Conceptually, all you need to do is find the <code>MethodDesc*</code> for the method you want to call, find a managed object for the "this" pointer (if you're calling an instance method), pass in an array of arguments, and deal with the return value. Internally, you'll need to potentially toggle your thread's state to allow the GC to run in preemptive mode, etc.</p>
+<p>Here's a simplified example. Note how this instance uses the binder described in the previous section to call <code>SafeHandle</code>'s virtual <code>ReleaseHandle</code> method.</p>
+<div class="highlight"><pre><span></span><code><span class="kt">void</span><span class="w"> </span><span class="nf">SafeHandle::RunReleaseMethod</span><span class="p">(</span><span class="n">SafeHandle</span><span class="o">*</span><span class="w"> </span><span class="n">psh</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">CONTRACTL</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">THROWS</span><span class="p">;</span>
+<span class="w">        </span><span class="n">GC_TRIGGERS</span><span class="p">;</span>
+<span class="w">        </span><span class="n">MODE_COOPERATIVE</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="n">CONTRACTL_END</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">SAFEHANDLEREF</span><span class="w"> </span><span class="n">sh</span><span class="p">(</span><span class="n">psh</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">GCPROTECT_BEGIN</span><span class="p">(</span><span class="n">sh</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">MethodDescCallSite</span><span class="w"> </span><span class="n">releaseHandle</span><span class="p">(</span><span class="n">s_pReleaseHandleMethod</span><span class="p">,</span><span class="w"> </span><span class="n">METHOD__SAFE_HANDLE__RELEASE_HANDLE</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="n">OBJECTREF</span><span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">sh</span><span class="p">,</span><span class="w"> </span><span class="n">TypeHandle</span><span class="p">(),</span><span class="w"> </span><span class="n">TRUE</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">ARG_SLOT</span><span class="w"> </span><span class="n">releaseArgs</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">ObjToArgSlot</span><span class="p">(</span><span class="n">sh</span><span class="p">)</span><span class="w"> </span><span class="p">};</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">BOOL</span><span class="p">)</span><span class="n">releaseHandle</span><span class="p">.</span><span class="n">Call_RetBool</span><span class="p">(</span><span class="n">releaseArgs</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">MDA_TRIGGER_ASSISTANT</span><span class="p">(</span><span class="n">ReleaseHandleFailed</span><span class="p">,</span><span class="w"> </span><span class="n">ReportViolation</span><span class="p">)(</span><span class="n">sh</span><span class="o">-&gt;</span><span class="n">GetTypeHandle</span><span class="p">(),</span><span class="w"> </span><span class="n">sh</span><span class="o">-&gt;</span><span class="n">m_handle</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">GCPROTECT_END</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div>
+<h1 id="interactions-with-other-subsystems">Interactions with other subsystems</h1>
+<h2 id="debugger">Debugger</h2>
+<p>One limitation of FCalls today is that you cannot easily debug both managed code and FCalls easily in Visual Studio's Interop (or mixed mode) debugging. Setting a breakpoint today in an FCall and debugging with Interop debugging just doesn't work. This most likely won't be fixed.</p>
+<h1 id="physical-architecture">Physical architecture</h1>
+<p>When the CLR starts up, CoreLib is loaded by a method called <code>SystemDomain::LoadBaseSystemClasses()</code>. Here, the base data types and other similar classes (like <code>Exception</code>) are loaded, and appropriate global pointers are set up to refer to CoreLib's types.</p>
+<p>For FCalls, look in <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/fcall.h">fcall.h</a> for infrastructure, and <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/ecalllist.h">ecalllist.h</a> to properly inform the runtime about your FCall method.</p>
+<p>For QCalls, look in <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/qcall.h">qcall.h</a> for associated infrastructure, and <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/qcallentrypoints.cpp">qcallentrypoints.cpp</a> to properly inform the runtime about your QCall method.</p>
+<p>More general infrastructure and some native type definitions can be found in <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/object.h">object.h</a>. The binder uses <code>mscorlib.h</code> to associate managed and native classes.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../stackwalking/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Stack Walking">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Stack Walking
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../dac-notes/" class="md-footer__link md-footer__link--next" aria-label="Next: Data Access Component (DAC) Notes">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Data Access Component (DAC) Notes
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/jurakovic/runtime" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/dotnet/runtime" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.action.view", "navigation.footer"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7c377c4.min.js"></script>
+      
+    
+  </body>
+</html>

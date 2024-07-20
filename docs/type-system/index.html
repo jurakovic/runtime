@@ -1,4 +1,985 @@
-<!doctype html><html lang=en class=no-js> <head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><link href=https://jurakovic.github.io/runtime/type-system/ rel=canonical><link href=../threading/ rel=prev><link href=../type-loader/ rel=next><link rel=icon href=../assets/images/favicon.png><meta name=generator content="mkdocs-1.5.3, mkdocs-material-9.5.3"><title>Type System - The Book of the Runtime</title><link rel=stylesheet href=../assets/stylesheets/main.50c56a3b.min.css><link rel=stylesheet href=../assets/stylesheets/palette.06af60db.min.css><link rel=preconnect href=https://fonts.gstatic.com crossorigin><link rel=stylesheet href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback"><style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style><script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script></head> <body dir=ltr data-md-color-scheme=default data-md-color-primary=indigo data-md-color-accent=indigo> <input class=md-toggle data-md-toggle=drawer type=checkbox id=__drawer autocomplete=off> <input class=md-toggle data-md-toggle=search type=checkbox id=__search autocomplete=off> <label class=md-overlay for=__drawer></label> <div data-md-component=skip> <a href=#type-system-overview class=md-skip> Skip to content </a> </div> <div data-md-component=announce> </div> <header class="md-header md-header--shadow" data-md-component=header> <nav class="md-header__inner md-grid" aria-label=Header> <a href=.. title="The Book of the Runtime" class="md-header__button md-logo" aria-label="The Book of the Runtime" data-md-component=logo> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg> </a> <label class="md-header__button md-icon" for=__drawer> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg> </label> <div class=md-header__title data-md-component=header-title> <div class=md-header__ellipsis> <div class=md-header__topic> <span class=md-ellipsis> The Book of the Runtime </span> </div> <div class=md-header__topic data-md-component=header-topic> <span class=md-ellipsis> Type System </span> </div> </div> </div> <form class=md-header__option data-md-component=palette> <input class=md-option data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme=default data-md-color-primary=indigo data-md-color-accent=indigo aria-label="Switch to dark mode" type=radio name=__palette id=__palette_0> <label class="md-header__button md-icon" title="Switch to dark mode" for=__palette_1 hidden> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg> </label> <input class=md-option data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme=slate data-md-color-primary=black data-md-color-accent=indigo aria-label="Switch to light mode" type=radio name=__palette id=__palette_1> <label class="md-header__button md-icon" title="Switch to light mode" for=__palette_0 hidden> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg> </label> </form> <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script> <label class="md-header__button md-icon" for=__search> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg> </label> <div class=md-search data-md-component=search role=dialog> <label class=md-search__overlay for=__search></label> <div class=md-search__inner role=search> <form class=md-search__form name=search> <input type=text class=md-search__input name=query aria-label=Search placeholder=Search autocapitalize=off autocorrect=off autocomplete=off spellcheck=false data-md-component=search-query required> <label class="md-search__icon md-icon" for=__search> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg> </label> <nav class=md-search__options aria-label=Search> <button type=reset class="md-search__icon md-icon" title=Clear aria-label=Clear tabindex=-1> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg> </button> </nav> </form> <div class=md-search__output> <div class=md-search__scrollwrap data-md-scrollfix> <div class=md-search-result data-md-component=search-result> <div class=md-search-result__meta> Initializing search </div> <ol class=md-search-result__list role=presentation></ol> </div> </div> </div> </div> </div> <div class=md-header__source> <a href=https://github.com/jurakovic/runtime title="Go to repository" class=md-source data-md-component=source> <div class="md-source__icon md-icon"> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 448 512"><!-- Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg> </div> <div class=md-source__repository> jurakovic/runtime </div> </a> </div> </nav> </header> <div class=md-container data-md-component=container> <main class=md-main data-md-component=main> <div class="md-main__inner md-grid"> <div class="md-sidebar md-sidebar--primary" data-md-component=sidebar data-md-type=navigation> <div class=md-sidebar__scrollwrap> <div class=md-sidebar__inner> <nav class="md-nav md-nav--primary" aria-label=Navigation data-md-level=0> <label class=md-nav__title for=__drawer> <a href=.. title="The Book of the Runtime" class="md-nav__button md-logo" aria-label="The Book of the Runtime" data-md-component=logo> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg> </a> The Book of the Runtime </label> <div class=md-nav__source> <a href=https://github.com/jurakovic/runtime title="Go to repository" class=md-source data-md-component=source> <div class="md-source__icon md-icon"> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 448 512"><!-- Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg> </div> <div class=md-source__repository> jurakovic/runtime </div> </a> </div> <ul class=md-nav__list data-md-scrollfix> <li class=md-nav__item> <a href=.. class=md-nav__link> <span class=md-ellipsis> Introduction </span> </a> </li> <li class=md-nav__item> <a href=../botr-faq/ class=md-nav__link> <span class=md-ellipsis> Book of the Runtime FAQ </span> </a> </li> <li class=md-nav__item> <a href=../intro-to-clr/ class=md-nav__link> <span class=md-ellipsis> Introduction to the Common Language Runtime </span> </a> </li> <li class=md-nav__item> <a href=../garbage-collection/ class=md-nav__link> <span class=md-ellipsis> Garbage Collection Design </span> </a> </li> <li class=md-nav__item> <a href=../threading/ class=md-nav__link> <span class=md-ellipsis> Threading </span> </a> </li> <li class="md-nav__item md-nav__item--active"> <input class="md-nav__toggle md-toggle" type=checkbox id=__toc> <a href=./ class="md-nav__link md-nav__link--active"> <span class=md-ellipsis> Type System </span> </a> </li> <li class=md-nav__item> <a href=../type-loader/ class=md-nav__link> <span class=md-ellipsis> Type Loader </span> </a> </li> <li class=md-nav__item> <a href=../method-descriptor/ class=md-nav__link> <span class=md-ellipsis> Method Descriptor </span> </a> </li> <li class=md-nav__item> <a href=../virtual-stub-dispatch/ class=md-nav__link> <span class=md-ellipsis> Virtual Stub Dispatch </span> </a> </li> <li class=md-nav__item> <a href=../stackwalking/ class=md-nav__link> <span class=md-ellipsis> Stack Walking </span> </a> </li> <li class=md-nav__item> <a href=../corelib/ class=md-nav__link> <span class=md-ellipsis> System.Private.CoreLib and calling into the runtime </span> </a> </li> <li class=md-nav__item> <a href=../dac-notes/ class=md-nav__link> <span class=md-ellipsis> Data Access Component (DAC) Notes </span> </a> </li> <li class=md-nav__item> <a href=../profiling/ class=md-nav__link> <span class=md-ellipsis> Profiling </span> </a> </li> <li class=md-nav__item> <a href=../profilability/ class=md-nav__link> <span class=md-ellipsis> Implementing Profilability </span> </a> </li> <li class=md-nav__item> <a href=../exceptions/ class=md-nav__link> <span class=md-ellipsis> What Every Dev needs to Know About Exceptions in the Runtime </span> </a> </li> <li class=md-nav__item> <a href=../readytorun-overview/ class=md-nav__link> <span class=md-ellipsis> ReadyToRun Overview </span> </a> </li> <li class=md-nav__item> <a href=../clr-abi/ class=md-nav__link> <span class=md-ellipsis> CLR ABI </span> </a> </li> <li class=md-nav__item> <a href=../xplat-minidump-generation/ class=md-nav__link> <span class=md-ellipsis> Cross-platform Minidumps </span> </a> </li> <li class=md-nav__item> <a href=../mixed-mode/ class=md-nav__link> <span class=md-ellipsis> Mixed Mode Assemblies </span> </a> </li> <li class=md-nav__item> <a href=../guide-for-porting/ class=md-nav__link> <span class=md-ellipsis> Guide For Porting </span> </a> </li> <li class=md-nav__item> <a href=../vectors-and-intrinsics/ class=md-nav__link> <span class=md-ellipsis> Vectors and Intrinsics </span> </a> </li> <li class=md-nav__item> <a href=../ilc-architecture/ class=md-nav__link> <span class=md-ellipsis> ILC Compiler Architecture </span> </a> </li> <li class=md-nav__item> <a href=../managed-type-system/ class=md-nav__link> <span class=md-ellipsis> Managed Type System Overview </span> </a> </li> <li class=md-nav__item> <a href=../r2r-perfmap-format/ class=md-nav__link> <span class=md-ellipsis> Ready to run PerfMap format </span> </a> </li> <li class=md-nav__item> <a href=../readytorun-format/ class=md-nav__link> <span class=md-ellipsis> ReadyToRun File Format </span> </a> </li> <li class=md-nav__item> <a href=../shared-generics/ class=md-nav__link> <span class=md-ellipsis> Shared Generics Design </span> </a> </li> </ul> </nav> </div> </div> </div> <div class="md-sidebar md-sidebar--secondary" data-md-component=sidebar data-md-type=toc> <div class=md-sidebar__scrollwrap> <div class=md-sidebar__inner> <nav class="md-nav md-nav--secondary" aria-label="Table of contents"> </nav> </div> </div> </div> <div class=md-content data-md-component=content> <article class="md-content__inner md-typeset"> <a href=https://github.com/jurakovic/runtime/raw/main/docs/design/coreclr/botr/type-system.md title="View source of this page" class="md-content__button md-icon"> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.15 8.15 0 0 1-1.23-2Z"/></svg> </a> <h1 id=type-system-overview>Type System Overview</h1> <p>Author: David Wrighton (<a href=https://github.com/davidwrighton>@davidwrighton</a>) - 2010</p> <h1 id=introduction>Introduction</h1> <p>The CLR type system is our representation the type system described in the ECMA specification + extensions.</p> <h2 id=overview>Overview</h2> <p>The type system is composed of a series of data structures, some of which are described in other Book of the Runtime chapters, as well as a set of algorithms which operate on and create those data structures. It is NOT the type system exposed through reflection, although that one does depend on this system.</p> <p>The major data structures maintained by the type system are:</p> <ul> <li>MethodTable</li> <li>EEClass</li> <li>MethodDesc</li> <li>FieldDesc</li> <li>TypeDesc</li> <li>ClassLoader</li> </ul> <p>The major algorithms contained within the type system are:</p> <ul> <li><strong>Type Loader:</strong> Used to load types and create most of the primary data structures of the type system.</li> <li><strong>CanCastTo and similar:</strong> The functionality of comparing types.</li> <li><strong>LoadTypeHandle:</strong> Primarily used for finding types.</li> <li><strong>Signature parsing:</strong> Used to compare and gather information about methods and fields.</li> <li><strong>GetMethod/FieldDesc:</strong> Used to find/load methods/fields.</li> <li><strong>Virtual Stub Dispatch:</strong> Used to find the destination of virtual calls to interfaces.</li> </ul> <p>There are significantly more ancillary data structures and algorithms that provide various bits of information to the rest of the CLR, but they are less significant to the overall understanding of the system.</p> <h2 id=component-architecture>Component Architecture</h2> <p>The type system's data structures are generally used by all of the various algorithms. This document does not describe the type system algorithms (as there are or should be other book of the runtime documents for those), but it does attempt to describe the various major data structures below.</p> <h2 id=dependencies>Dependencies</h2> <p>The type system is generally a service provided to many parts of the CLR, and most core components have some form of dependency on the behavior of the type system. This diagram describes the general dataflow that effects the type system. It is not exhaustive, but calls out the major information flows.</p> <p><img alt=dependencies src=../images/type-system-dependencies.png></p> <h3 id=component-dependencies>Component Dependencies</h3> <p>The primary dependencies of the type system follow:</p> <ul> <li>The <strong>loader</strong> needed to get the correct metadata to work with.</li> <li>The <strong>metadata system</strong> provides a metadata API to gather information.</li> <li>The <strong>security system</strong> informs the type system whether or not certain type system structures are permitted (e.g. inheritance).</li> <li>The <strong>AppDomain</strong> provides a LoaderAllocator to handle allocation behavior for the type system data structures.</li> </ul> <h3 id=components-dependent-on-this-component>Components Dependent on this Component</h3> <p>The type system has 3 primary components which depend on it.</p> <ul> <li>The <strong>Jit interface</strong>, and the jit helpers primarily depends on the type, method, and field searching functionality. Once the type system object is found, the data structures returned have been tailored to provide the information needed by the jit.</li> <li><strong>Reflection</strong> uses the type system to provide relatively simple access to ECMA standardized concepts which we happen to capture in the CLR type system data structures.</li> <li><strong>General managed code execution</strong> requires the use of the type system for type comparison logic, and virtual stub dispatch.</li> </ul> <h1 id=design-of-type-system>Design of Type System</h1> <p>The core type system data structures are the data structures that represent the actual loaded types (e.g. TypeHandle, MethodTable, MethodDesc, TypeDesc, EEClass) and the data structure that allow types to be found once they are loaded (e.g. ClassLoader, Assembly, Module, RIDMaps).</p> <p>The data structures and algorithms for loading types are discussed in the <a href=../type-loader/ >Type Loader</a> and <a href=../method-descriptor/ >MethodDesc</a> Book of the Runtime chapters.</p> <p>Tying those data structures together is a set of functionality that allows the JIT/Reflection/TypeLoader/stackwalker to find existing types and methods. The general idea is that these searches should be easily driven by the metadata tokens/signatures that are specified in the ECMA CLI specification.</p> <p>And finally, when the appropriate type system data structure is found, we have algorithms to gather information from a type, and/or compare two types. A particularly complicated example of this form of algorithm may be found in the <a href=../virtual-stub-dispatch/ >Virtual Stub Dispatch</a> Book of the Runtime chapter.</p> <h2 id=design-goals-and-non-goals>Design Goals and Non-goals</h2> <h3 id=goals>Goals</h3> <ul> <li>Accessing information needed at runtime from executing (non-reflection) code is very fast.</li> <li>Accessing information needed at compilation time for generating code is straightforward.</li> <li>The garbage collector/stackwalker is able to access necessary information without taking locks, or allocating memory.</li> <li>Minimal amounts of types are loaded at a time.</li> <li>Minimal amounts of a given type are loaded at type load time.</li> <li>Type system data structures must be storable in NGEN images.</li> </ul> <h3 id=non-goals>Non-Goals</h3> <ul> <li>All information in the metadata is directly reflected in the CLR data structures.</li> <li>All uses of reflection are fast.</li> </ul> <h2 id=design-of-a-typical-algorithm-used-at-runtime-during-execution-of-managed-code>Design of a typical algorithm used at runtime during execution of managed code</h2> <p>The casting algorithm is typical of algorithms in the type system that are heavily used during the execution of managed code.</p> <p>There are at least 4 separate entry points into this algorithm. Each entry point is chosen to provide a different fast path, in the hopes that the best performance possible will be achieved.</p> <ul> <li>Can an object be cast to a particular non-type equivalent non-array type?</li> <li>Can an object be cast to an interface type that does not implement generic variance?</li> <li>Can an object be cast to an array type?</li> <li>Can an object of a type be cast to an arbitrary other managed type?</li> </ul> <p>Each of these implementations with the exception of the last one is optimized to perform better at the expense of not being fully general.</p> <p>For instance, the "Can a type be cast to a parent type" which is a variant of "Can an object be cast to a particular non-type equivalent non-array type?" code is implemented with a single loop that walks a singly linked list. This is only able to search a subset of possible casting operations, but it is possible to determine if that is the appropriate set by examining the type the cast is trying to enforce. This algorithm is implemented in the jit helper JIT_ChkCastClass_Portable.</p> <p>Assumptions:</p> <ul> <li>Special purpose implementations of algorithms are a performance improvement in general.</li> <li>Extra versions of algorithms do not provide an insurmountable maintenance problem.</li> </ul> <h2 id=design-of-typical-search-algorithm-in-the-type-system>Design of typical search algorithm in the Type System</h2> <p>There are a number of algorithms in the type system which follow this common pattern.</p> <p>The type system is commonly used to find a type. This may be triggered via any number of inputs such as the JIT, reflection, serialization, remoting, etc.</p> <p>The basic input to the type system in these cases is</p> <ul> <li>The context from which the search shall begin (a Module or assembly pointer).</li> <li>An identifier that describes the sought after type in the initial context. This is typically a token, or a string (if an assembly is the search context).</li> </ul> <p>The algorithm must first decode the identifier.</p> <p>For the search for a type scenario, the token may be either a TypeDef token, a TypeRef token, a TypeSpec token, or a string. Each of these different identifiers will cause a different form of lookup.</p> <ul> <li>A <strong>typedef token</strong> will cause a lookup in the RidMap of the Module. This is a simple array index.</li> <li>A <strong>typeref token</strong> will cause a lookup to find the assembly which this typeref token refers to, and then the type finding algorithm is begun anew with the found assembly pointer, and a string gathered from the typeref table.</li> <li>A <strong>typespec token</strong> indicates that a signature must be parsed to find the signature. Parse the signature to find the information necessary to load the type. This will recursively trigger more type finding.</li> <li>A <strong>name</strong> is used to bind between assemblies. The TypeDef/ExportedTypes table is searched for matches. Note: This search is optimized by hashtables on the manifest module object.</li> </ul> <p>From this design a number of common characteristics of search algorithms in the type system are evident.</p> <ul> <li>Searches use input that is tightly coupled to metadata. In particular, metadata tokens and string names are commonly passed around. Also, these searches are tied to Modules, which directly map to .dll and .exe files.</li> <li>Use of cached information to improve performance. The RidMap and hash tables are data structures optimized to improve these lookups.</li> <li>The algorithms typically have 3-4 different paths based on their input.</li> </ul> <p>In addition to this general design, there are a number of extra requirements that are layered onto this.</p> <ul> <li><strong>ASSUMPTION:</strong> Searching for types that are already loaded is safe to perform while stopped in the GC.</li> <li><strong>INVARIANT:</strong> A type which has already been loaded will always be found if searched for.</li> <li><strong>ISSUE:</strong> Search routines rely on metadata reading. This can yield inadequate performance in some scenarios.</li> </ul> <p>This search algorithm is typical of the routines used during JITing. It has a number of common characteristics.</p> <ul> <li>It uses metadata.</li> <li>It requires looking for data in many places.</li> <li>There is relatively little duplication of data in our data structures.</li> <li>It typically does not recurse deeply, and does not have loops.</li> </ul> <p>This allows us to meet the performance requirements, and characteristics necessary for working with an IL based JIT.</p> <h2 id=garbage-collector-requirements-on-the-type-system>Garbage Collector Requirements on the Type System</h2> <p>The garbage collector requires information about instances of types allocated in the GC heap. This is done via a pointer to a type system data structure (MethodTable) at the head of every managed object. Attached to the MethodTable, is a data structure that describes the GC layout of instances of types. There are two forms of this layout (one for normal types, and object arrays, and another for arrays of valuetypes).</p> <ul> <li><strong>ASSUMPTION:</strong> Type system data structures have a lifetime that exceeds that of managed objects that are of types described in the type system data structure.</li> <li><strong>REQUIREMENT:</strong> The garbage collector has a requirement to execute the stack walker while the runtime is suspended. This will be discussed next.</li> </ul> <h2 id=stackwalker-requirements-on-the-type-system>Stackwalker requirements on the Type System</h2> <p>The stack walker/ GC stack walker requires type system input in 2 cases.</p> <ul> <li>For finding the size of valuetypes on the stack.</li> <li>For finding GC roots to report within valuetypes on the stack.</li> </ul> <p>For various reasons involving the desire to delay load types, and the avoidance of generating multiple versions of code (that only differ via associated gc info) the CLR currently requires the walking of signatures of methods that are on the stack. This need is rarely exercised, as it requires the stack walker to execute at very particular moments in time, but in order to meet our reliability goals, the signature walker must be able to function while stackwalking.</p> <p>The stack walker executes in approximately 3 modes.</p> <ul> <li>To walk the stack of the current thread for security or exception processing reasons.</li> <li>To walk the stack of all threads for GC purposes (all threads are suspended by the EE).</li> <li>To walk the stack of a particular thread for a profiler (that specific thread is suspended).</li> </ul> <p>In the GC stack walking case, and in the profiler stack walking case, due to thread suspension, it is not safe to allocate memory or take most locks.</p> <p>This has led us to develop a path through the type system which may be relied upon to follow the above requirement.</p> <p>The rule required for the type system to achieve this goal is:</p> <ul> <li>If a method has been called, then all valuetype parameters of the called method will have been loaded into some appdomain in the process.</li> <li>The assembly reference from the assembly with the signature to the assembly implementing the type must be resolved before a walk of the signature is necessary as part of a stack walk.</li> </ul> <p>This is enforced via an extensive and complicated set of enforcements within the type loader, NGEN image generation process, and JIT.</p> <ul> <li><strong>ISSUE:</strong> Stackwalker requirements on the type system are HIGHLY fragile.</li> <li><strong>ISSUE:</strong> Implementation of stack walker requirements in the type system requires a set of contract violations at every function in the type system that may be touched while searching for types which are loaded.</li> <li><strong>ISSUE:</strong> The signature walks performed are done with the normal signature walking code. This code is designed to load types as it walks the signature, but in this case the type load functionality is used with the assumption that no type load will actually be triggered.</li> <li><strong>ISSUE:</strong> Stackwalker requirements require support from not just the type system, but also the assembly loader. The Loader has had a number of issues meeting the needs of the type system here.</li> </ul> <h2 id=static-variables>Static variables</h2> <p>Static variables in CoreCLR are handled by a combination of getting the "static base", and then adjusting it by an offset to get a pointer to the actual value. We define the statics base as either non-gc or gc for each field. Currently non-gc statics are any statics which are represented by primitive types (byte, sbyte, char, int, uint, long, ulong, float, double, pointers of various forms), and enums. GC statics are any statics which are represented by classes or by non-primitive valuetypes. For valuetype statics which are GC statics, the static variable is actually a pointer to a boxed instance of the valuetype.</p> <h3 id=per-type-static-variable-information>Per type static variable information</h3> <p>As of .NET 9, the static variable bases are now all associated with their particular type. As you can see from this diagram, the data for statics can be acquired by starting at a <code>MethodTable</code> and then getting either the <code>DynamicStaticsInfo</code> to get a statics pointer, or by getting a <code>ThreadStaticsInfo</code> to get a TLSIndex, which then can be used with the thread static variable system to get the actual thread static base.</p> <div class=highlight><pre><span></span><code>classDiagram
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://jurakovic.github.io/runtime/type-system/">
+      
+      
+        <link rel="prev" href="../threading/">
+      
+      
+        <link rel="next" href="../type-loader/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.3">
+    
+    
+      
+        <title>Type System - The Book of the Runtime</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.50c56a3b.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#type-system-overview" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="The Book of the Runtime" class="md-header__button md-logo" aria-label="The Book of the Runtime" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            The Book of the Runtime
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Type System
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jurakovic/runtime" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dotnet/runtime
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="The Book of the Runtime" class="md-nav__button md-logo" aria-label="The Book of the Runtime" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    The Book of the Runtime
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jurakovic/runtime" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dotnet/runtime
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../botr-faq/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Book of the Runtime FAQ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intro-to-clr/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction to the Common Language Runtime
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../garbage-collection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Garbage Collection Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../threading/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Threading
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Type System
+  </span>
+  
+
+      </a>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../type-loader/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Type Loader
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../method-descriptor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Method Descriptor
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../virtual-stub-dispatch/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Virtual Stub Dispatch
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stackwalking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Stack Walking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../corelib/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    System.Private.CoreLib and calling into the runtime
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dac-notes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Access Component (DAC) Notes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../profiling/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Profiling
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../profilability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Implementing Profilability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exceptions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    What Every Dev needs to Know About Exceptions in the Runtime
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readytorun-overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ReadyToRun Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clr-abi/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CLR ABI
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xplat-minidump-generation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cross-platform Minidumps
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mixed-mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mixed Mode Assemblies
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-for-porting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guide For Porting
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vectors-and-intrinsics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vectors and Intrinsics
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ilc-architecture/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ILC Compiler Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../managed-type-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Managed Type System Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../r2r-perfmap-format/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ready to run PerfMap format
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readytorun-format/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ReadyToRun File Format
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shared-generics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shared Generics Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+    
+      
+    
+    <a href="https://github.com/dotnet/runtime/blob/master/docs/type-system.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.15 8.15 0 0 1-1.23-2Z"/></svg>
+    </a>
+  
+
+
+<h1 id="type-system-overview">Type System Overview</h1>
+<p>Author: David Wrighton (<a href="https://github.com/davidwrighton">@davidwrighton</a>) - 2010</p>
+<h1 id="introduction">Introduction</h1>
+<p>The CLR type system is our representation the type system described in the ECMA specification + extensions.</p>
+<h2 id="overview">Overview</h2>
+<p>The type system is composed of a series of data structures, some of which are described in other Book of the Runtime chapters, as well as a set of algorithms which operate on and create those data structures. It is NOT the type system exposed through reflection, although that one does depend on this system.</p>
+<p>The major data structures maintained by the type system are:</p>
+<ul>
+<li>MethodTable</li>
+<li>EEClass</li>
+<li>MethodDesc</li>
+<li>FieldDesc</li>
+<li>TypeDesc</li>
+<li>ClassLoader</li>
+</ul>
+<p>The major algorithms contained within the type system are:</p>
+<ul>
+<li><strong>Type Loader:</strong> Used to load types and create most of the primary data structures of the type system.</li>
+<li><strong>CanCastTo and similar:</strong> The functionality of comparing types.</li>
+<li><strong>LoadTypeHandle:</strong> Primarily used for finding types.</li>
+<li><strong>Signature parsing:</strong> Used to compare and gather information about methods and fields.</li>
+<li><strong>GetMethod/FieldDesc:</strong> Used to find/load methods/fields.</li>
+<li><strong>Virtual Stub Dispatch:</strong> Used to find the destination of virtual calls to interfaces.</li>
+</ul>
+<p>There are significantly more ancillary data structures and algorithms that provide various bits of information to the rest of the CLR, but they are less significant to the overall understanding of the system.</p>
+<h2 id="component-architecture">Component Architecture</h2>
+<p>The type system's data structures are generally used by all of the various algorithms. This document does not describe the type system algorithms (as there are or should be other book of the runtime documents for those), but it does attempt to describe the various major data structures below.</p>
+<h2 id="dependencies">Dependencies</h2>
+<p>The type system is generally a service provided to many parts of the CLR, and most core components have some form of dependency on the behavior of the type system. This diagram describes the general dataflow that effects the type system. It is not exhaustive, but calls out the major information flows.</p>
+<p><img alt="dependencies" src="../images/type-system-dependencies.png" /></p>
+<h3 id="component-dependencies">Component Dependencies</h3>
+<p>The primary dependencies of the type system follow:</p>
+<ul>
+<li>The <strong>loader</strong> needed to get the correct metadata to work with.</li>
+<li>The <strong>metadata system</strong> provides a metadata API to gather information.</li>
+<li>The <strong>security system</strong> informs the type system whether or not certain type system structures are permitted (e.g. inheritance).</li>
+<li>The <strong>AppDomain</strong> provides a LoaderAllocator to handle allocation behavior for the type system data structures.</li>
+</ul>
+<h3 id="components-dependent-on-this-component">Components Dependent on this Component</h3>
+<p>The type system has 3 primary components which depend on it.</p>
+<ul>
+<li>The <strong>Jit interface</strong>, and the jit helpers primarily depends on the type, method, and field searching functionality. Once the type system object is found, the data structures returned have been tailored to provide the information needed by the jit.</li>
+<li><strong>Reflection</strong> uses the type system to provide relatively simple access to ECMA standardized concepts which we happen to capture in the CLR type system data structures.</li>
+<li><strong>General managed code execution</strong> requires the use of the type system for type comparison logic, and virtual stub dispatch.</li>
+</ul>
+<h1 id="design-of-type-system">Design of Type System</h1>
+<p>The core type system data structures are the data structures that represent the actual loaded types (e.g. TypeHandle, MethodTable, MethodDesc, TypeDesc, EEClass) and the data structure that allow types to be found once they are loaded (e.g. ClassLoader, Assembly, Module, RIDMaps).</p>
+<p>The data structures and algorithms for loading types are discussed in the <a href="../type-loader/">Type Loader</a> and <a href="../method-descriptor/">MethodDesc</a> Book of the Runtime chapters.</p>
+<p>Tying those data structures together is a set of functionality that allows the JIT/Reflection/TypeLoader/stackwalker to find existing types and methods. The general idea is that these searches should be easily driven by the metadata tokens/signatures that are specified in the ECMA CLI specification.</p>
+<p>And finally, when the appropriate type system data structure is found, we have algorithms to gather information from a type, and/or compare two types. A particularly complicated example of this form of algorithm may be found in the <a href="../virtual-stub-dispatch/">Virtual Stub Dispatch</a> Book of the Runtime chapter.</p>
+<h2 id="design-goals-and-non-goals">Design Goals and Non-goals</h2>
+<h3 id="goals">Goals</h3>
+<ul>
+<li>Accessing information needed at runtime from executing (non-reflection) code is very fast.</li>
+<li>Accessing information needed at compilation time for generating code is straightforward.</li>
+<li>The garbage collector/stackwalker is able to access necessary information without taking locks, or allocating memory.</li>
+<li>Minimal amounts of types are loaded at a time.</li>
+<li>Minimal amounts of a given type are loaded at type load time.</li>
+<li>Type system data structures must be storable in NGEN images.</li>
+</ul>
+<h3 id="non-goals">Non-Goals</h3>
+<ul>
+<li>All information in the metadata is directly reflected in the CLR data structures.</li>
+<li>All uses of reflection are fast.</li>
+</ul>
+<h2 id="design-of-a-typical-algorithm-used-at-runtime-during-execution-of-managed-code">Design of a typical algorithm used at runtime during execution of managed code</h2>
+<p>The casting algorithm is typical of algorithms in the type system that are heavily used during the execution of managed code.</p>
+<p>There are at least 4 separate entry points into this algorithm. Each entry point is chosen to provide a different fast path, in the hopes that the best performance possible will be achieved.</p>
+<ul>
+<li>Can an object be cast to a particular non-type equivalent non-array type?</li>
+<li>Can an object be cast to an interface type that does not implement generic variance?</li>
+<li>Can an object be cast to an array type?</li>
+<li>Can an object of a type be cast to an arbitrary other managed type?</li>
+</ul>
+<p>Each of these implementations with the exception of the last one is optimized to perform better at the expense of not being fully general.</p>
+<p>For instance, the "Can a type be cast to a parent type" which is a variant of "Can an object be cast to a particular non-type equivalent non-array type?" code is implemented with a single loop that walks a singly linked list. This is only able to search a subset of possible casting operations, but it is possible to determine if that is the appropriate set by examining the type the cast is trying to enforce. This algorithm is implemented in the jit helper JIT_ChkCastClass_Portable.</p>
+<p>Assumptions:</p>
+<ul>
+<li>Special purpose implementations of algorithms are a performance improvement in general.</li>
+<li>Extra versions of algorithms do not provide an insurmountable maintenance problem.</li>
+</ul>
+<h2 id="design-of-typical-search-algorithm-in-the-type-system">Design of typical search algorithm in the Type System</h2>
+<p>There are a number of algorithms in the type system which follow this common pattern.</p>
+<p>The type system is commonly used to find a type. This may be triggered via any number of inputs such as the JIT, reflection, serialization, remoting, etc.</p>
+<p>The basic input to the type system in these cases is</p>
+<ul>
+<li>The context from which the search shall begin (a Module or assembly pointer).</li>
+<li>An identifier that describes the sought after type in the initial context. This is typically a token, or a string (if an assembly is the search context).</li>
+</ul>
+<p>The algorithm must first decode the identifier.</p>
+<p>For the search for a type scenario, the token may be either a TypeDef token, a TypeRef token, a TypeSpec token, or a string. Each of these different identifiers will cause a different form of lookup.</p>
+<ul>
+<li>A <strong>typedef token</strong> will cause a lookup in the RidMap of the Module. This is a simple array index.</li>
+<li>A <strong>typeref token</strong> will cause a lookup to find the assembly which this typeref token refers to, and then the type finding algorithm is begun anew with the found assembly pointer, and a string gathered from the typeref table.</li>
+<li>A <strong>typespec token</strong> indicates that a signature must be parsed to find the signature. Parse the signature to find the information necessary to load the type. This will recursively trigger more type finding.</li>
+<li>A <strong>name</strong> is used to bind between assemblies. The TypeDef/ExportedTypes table is searched for matches. Note: This search is optimized by hashtables on the manifest module object.</li>
+</ul>
+<p>From this design a number of common characteristics of search algorithms in the type system are evident.</p>
+<ul>
+<li>Searches use input that is tightly coupled to metadata. In particular, metadata tokens and string names are commonly passed around. Also, these searches are tied to Modules, which directly map to .dll and .exe files.</li>
+<li>Use of cached information to improve performance. The RidMap and hash tables are data structures optimized to improve these lookups.</li>
+<li>The algorithms typically have 3-4 different paths based on their input.</li>
+</ul>
+<p>In addition to this general design, there are a number of extra requirements that are layered onto this.</p>
+<ul>
+<li><strong>ASSUMPTION:</strong> Searching for types that are already loaded is safe to perform while stopped in the GC.</li>
+<li><strong>INVARIANT:</strong> A type which has already been loaded will always be found if searched for.</li>
+<li><strong>ISSUE:</strong> Search routines rely on metadata reading. This can yield inadequate performance in some scenarios.</li>
+</ul>
+<p>This search algorithm is typical of the routines used during JITing. It has a number of common characteristics.</p>
+<ul>
+<li>It uses metadata.</li>
+<li>It requires looking for data in many places.</li>
+<li>There is relatively little duplication of data in our data structures.</li>
+<li>It typically does not recurse deeply, and does not have loops.</li>
+</ul>
+<p>This allows us to meet the performance requirements, and characteristics necessary for working with an IL based JIT.</p>
+<h2 id="garbage-collector-requirements-on-the-type-system">Garbage Collector Requirements on the Type System</h2>
+<p>The garbage collector requires information about instances of types allocated in the GC heap. This is done via a pointer to a type system data structure (MethodTable) at the head of every managed object. Attached to the MethodTable, is a data structure that describes the GC layout of instances of types. There are two forms of this layout (one for normal types, and object arrays, and another for arrays of valuetypes).</p>
+<ul>
+<li><strong>ASSUMPTION:</strong> Type system data structures have a lifetime that exceeds that of managed objects that are of types described in the type system data structure.</li>
+<li><strong>REQUIREMENT:</strong> The garbage collector has a requirement to execute the stack walker while the runtime is suspended. This will be discussed next.</li>
+</ul>
+<h2 id="stackwalker-requirements-on-the-type-system">Stackwalker requirements on the Type System</h2>
+<p>The stack walker/ GC stack walker requires type system input in 2 cases.</p>
+<ul>
+<li>For finding the size of valuetypes on the stack.</li>
+<li>For finding GC roots to report within valuetypes on the stack.</li>
+</ul>
+<p>For various reasons involving the desire to delay load types, and the avoidance of generating multiple versions of code (that only differ via associated gc info) the CLR currently requires the walking of signatures of methods that are on the stack. This need is rarely exercised, as it requires the stack walker to execute at very particular moments in time, but in order to meet our reliability goals, the signature walker must be able to function while stackwalking.</p>
+<p>The stack walker executes in approximately 3 modes.</p>
+<ul>
+<li>To walk the stack of the current thread for security or exception processing reasons.</li>
+<li>To walk the stack of all threads for GC purposes (all threads are suspended by the EE).</li>
+<li>To walk the stack of a particular thread for a profiler (that specific thread is suspended).</li>
+</ul>
+<p>In the GC stack walking case, and in the profiler stack walking case, due to thread suspension, it is not safe to allocate memory or take most locks.</p>
+<p>This has led us to develop a path through the type system which may be relied upon to follow the above requirement.</p>
+<p>The rule required for the type system to achieve this goal is:</p>
+<ul>
+<li>If a method has been called, then all valuetype parameters of the called method will have been loaded into some appdomain in the process.</li>
+<li>The assembly reference from the assembly with the signature to the assembly implementing the type must be resolved before a walk of the signature is necessary as part of a stack walk.</li>
+</ul>
+<p>This is enforced via an extensive and complicated set of enforcements within the type loader, NGEN image generation process, and JIT.</p>
+<ul>
+<li><strong>ISSUE:</strong> Stackwalker requirements on the type system are HIGHLY fragile.</li>
+<li><strong>ISSUE:</strong> Implementation of stack walker requirements in the type system requires a set of contract violations at every function in the type system that may be touched while searching for types which are loaded.</li>
+<li><strong>ISSUE:</strong> The signature walks performed are done with the normal signature walking code. This code is designed to load types as it walks the signature, but in this case the type load functionality is used with the assumption that no type load will actually be triggered.</li>
+<li><strong>ISSUE:</strong> Stackwalker requirements require support from not just the type system, but also the assembly loader. The Loader has had a number of issues meeting the needs of the type system here.</li>
+</ul>
+<h2 id="static-variables">Static variables</h2>
+<p>Static variables in CoreCLR are handled by a combination of getting the "static base", and then adjusting it by an offset to get a pointer to the actual value.
+We define the statics base as either non-gc or gc for each field.
+Currently non-gc statics are any statics which are represented by primitive types (byte, sbyte, char, int, uint, long, ulong, float, double, pointers of various forms), and enums.
+GC statics are any statics which are represented by classes or by non-primitive valuetypes.
+For valuetype statics which are GC statics, the static variable is actually a pointer to a boxed instance of the valuetype.</p>
+<h3 id="per-type-static-variable-information">Per type static variable information</h3>
+<p>As of .NET 9, the static variable bases are now all associated with their particular type.
+As you can see from this diagram, the data for statics can be acquired by starting at a <code>MethodTable</code> and then getting either the <code>DynamicStaticsInfo</code> to get a statics pointer, or by getting a <code>ThreadStaticsInfo</code> to get a TLSIndex, which then can be used with the thread static variable system to get the actual thread static base.</p>
+<div class="highlight"><pre><span></span><code>classDiagram
 MethodTable : MethodTableAuxiliaryData* m_pAuxData
 MethodTable --&gt; MethodTableAuxiliaryData
 MethodTableAuxiliaryData --&gt; DynamicStaticsInfo : If has static variables
@@ -12,7 +993,8 @@ GenericStaticsInfo : FieldDesc* m_pFieldDescs
 
 ThreadStaticsInfo : TLSIndex NonGCTlsIndex
 ThreadStaticsInfo : TLSIndex GCTlsIndex
-</code></pre></div> <div class=highlight><pre><span></span><code>classDiagram
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>classDiagram
 
 note for StaticsPointer &quot;StaticsPointer is a pointer sized integer&quot;
 StaticsPointer : void* PointerToStaticBase
@@ -21,7 +1003,30 @@ StaticsPointer : bool HasClassConstructorBeenRun
 note for TLSIndex &quot;TLSIndex is a 32bit integer&quot;
 TLSIndex : TLSIndexType indexType
 TLSIndex : 24bit int indexOffset
-</code></pre></div> <p>In the above diagram, you can see that we have separate fields for non-gc and gc statics, as well as thread and normal statics. For normal statics, we use a single pointer sized field, which also happens to encode whether or not the class constructor has been run. This is done to allow lock free atomic access to both get the static field address as well as determine if the class constructor needs to be triggered. For TLS statics, handling of detecting whether or not the class constructor has been run is a more complex process described as part of the thread statics infrastructure. The <code>DynamicStaticsInfo</code> and <code>ThreadStaticsInfo</code> structures are accessed without any locks, so it is important to ensure that access to fields on these structures can be done with a single memory access, to avoid memory order tearing issues.</p> <p>Also, notably, for generic types, each field has a <code>FieldDesc</code> which is allocated per type instance, and is not shared by multiple canonical instances.</p> <h4 id=lifetime-management-for-collectible-statics>Lifetime management for collectible statics</h4> <p>Finally we have a concept of collectible assemblies in the CoreCLR runtime, so we need to handle lifetime management for static variables. The approach chosen was to build a special GC handle type which will allow the runtime to have a pointer in the runtime data structures to the interior of a managed object on the GC heap.</p> <p>The requirement of behavior here is that a static variable cannot keep its own collectible assembly alive, and so collectible statics have the peculiar property that they can exist and be finalized before the collectible assembly is finally collected. If there is some resurrection scenario, this can lead to very surprising behavior.</p> <h3 id=thread-statics>Thread Statics</h3> <p>Thread statics are static variables which have a lifetime which is defined to be the shorter of the lifetime of the type containing the static, and the lifetime of the thread on which the static variable is accessed. They are created by having a static variable on a type which is attributed with <code>[System.Runtime.CompilerServices.ThreadStaticAttribute]</code>. The general scheme of how this works is to assign an "index" to the type which is the same on all threads, and then on each thread hold a data structure which is efficiently accessed by means of this index. However, we have a few peculiarities in our approach.</p> <ol> <li>We segregate collectible and non-collectible thread statics (<code>TLSIndexType::NonCollectible</code> and <code>TLSIndexType::Collectible</code>)</li> <li>We provide an ability to share a non-gc thread static between native CoreCLR code and managed code (Subset of <code>TLSIndexType::DirectOnThreadLocalData</code>)</li> <li>We provide an extremely efficient means to access a small number of non-gc thread statics. (The rest of the usage of <code>TLSIndexType::DirectOnThreadLocalData</code>)</li> </ol> <h4 id=per-thread-statics-data-structures>Per-Thread Statics Data structures</h4> <div class=highlight><pre><span></span><code>classDiagram
+</code></pre></div>
+<p>In the above diagram, you can see that we have separate fields for non-gc and gc statics, as well as thread and normal statics.
+For normal statics, we use a single pointer sized field, which also happens to encode whether or not the class constructor has been run.
+This is done to allow lock free atomic access to both get the static field address as well as determine if the class constructor needs to be triggered.
+For TLS statics, handling of detecting whether or not the class constructor has been run is a more complex process described as part of the thread statics infrastructure.
+The <code>DynamicStaticsInfo</code> and <code>ThreadStaticsInfo</code> structures are accessed without any locks, so it is important to ensure that access to fields on these structures can be done with a single memory access, to avoid memory order tearing issues.</p>
+<p>Also, notably, for generic types, each field has a <code>FieldDesc</code> which is allocated per type instance, and is not shared by multiple canonical instances.</p>
+<h4 id="lifetime-management-for-collectible-statics">Lifetime management for collectible statics</h4>
+<p>Finally we have a concept of collectible assemblies in the CoreCLR runtime, so we need to handle lifetime management for static variables.
+The approach chosen was to build a special GC handle type which will allow the runtime to have a pointer in the runtime data structures to the interior of a managed object on the GC heap.</p>
+<p>The requirement of behavior here is that a static variable cannot keep its own collectible assembly alive, and so collectible statics have the peculiar property that they can exist and be finalized before the collectible assembly is finally collected.
+If there is some resurrection scenario, this can lead to very surprising behavior.</p>
+<h3 id="thread-statics">Thread Statics</h3>
+<p>Thread statics are static variables which have a lifetime which is defined to be the shorter of the lifetime of the type containing the static, and the lifetime of the thread on which the static variable is accessed.
+They are created by having a static variable on a type which is attributed with <code>[System.Runtime.CompilerServices.ThreadStaticAttribute]</code>.
+The general scheme of how this works is to assign an "index" to the type which is the same on all threads, and then on each thread hold a data structure which is efficiently accessed by means of this index.
+However, we have a few peculiarities in our approach.</p>
+<ol>
+<li>We segregate collectible and non-collectible thread statics (<code>TLSIndexType::NonCollectible</code> and <code>TLSIndexType::Collectible</code>)</li>
+<li>We provide an ability to share a non-gc thread static between native CoreCLR code and managed code (Subset of <code>TLSIndexType::DirectOnThreadLocalData</code>)</li>
+<li>We provide an extremely efficient means to access a small number of non-gc thread statics. (The rest of the usage of <code>TLSIndexType::DirectOnThreadLocalData</code>)</li>
+</ol>
+<h4 id="per-thread-statics-data-structures">Per-Thread Statics Data structures</h4>
+<div class="highlight"><pre><span></span><code>classDiagram
 
 note for ThreadLocalInfo &quot;There is 1 of these per thread, and it is managed by the C++ compiler/OS using standard mechanisms.
 It can be found as the t_ThreadStatics variable in a C++ compiler, and is also pointed at by the native Thread class.&quot;
@@ -40,4 +1045,182 @@ InFlightTLSData : OBJECTHANDLE hTLSData
 
 ThreadLocalInfo --&gt; InFlightTLSData : For TLS statics which have their memory allocated, but have not been accessed since the class finished running its class constructor
 InFlightTLSData --&gt; InFlightTLSData : linked list
-</code></pre></div> <h4 id=access-patterns-for-getting-the-thread-statics-address>Access patterns for getting the thread statics address</h4> <p>This is the pattern that the JIT will use to access a thread static which is not <code>DirectOnThreadLocalData</code>.</p> <ol> <li>Get the TLS index somehow</li> <li>Get TLS pointer to OS managed TLS block for the current thread ie. <code>pThreadLocalData = &amp;t_ThreadStatics</code></li> <li>Read 1 integer value <code>pThreadLocalData-&gt;cCollectibleTlsData OR pThreadLocalData-&gt;cNonCollectibleTlsData</code></li> <li>Compare cTlsData against the index we're looking up <code>if (cTlsData &lt; index.GetIndexOffset())</code></li> <li>If the index is not within range, jump to step 11.</li> <li>Read 1 pointer value from TLS block <code>pThreadLocalData-&gt;pCollectibleTlsArrayData</code> OR <code>pThreadLocalData-&gt;pNonCollectibleTlsArrayData</code></li> <li>Read 1 pointer from within the TLS Array. <code>pTLSBaseAddress = *(intptr_t*)(((uint8_t*)pTlsArrayData) + index.GetIndexOffset()</code></li> <li>If pointer is NULL jump to step 11 <code>if pTLSBaseAddress == NULL</code></li> <li>If TLS index not a Collectible index, return pTLSBaseAddress</li> <li>if <code>ObjectFromHandle((OBJECTHANDLE)pTLSBaseAddress)</code> is NULL, jump to step 11</li> <li>Return <code>ObjectFromHandle((OBJECTHANDLE)pTLSBaseAddress)</code></li> <li>Tail-call a helper <code>return GetThreadLocalStaticBase(index)</code></li> </ol> <p>This is the pattern that the JIT will use to access a thread static which is on <code>DirectOnThreadLocalData</code> 0. Get the TLS index somehow 1. Get TLS pointer to OS managed TLS block for the current thread ie. <code>pThreadLocalData = &amp;t_ThreadStatics</code> 2. Add the index offset to the start of the ThreadLocalData structure <code>pTLSBaseAddress = ((uint8_t*)pThreadLocalData) + index.GetIndexOffset()</code></p> <h4 id=lifetime-management-for-thread-static-variables>Lifetime management for thread static variables</h4> <p>We distinguish between collectible and non-collectible thread static variables for efficiency purposes.</p> <p>A non-collectible thread static is a thread static defined on a type which cannot be collected by the runtime. This describes most thread statics in actual observed practice. The <code>DirectOnThreadLocalData</code> statics are a subset of this category which has a speical optimized form and does not need any GC reporting. For non-collectible thread statics, the pointer (<code>pNonCollectibleTlsArrayData</code>) in the <code>ThreadLocalData</code> is a pointer to a managed <code>object[]</code> which points at either <code>object[]</code>, <code>byte[]</code>, or <code>double[]</code> arrays. At GC scan time, the pointer to the initial object[] is the only detail which needs to be reported to the GC.</p> <p>A collectible thread static is a thread static which can be collected by the runtime. This describes the static variables defined on types which can be collected by the runtime. The pointer (<code>pCollectibleTlsArrayData</code>) in the <code>ThreadLocalData</code> is a pointer to a chunk of memory allocated via <code>malloc</code>, and holds pointers to <code>object[]</code>, <code>byte[]</code>, or <code>double[]</code> arrays. At GC scan time, each managed object must individually be kept alive only if the type and thread is still alive. This requires properly handling several situations. 1. If a collectible assembly becomes unreferenced, but a thread static variable associated with it has a finalizer, the object must move to the finalization queue. 2. If a thread static variable associated with a collectible assembly refers to the collectible assembly <code>LoaderAllocator</code> via a series of object references, it must not provide a reason for the collectible assembly to be considered referenced. 3. If a collectible assembly is collected, then the associated static variables no longer exist, and the TLSIndex values associated with that collectible assembly becomes re-useable. 4. If a thread is no longer executing, then all thread statics associated with that thread are no longer kept alive.</p> <p>The approach chosen is to use a pair of different handle types. For efficient access, the handle type stored in the dynamically adjusted array is a WeakTrackResurrection GCHandle. This handle instance is associated with the slot in the TLS data, not with the exact instantiation, so it can be re-used when the if the associated collectible assembly is collected, and then the slot is re-used. In addition, each slot that is in use will have a <code>LOADERHANDLE</code> which will keep the object alive until the <code>LoaderAllocator</code> is freed. This <code>LOADERHANDLE</code> will be abandoned if the <code>LoaderAllocator</code> is collected, but that's ok, as <code>LOADERHANDLE</code> only needs to be cleaned up if the <code>LoaderAllocator</code> isn't collected. On thread destroy, for each collectible slot in the tls array, we will explicitly free the <code>LOADERHANDLE</code> on the correct <code>LoaderAllocator</code>.</p> <h1 id=physical-architecture>Physical Architecture</h1> <p>Major parts of the type system are found in:</p> <ul> <li>Class.cpp/inl/h – EEClass functions, and BuildMethodTable</li> <li>MethodTable.cpp/inl/h – Functions for manipulating methodtables.</li> <li>TypeDesc.cpp/inl/h – Functions for examining TypeDesc</li> <li>MetaSig.cpp SigParser – Signature code</li> <li>FieldDesc /MethodDesc – Functions for examining these data structures</li> <li>Generics – Generics specific logic.</li> <li>Array – Code for handling the special cases required for array processing</li> <li>VirtualStubDispatch.cpp/h/inl – Code for virtual stub dispatch</li> <li>VirtualCallStubCpu.hpp – Processor specific code for virtual stub dispatch.</li> <li>threadstatics.cpp/h - Handling for thread static variables.</li> </ul> <p>Major entry points are BuildMethodTable, LoadTypeHandleThrowing, CanCastTo*, GetMethodDescFromMemberDefOrRefOrSpecThrowing, GetFieldDescFromMemberRefThrowing, CompareSigs, and VirtualCallStubManager::ResolveWorkerStatic.</p> <h1 id=related-reading>Related Reading</h1> <ul> <li><a href=../../../project/dotnet-standards.md>ECMA CLI Specification</a></li> <li><a href=../type-loader/ >Type Loader</a> Book of the Runtime Chapter</li> <li><a href=../virtual-stub-dispatch/ >Virtual Stub Dispatch</a> Book of the Runtime Chapter</li> <li><a href=../method-descriptor/ >MethodDesc</a> Book of the Runtime Chapter</li> </ul> </article> </div> <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script> </div> </main> <footer class=md-footer> <nav class="md-footer__inner md-grid" aria-label=Footer> <a href=../threading/ class="md-footer__link md-footer__link--prev" aria-label="Previous: Threading"> <div class="md-footer__button md-icon"> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg> </div> <div class=md-footer__title> <span class=md-footer__direction> Previous </span> <div class=md-ellipsis> Threading </div> </div> </a> <a href=../type-loader/ class="md-footer__link md-footer__link--next" aria-label="Next: Type Loader"> <div class=md-footer__title> <span class=md-footer__direction> Next </span> <div class=md-ellipsis> Type Loader </div> </div> <div class="md-footer__button md-icon"> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg> </div> </a> </nav> <div class="md-footer-meta md-typeset"> <div class="md-footer-meta__inner md-grid"> <div class=md-copyright> </div> <div class=md-social> <a href=https://github.com/jurakovic/runtime target=_blank rel=noopener title=github.com class=md-social__link> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 496 512"><!-- Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg> </a> <a href=https://github.com/dotnet/runtime target=_blank rel=noopener title=github.com class=md-social__link> <svg xmlns=http://www.w3.org/2000/svg viewbox="0 0 496 512"><!-- Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg> </a> </div> </div> </div> </footer> </div> <div class=md-dialog data-md-component=dialog> <div class="md-dialog__inner md-typeset"></div> </div> <script id=__config type=application/json>{"base": "..", "features": ["content.action.view", "navigation.footer"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script> <script src=../assets/javascripts/bundle.d7c377c4.min.js></script> </body> </html>
+</code></pre></div>
+<h4 id="access-patterns-for-getting-the-thread-statics-address">Access patterns for getting the thread statics address</h4>
+<p>This is the pattern that the JIT will use to access a thread static which is not <code>DirectOnThreadLocalData</code>.</p>
+<ol>
+<li>Get the TLS index somehow</li>
+<li>Get TLS pointer to OS managed TLS block for the current thread ie. <code>pThreadLocalData = &amp;t_ThreadStatics</code></li>
+<li>Read 1 integer value <code>pThreadLocalData-&gt;cCollectibleTlsData OR pThreadLocalData-&gt;cNonCollectibleTlsData</code></li>
+<li>Compare cTlsData against the index we're looking up <code>if (cTlsData &lt; index.GetIndexOffset())</code></li>
+<li>If the index is not within range, jump to step 11.</li>
+<li>Read 1 pointer value from TLS block <code>pThreadLocalData-&gt;pCollectibleTlsArrayData</code> OR <code>pThreadLocalData-&gt;pNonCollectibleTlsArrayData</code></li>
+<li>Read 1 pointer from within the TLS Array. <code>pTLSBaseAddress = *(intptr_t*)(((uint8_t*)pTlsArrayData) + index.GetIndexOffset()</code></li>
+<li>If pointer is NULL jump to step 11 <code>if pTLSBaseAddress == NULL</code></li>
+<li>If TLS index not a Collectible index, return pTLSBaseAddress</li>
+<li>if <code>ObjectFromHandle((OBJECTHANDLE)pTLSBaseAddress)</code> is NULL, jump to step 11</li>
+<li>Return <code>ObjectFromHandle((OBJECTHANDLE)pTLSBaseAddress)</code></li>
+<li>Tail-call a helper <code>return GetThreadLocalStaticBase(index)</code></li>
+</ol>
+<p>This is the pattern that the JIT will use to access a thread static which is on <code>DirectOnThreadLocalData</code>
+0. Get the TLS index somehow
+1. Get TLS pointer to OS managed TLS block for the current thread ie. <code>pThreadLocalData = &amp;t_ThreadStatics</code>
+2. Add the index offset to the start of the ThreadLocalData structure <code>pTLSBaseAddress = ((uint8_t*)pThreadLocalData) + index.GetIndexOffset()</code></p>
+<h4 id="lifetime-management-for-thread-static-variables">Lifetime management for thread static variables</h4>
+<p>We distinguish between collectible and non-collectible thread static variables for efficiency purposes.</p>
+<p>A non-collectible thread static is a thread static defined on a type which cannot be collected by the runtime.
+This describes most thread statics in actual observed practice.
+The <code>DirectOnThreadLocalData</code> statics are a subset of this category which has a speical optimized form and does not need any GC reporting.
+For non-collectible thread statics, the pointer (<code>pNonCollectibleTlsArrayData</code>) in the <code>ThreadLocalData</code> is a pointer to a managed <code>object[]</code> which points at either <code>object[]</code>, <code>byte[]</code>, or <code>double[]</code> arrays.
+At GC scan time, the pointer to the initial object[] is the only detail which needs to be reported to the GC.</p>
+<p>A collectible thread static is a thread static which can be collected by the runtime.
+This describes the static variables defined on types which can be collected by the runtime.
+The pointer (<code>pCollectibleTlsArrayData</code>) in the <code>ThreadLocalData</code> is a pointer to a chunk of memory allocated via <code>malloc</code>, and holds pointers to <code>object[]</code>, <code>byte[]</code>, or <code>double[]</code> arrays.
+At GC scan time, each managed object must individually be kept alive only if the type and thread is still alive. This requires properly handling several situations.
+1. If a collectible assembly becomes unreferenced, but a thread static variable associated with it has a finalizer, the object must move to the finalization queue.
+2. If a thread static variable associated with a collectible assembly refers to the collectible assembly <code>LoaderAllocator</code> via a series of object references, it must not provide a reason for the collectible assembly to be considered referenced.
+3. If a collectible assembly is collected, then the associated static variables no longer exist, and the TLSIndex values associated with that collectible assembly becomes re-useable.
+4. If a thread is no longer executing, then all thread statics associated with that thread are no longer kept alive.</p>
+<p>The approach chosen is to use a pair of different handle types.
+For efficient access, the handle type stored in the dynamically adjusted array is a WeakTrackResurrection GCHandle.
+This handle instance is associated with the slot in the TLS data, not with the exact instantiation, so it can be re-used when the if the associated collectible assembly is collected, and then the slot is re-used.
+In addition, each slot that is in use will have a <code>LOADERHANDLE</code> which will keep the object alive until the <code>LoaderAllocator</code> is freed.
+This <code>LOADERHANDLE</code> will be abandoned if the <code>LoaderAllocator</code> is collected, but that's ok, as <code>LOADERHANDLE</code> only needs to be cleaned up if the <code>LoaderAllocator</code> isn't collected.
+On thread destroy, for each collectible slot in the tls array, we will explicitly free the <code>LOADERHANDLE</code> on the correct <code>LoaderAllocator</code>.</p>
+<h1 id="physical-architecture">Physical Architecture</h1>
+<p>Major parts of the type system are found in:</p>
+<ul>
+<li>Class.cpp/inl/h – EEClass functions, and BuildMethodTable</li>
+<li>MethodTable.cpp/inl/h – Functions for manipulating methodtables.</li>
+<li>TypeDesc.cpp/inl/h – Functions for examining TypeDesc</li>
+<li>MetaSig.cpp SigParser – Signature code</li>
+<li>FieldDesc /MethodDesc – Functions for examining these data structures</li>
+<li>Generics – Generics specific logic.</li>
+<li>Array – Code for handling the special cases required for array processing</li>
+<li>VirtualStubDispatch.cpp/h/inl – Code for virtual stub dispatch</li>
+<li>VirtualCallStubCpu.hpp – Processor specific code for virtual stub dispatch.</li>
+<li>threadstatics.cpp/h - Handling for thread static variables.</li>
+</ul>
+<p>Major entry points are BuildMethodTable, LoadTypeHandleThrowing, CanCastTo*, GetMethodDescFromMemberDefOrRefOrSpecThrowing, GetFieldDescFromMemberRefThrowing, CompareSigs, and VirtualCallStubManager::ResolveWorkerStatic.</p>
+<h1 id="related-reading">Related Reading</h1>
+<ul>
+<li><a href="../../../project/dotnet-standards.md">ECMA CLI Specification</a></li>
+<li><a href="../type-loader/">Type Loader</a> Book of the Runtime Chapter</li>
+<li><a href="../virtual-stub-dispatch/">Virtual Stub Dispatch</a> Book of the Runtime Chapter</li>
+<li><a href="../method-descriptor/">MethodDesc</a> Book of the Runtime Chapter</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../threading/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Threading">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Threading
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../type-loader/" class="md-footer__link md-footer__link--next" aria-label="Next: Type Loader">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Type Loader
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/jurakovic/runtime" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/dotnet/runtime" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.action.view", "navigation.footer"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7c377c4.min.js"></script>
+      
+    
+  </body>
+</html>

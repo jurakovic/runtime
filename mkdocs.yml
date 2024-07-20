@@ -3,9 +3,8 @@ site_name: The Book of the Runtime
 site_url: https://jurakovic.github.io/runtime/
 
 # repo
-repo_name: jurakovic/runtime
-repo_url: https://github.com/jurakovic/runtime
-edit_uri: edit/main/docs/design/coreclr/botr/
+repo_name: dotnet/runtime
+repo_url: https://github.com/dotnet/runtime
 
 # docs
 docs_dir: 'botr'
@@ -35,8 +34,6 @@ theme:
 plugins:
   - search
   - awesome-pages
-  - minify:
-      minify_html: true
 
 extra:
   generator: false

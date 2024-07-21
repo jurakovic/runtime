@@ -15,7 +15,7 @@ else
   read -p "Continue with build? (y/n) " yn
 fi
 
-if [ ! $yn = "y" ]; then exit 0; fi;
+if [ -z "$yn" ] || [ "$yn" != "y" ]; then exit 0; fi;
 
 # get current branch
 branch=$(git branch --show-current)
@@ -50,6 +50,15 @@ find docs -type f -iwholename "*.html" -exec sed -i -r 's/(href="https:\/\/githu
 
 # fix chapters url
 sed -i -r 's/(href=")(..\/botr)(">All Book of the Runtime \(BOTR\) chapters on GitHub)/\1https:\/\/github.com\/dotnet\/runtime\/blob\/main\/docs\/design\/coreclr\/botr\3/' docs/index.html
+
+# add footer url
+text='<br> Build repo: <a href="https://github.com/jurakovic/runtime" target="_blank" rel="noopener">jurakovic/runtime</a>'
+mapfile -t apps < <(find docs -type f -iwholename "*.html")
+for file in "${apps[@]}"; do
+  total_lines=$(wc -l < "$file")
+  insert_line=$((total_lines - 44))
+  if [ "$insert_line" -gt 0 ]; then sed -i "${insert_line}i$text" "$file"; fi
+done
 
 #echo "$curr" > commit.txt
 

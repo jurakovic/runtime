@@ -3,8 +3,8 @@
 mkdocs_config=$(cat mkdocs.yml)
 
 #curr=$(git log -n 1 --format="%h" --abbrev=40 -- docs/design/coreclr/botr)
-curr="foo" #$(curl -s "https://api.github.com/repos/dotnet/runtime/commits?path=docs/design/coreclr/botr&per_page=1" | jq -r '.[0].sha')
-prev="foo" #$(git cat commit.txt)
+curr=$(curl -s "https://api.github.com/repos/dotnet/runtime/commits?path=docs/design/coreclr/botr&per_page=1" | jq -r '.[0].sha')
+prev=$(cat commit.txt)
 
 if [ $curr = $prev ]
 then
@@ -60,7 +60,7 @@ for file in "${apps[@]}"; do
   if [ "$insert_line" -gt 0 ]; then sed -i "${insert_line}i$text" "$file"; fi
 done
 
-#echo "$curr" > commit.txt
+echo "$curr" > commit.txt
 
 #git add .
 #git commit -m "$curr"

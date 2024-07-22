@@ -8,7 +8,7 @@ repo_url: https://github.com/dotnet/runtime
 edit_uri: edit/main/docs/design/coreclr/botr/
 
 # docs
-docs_dir: 'botr'
+docs_dir: 'docs/design/coreclr/botr'
 
 theme:
   name: material

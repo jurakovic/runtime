@@ -9,15 +9,39 @@ git checkout docs-init
 
 =============
 
-#mkdocs:
-#
-#cd docs/design/coreclr
-#
-#mkdocs build --site_dir 'botr/site'
-#
-#mkdocs serve -a 0.0.0.0:9902
-#
-#http://localhost:9902
+
+docker pull squidfunk/mkdocs-material:9.5.27
+
+docker inspect squidfunk/mkdocs-material:9.5.27 | jq '.[0].Config.Entrypoint'
+
+[
+  "/sbin/tini",
+  "--",
+  "mkdocs"
+]
+
+
+config=$(git show docker:mkdocs.yml)
+echo "$config"
+
+docker run --rm -it --entrypoint /bin/sh squidfunk/mkdocs-material:9.5.27
+docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh squidfunk/mkdocs-material:9.5.27
+
+# docs_dir: 'docs/design/coreclr/botr'
+
+echo "$config" > mkdocs.yml
+docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh mkdocs-botr
+pip install mkdocs-awesome-pages-plugin
+mkdocs build
+
+
+docker run --rm -v ${PWD}:/docs mkdocs-botr build
+
+
+docker build . -t mkdocs-botr
+
+
+==========
 
 
 

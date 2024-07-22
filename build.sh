@@ -56,7 +56,7 @@ find docs -type f -iwholename "*.html" -exec sed -i -r 's/(href="https:\/\/githu
 sed -i -r 's/(href=")(..\/botr)(">All Book of the Runtime \(BOTR\) chapters on GitHub)/\1https:\/\/github.com\/dotnet\/runtime\/blob\/main\/docs\/design\/coreclr\/botr\3/' docs/index.html
 
 # add footer url
-text='<br> Build repo: <a href="https://github.com/jurakovic/runtime" target="_blank" rel="noopener">jurakovic/runtime</a>'
+text='in <a href="https://github.com/jurakovic/runtime" target="_blank" rel="noopener">jurakovic/runtime</a>'
 mapfile -t apps < <(find docs -type f -iwholename "*.html")
 for file in "${apps[@]}"; do
   total_lines=$(wc -l < "$file")

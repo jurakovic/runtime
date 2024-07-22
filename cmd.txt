@@ -28,11 +28,21 @@ echo "$config"
 docker run --rm -it --entrypoint /bin/sh squidfunk/mkdocs-material:9.5.27
 docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh squidfunk/mkdocs-material:9.5.27
 
+# docs_dir: 'docs/design/coreclr/botr'
 
-# temp, remove after build
 echo "$config" > mkdocs.yml
+docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh squidfunk/mkdocs-material:9.5.27
+pip install mkdocs-awesome-pages-plugin
+mkdocs build --site-dir docs_temp
 
-docker run --rm -v ${PWD}:/docs squidfunk/mkdocs-material:9.5.27 build --site-dir ../../../docs_temp -f -
+
+trebat ce biti dva -v, mozda:
+${PWD}/design/coreclr/botr:/docs
+${PWD}/docs_temp:/site
+
+
+docker run --rm -v ${PWD}:/docs squidfunk/mkdocs-material:9.5.27 build
+
 
 
 todo:

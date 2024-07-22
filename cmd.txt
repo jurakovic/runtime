@@ -10,7 +10,6 @@ git checkout docs-init
 =============
 
 
-
 docker pull squidfunk/mkdocs-material:9.5.27
 
 docker inspect squidfunk/mkdocs-material:9.5.27 | jq '.[0].Config.Entrypoint'
@@ -36,17 +35,10 @@ pip install mkdocs-awesome-pages-plugin
 mkdocs build
 
 
-trebat ce biti dva -v, mozda:
-${PWD}/design/coreclr/botr:/docs
-${PWD}/docs_temp:/site
-
-
 docker run --rm -v ${PWD}:/docs mkdocs-botr build
 
 
-
 docker build . -t mkdocs-botr
-
 
 
 ==========

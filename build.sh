@@ -28,12 +28,23 @@ git checkout main
 # clear any leftovers
 rm -rf site
 
-echo "Staring mkdocs build"
+# temp file
 echo "$mkdocs_config" > mkdocs.yml
+
+# hide toc on all pages (because there is no other way)
+mapfile -t files < <(find docs/design/coreclr/botr -type f -iwholename "*.md")
+for file in "${files[@]}"; do
+  sed -i '1s;^;---\nhide:\n  - toc\n---\n;' "$file"
+done
+
+echo "Staring mkdocs build"
 docker run --rm -it -v ${PWD}:/docs mkdocs-botr build
 #for debugging:
 #docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh mkdocs-botr
+
+# undoing temp changes
 rm mkdocs.yml
+git restore '*.md'
 
 echo "Checking out '$branch' branch"
 git checkout $branch
@@ -57,8 +68,8 @@ sed -i -r 's/(href=")(..\/botr)(">All Book of the Runtime \(BOTR\) chapters on G
 
 # add footer url
 text='in <a href="https://github.com/jurakovic/runtime" target="_blank" rel="noopener">jurakovic/runtime</a>'
-mapfile -t apps < <(find docs -type f -iwholename "*.html")
-for file in "${apps[@]}"; do
+mapfile -t files < <(find docs -type f -iwholename "*.html")
+for file in "${files[@]}"; do
   total_lines=$(wc -l < "$file")
   insert_line=$((total_lines - 44))
   if [ "$insert_line" -gt 0 ]; then sed -i "${insert_line}i$text" "$file"; fi

@@ -22,7 +22,7 @@ docker inspect squidfunk/mkdocs-material:9.5.27 | jq '.[0].Config.Entrypoint'
 ]
 
 
-config=$(git show docs:mkdocs.yml)
+config=$(git show docker:mkdocs.yml)
 echo "$config"
 
 docker run --rm -it --entrypoint /bin/sh squidfunk/mkdocs-material:9.5.27
@@ -31,9 +31,9 @@ docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh squidfunk/mkdocs-materi
 # docs_dir: 'docs/design/coreclr/botr'
 
 echo "$config" > mkdocs.yml
-docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh squidfunk/mkdocs-material:9.5.27
+docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh mkdocs-botr
 pip install mkdocs-awesome-pages-plugin
-mkdocs build --site-dir docs_temp
+mkdocs build
 
 
 trebat ce biti dva -v, mozda:
@@ -41,13 +41,11 @@ ${PWD}/design/coreclr/botr:/docs
 ${PWD}/docs_temp:/site
 
 
-docker run --rm -v ${PWD}:/docs squidfunk/mkdocs-material:9.5.27 build
+docker run --rm -v ${PWD}:/docs mkdocs-botr build
 
 
 
-todo:
-create new docker image
-install required pip packages
+docker build . -t mkdocs-botr
 
 
 

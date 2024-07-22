@@ -3,8 +3,8 @@
 mkdocs_config=$(cat mkdocs.yml)
 
 #curr=$(git log -n 1 --format="%h" --abbrev=40 -- docs/design/coreclr/botr)
-curr=$(curl -s "https://api.github.com/repos/dotnet/runtime/commits?path=docs/design/coreclr/botr&per_page=1" | jq -r '.[0].sha')
-prev=$(cat commit.txt)
+curr="foo" #$(curl -s "https://api.github.com/repos/dotnet/runtime/commits?path=docs/design/coreclr/botr&per_page=1" | jq -r '.[0].sha')
+prev="foo" #$(cat commit.txt)
 
 if [ $curr = $prev ]
 then
@@ -23,23 +23,27 @@ branch=$(git branch --show-current)
 echo "Checking out 'main' branch"
 git checkout main
 
-cd docs/design/coreclr
+#cd docs/design/coreclr
 
 # clear any leftovers
-rm -rf docs_temp
+rm -rf site
 
 echo "Staring mkdocs build"
-echo "$mkdocs_config" | mkdocs build --site-dir ../../../docs_temp -f -
+echo "$mkdocs_config" > mkdocs.yml
+docker run --rm -it -v ${PWD}:/docs mkdocs-botr build
+#for debugging:
+#docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh mkdocs-botr
+rm mkdocs.yml
 
 echo "Checking out '$branch' branch"
 git checkout $branch
-cd ../../..
+#cd ../../..
 
-# clear any leftovers
+# clear old build
 rm -rf docs
 
 # rename
-mv docs_temp docs
+mv site docs
 
 # change dotnet repo to fork; fix api url
 find docs -type f -iwholename "*.html" -exec sed -i -r 's/(href="https:\/\/github.com\/)(dotnet)(\/runtime" title="Go to repository")/\1jurakovic\3/' {} +

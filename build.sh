@@ -3,17 +3,14 @@
 # save current branch
 branch=$(git branch --show-current)
 
-# save config for later
-mkdocs_config=$(cat mkdocs.yml)
-
 echo "Checking out 'main' branch"
 git checkout main
 
 # clear any leftovers
 rm -rf site
 
-# temp file
-echo "$mkdocs_config" > mkdocs.yml
+# temp config
+echo "$(git show $branch:mkdocs.yml)" > mkdocs.yml
 
 # copy out-of-scope files
 cp docs/design/coreclr/botr/../jit/ryujit-overview.md docs/design/coreclr/botr/ryujit-overview.md

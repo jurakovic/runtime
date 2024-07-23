@@ -48,6 +48,7 @@ find docs/assets/javascripts -type f -iwholename "*.min.js" -exec sed -i -r 's|(
 
 # change view url from raw to github
 find docs -type f -iwholename "*.html" -exec sed -i -r 's|(href="https://github\.com/dotnet/runtime/)(raw)(.*" title="View source of this page")|\1blob\3 target="_blank"|' {} +
+sed -i -r 's|(href="https://github\.com/dotnet/runtime/blob/main/docs/design/coreclr/)(botr)(.*" title="View source of this page")|\1jit\3"|' docs/ryujit-overview/*.html docs/porting-ryujit/*.html
 
 # fix index urls
 sed -i -r 's|(href=")(../botr)(">All Book of the Runtime \(BOTR\) chapters on GitHub)|\1https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/botr" target="_blank\3|' docs/index.html

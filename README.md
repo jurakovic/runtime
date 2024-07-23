@@ -34,6 +34,18 @@ git sparse-checkout set docs
 git checkout docs
 ```
 
+#### Rebase `main`
+
+```bash
+git remote add upstream https://github.com/dotnet/runtime.git
+
+git fetch upstream main
+git checkout main
+git rebase upstream/main
+
+git push
+```
+
 #### Run site locally
 
 > There are many options. Here nginx is used running in docker.
@@ -59,11 +71,43 @@ Browse <http://localhost:9903>
 docker build . -t mkdocs-botr
 ```
 
+#### Build docs
+
+```
+./build.sh
+```
+
+#### Check for updates
+
+```
+./check.sh
+```
 
 ## Files
 
 TODO
 
+<!--
+
+**Dockerfile**
+
+Defines docker image used for build. That docker images ensures *virtually* the same environment regardless of machine used for build.
+
+-->
+
 ## References
 
 TODO
+
+<!--
+https://www.mkdocs.org/
+https://github.com/mkdocs/mkdocs
+
+https://squidfunk.github.io/mkdocs-material/
+https://github.com/squidfunk/mkdocs-material
+
+https://github.com/lukasgeiter/mkdocs-awesome-pages-plugin
+
+https://www.hanselman.com/blog/the-book-of-the-runtime-the-internals-of-the-net-runtime-that-you-wont-find-in-the-documentation
+https://news.ycombinator.com/item?id=15346747
+-->

@@ -1,15 +1,4 @@
 
-clone:
-
-git clone --branch main --no-checkout --filter=tree:0 https://github.com/jurakovic/runtime.git
-cd runtime
-git sparse-checkout set docs
-git checkout main
-git checkout docs-init
-
-=============
-
-
 docker pull squidfunk/mkdocs-material:9.5.27
 
 docker inspect squidfunk/mkdocs-material:9.5.27 | jq '.[0].Config.Entrypoint'
@@ -20,15 +9,12 @@ docker inspect squidfunk/mkdocs-material:9.5.27 | jq '.[0].Config.Entrypoint'
   "mkdocs"
 ]
 
-
-config=$(git show docker:mkdocs.yml)
-echo "$config"
-
 docker run --rm -it --entrypoint /bin/sh squidfunk/mkdocs-material:9.5.27
 docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh squidfunk/mkdocs-material:9.5.27
 
 # docs_dir: 'docs/design/coreclr/botr'
 
+config=$(git show docker:mkdocs.yml)
 echo "$config" > mkdocs.yml
 docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh mkdocs-botr
 pip install mkdocs-awesome-pages-plugin
@@ -36,21 +22,6 @@ mkdocs build
 
 
 docker run --rm -v ${PWD}:/docs mkdocs-botr build
-
-
-docker build . -t mkdocs-botr
-
-
-==========
-
-
-
-docker rm -f botr
-
-docker run -d --restart always -p 9903:80 --name botr -v ./docs:/usr/share/nginx/html nginx
-
-http://localhost:9903
-
 
 ==============
 
@@ -63,12 +34,3 @@ git checkout main
 git rebase upstream/main
 
 git push
-
-========
-
-
-git log -n 1 --format="%h" --abbrev=40 -- docs/design/coreclr/botr
-
-
-git checkout --orphan botr
-

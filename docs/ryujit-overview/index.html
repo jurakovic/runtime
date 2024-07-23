@@ -1,0 +1,1791 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://jurakovic.github.io/runtime/ryujit-overview/">
+      
+      
+        <link rel="prev" href="../threading/">
+      
+      
+        <link rel="next" href="../porting-ryujit/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.29">
+    
+    
+      
+        <title>RyuJIT Overview - The Book of the Runtime</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.76a95c52.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#jit-compiler-structure" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="The Book of the Runtime" class="md-header__button md-logo" aria-label="The Book of the Runtime" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            The Book of the Runtime
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              RyuJIT Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jurakovic/runtime" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dotnet/runtime
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="The Book of the Runtime" class="md-nav__button md-logo" aria-label="The Book of the Runtime" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    The Book of the Runtime
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jurakovic/runtime" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dotnet/runtime
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../botr-faq/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Book of the Runtime FAQ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intro-to-clr/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction to the Common Language Runtime
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../garbage-collection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Garbage Collection Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../threading/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Threading
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    RyuJIT Overview
+  </span>
+  
+
+      </a>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../porting-ryujit/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Porting RyuJIT to other platforms
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../type-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Type System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../type-loader/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Type Loader
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../method-descriptor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Method Descriptor
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../virtual-stub-dispatch/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Virtual Stub Dispatch
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stackwalking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Stack Walking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../corelib/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    System.Private.CoreLib and calling into the runtime
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dac-notes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Access Component (DAC) Notes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../profiling/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Profiling
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../profilability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Implementing Profilability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exceptions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    What Every Dev needs to Know About Exceptions in the Runtime
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readytorun-overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ReadyToRun Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clr-abi/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CLR ABI
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xplat-minidump-generation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cross-platform Minidumps
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mixed-mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mixed Mode Assemblies
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-for-porting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guide For Porting
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vectors-and-intrinsics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vectors and Intrinsics
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ilc-architecture/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ILC Compiler Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../managed-type-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Managed Type System Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../r2r-perfmap-format/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ready to run PerfMap format
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readytorun-format/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ReadyToRun File Format
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shared-generics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shared Generics Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+    
+      
+    
+    <a href="https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/jit/ryujit-overview.md" title="View source of this page"" target="_blank" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.15 8.15 0 0 1-1.23-2Z"/></svg>
+    </a>
+  
+
+
+<h1 id="jit-compiler-structure">JIT Compiler Structure</h1>
+<h1 id="introduction">Introduction</h1>
+<p>RyuJIT is the code name for the Just-In-Time Compiler (aka "JIT") for the .NET runtime. It was
+evolved from the JIT used for x86 (jit32) on .NET Framework, and ported to support all other architecture and
+platform targets supported by .NET Core.</p>
+<p>The primary design considerations for RyuJIT are to:</p>
+<ul>
+<li>Maintain a high compatibility bar with previous JITs, especially those for x86 (jit32) and x64 (jit64).</li>
+<li>Support and enable good runtime performance through code optimizations, register allocation, and code generation.</li>
+<li>Ensure good throughput via largely linear-order optimizations and transformations, along with limitations on tracked variables for analyses (such as dataflow) that are inherently super-linear.</li>
+<li>Ensure that the JIT architecture is designed to support a range of targets and scenarios.</li>
+</ul>
+<p>The first objective was the primary motivation for evolving the existing code base, rather than starting from scratch
+or departing more drastically from the existing IR and architecture.</p>
+<h1 id="execution-environment-and-external-interface">Execution Environment and External Interface</h1>
+<p>RyuJIT provides both just-in-time and ahead-of-time compilation service for the .NET runtime. The runtime itself is
+variously called the EE (execution engine), the VM (virtual machine), or simply the CLR (common language runtime).
+Depending upon the configuration, the EE and JIT may reside in the same or different executable files. RyuJIT
+implements the JIT side of the JIT/EE interfaces:</p>
+<ul>
+<li><code>ICorJitCompiler</code> – this is the interface that the JIT compiler implements. This interface is defined in
+<a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/corjit.h">src/inc/corjit.h</a>
+and its implementation is in
+<a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/ee_il_dll.cpp">src/jit/ee_il_dll.cpp</a>.
+The following are the key methods on this interface:</li>
+<li><code>compileMethod</code> is the main entry point for the JIT. The EE passes it a <code>ICorJitInfo</code> object,
+  and the "info" containing the IL, the method header, and various other useful tidbits.
+  It returns a pointer to the code, its size, and additional GC, EH and (optionally) debug info.</li>
+<li><code>getVersionIdentifier</code> is the mechanism by which the JIT/EE interface is versioned.
+  There is a single GUID (manually generated) which the JIT and EE must agree on.</li>
+<li><code>ICorJitInfo</code> – this is the interface that the EE implements. It has many methods defined on it that allow the JIT to
+look up metadata tokens, traverse type signatures, compute field and vtable offsets, find method entry points,
+construct string literals, etc. This bulk of this interface is inherited from <code>ICorDynamicInfo</code> which is defined in
+<a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/corinfo.h">src/inc/corinfo.h</a>. The implementation
+is defined in
+<a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/jitinterface.cpp">src/vm/jitinterface.cpp</a>.</li>
+</ul>
+<h1 id="internal-representation-ir">Internal Representation (IR)</h1>
+<h2 id="compiler-object"><code>Compiler</code> object</h2>
+<p>The <code>Compiler</code> object is the primary data structure of the JIT. While it is not part of the JIT's IR per se, it
+serves as the root from which the data structures that implement the IR are accessible. For example, the <code>Compiler</code>
+object points to the head of the function's <code>BasicBlock</code> list with the <code>fgFirstBB</code> field, as well as having
+additional pointers to the end of the list, and other distinguished locations. <code>ICorJitCompiler::compileMethod()</code> is
+invoked for each method, and creates a new <code>Compiler</code> object. Thus, the JIT need not worry about thread
+synchronization while accessing <code>Compiler</code> state. The EE has the necessary synchronization to ensure there is a
+single JIT compiled copy of a method when two or more threads try to trigger JIT compilation of the same method.</p>
+<h2 id="overview-of-the-ir">Overview of the IR</h2>
+<p>RyuJIT represents a function as a doubly-linked list of <code>BasicBlock</code> values. Each <code>BasicBlock</code> has explicit edges to
+its successors that define the function's non-exceptional control flow. Exceptional control flow is implicit, with
+protected regions and handlers described in a table of <code>EHblkDsc</code> values. At the beginning of a compilation, each
+<code>BasicBlock</code> contains nodes in a high-level, statement- and tree-oriented form (HIR: "high-level intermediate
+representation"); this form persists throughout the JIT's front end. During the first phase of the back end--the
+rationalization phase--the HIR for each block is lowered to a linearly-ordered, node-oriented form (LIR: "low-level
+intermediate representation"). The fundamental distinction between HIR and LIR is in ordering semantics, though there
+are also some restrictions on the types of nodes that may appear in an HIR or LIR block.</p>
+<p>Both HIR and LIR blocks are composed of <code>GenTree</code> nodes that define the operations performed by the block. A
+<code>GenTree</code> node may consume some number of operands and may produce a singly-defined, at-most-singly-used value as a
+result. These values are referred to interchangeably as <em>SDSU</em> (single def, single use) temps or <em>tree</em> temps.
+Definitions (aka, defs) of SDSU temps are represented by <code>GenTree</code> nodes themselves, and uses are represented by
+edges from the using node to the defining node. Furthermore, SDSU temps defined in one block may not be used in a
+different block. In cases where a value must be multiply-defined, multiply-used, or defined in one block and used in
+another, the IR provides another class of temporary: the local var (aka, local variable). Local vars are defined by
+store nodes and used by users of local var nodes.</p>
+<p>An HIR block is composed of a doubly-linked list of statement nodes (<code>Statement</code>), each of which references a single
+expression tree (<code>m_rootNode</code>). The <code>GenTree</code> nodes in this tree execute in "tree order", which is defined as the
+order produced by a depth-first, left-to-right traversal of the tree, with one notable exception:
+* Binary nodes marked with the <code>GTF_REVERSE_OPS</code> flag execute their right operand tree (<code>gtOp2</code>) before their left
+operand tree (<code>gtOp1</code>)</p>
+<p>In addition to tree order, HIR also requires that no SDSU temp is defined in one statement and used in another. In
+situations where the requirements of tree and statement order prove onerous (e.g. when code must execute at a
+particular point in a function), HIR provides <code>GT_COMMA</code> nodes as an escape valve: these nodes consume and discard
+the results of their left-hand side while producing a copy of the value produced by their right-hand side. This
+allows the compiler to insert code in the middle of a statement without requiring that the statement be split apart.</p>
+<p>An LIR block is composed of a doubly-linked list of <code>GenTree</code> nodes, each of which describes a single operation in
+the method. These nodes execute in the order given by the list; there is no relationship between the order in which a
+node's operands appear and the order in which the operators that produced those operands execute. The only exception
+to this rule occurs after the register allocator, which may introduce <code>GT_COPY</code> and <code>GT_RELOAD</code> nodes that execute in
+"spill order". Spill order is defined as the order in which the register allocator visits a node's operands. For
+correctness, the code generator must generate code for spills, reloads, and <code>GT_COPY</code>/<code>GT_RELOAD</code> nodes in this
+order.</p>
+<p>In addition to HIR and LIR <code>BasicBlock</code>s, a separate representation--<code>insGroup</code> and <code>instrDesc</code>--is used during the
+actual instruction encoding.</p>
+<p>(Note that this diagram is slightly out-of-date: GenTreeStmt no longer exists, and is replaced by <code>Statement</code>
+nodes in the IR.)</p>
+<p><img alt="RyuJIT IR Overview" src="images/ryujit-ir-overview.png" /></p>
+<h2 id="gentree-nodes">GenTree Nodes</h2>
+<p>Each operation is represented as a GenTree node, with an opcode (<code>GT_xxx</code>), zero or more child/operand <code>GenTree</code>
+nodes, and additional fields as needed to represent the semantics of that node. Every node includes its type, value
+number, assertions, register assignments, etc. when available.</p>
+<p><code>GenTree</code> nodes are doubly-linked in execution order, but the links are not necessarily valid during all phases of
+the JIT. In HIR these links are primarily a convenience, as the order produced by a traversal of the links must match
+the order produced by a "tree order" traversal (see above for details). In LIR these links define the execution order
+of the nodes.</p>
+<p>HIR statement nodes are represented by the <code>Statement</code> type.
+* The statement nodes are doubly-linked. The first statement node in a block points to the last node in the block via its <code>m_prev</code> link. Note that the last statement node does <em>not</em> point to the first; that is, the list is not fully circular.
+* Each statement node contains two <code>GenTree</code> links – <code>m_rootNode</code> points to the top-level node in the statement (i.e. the root of the tree that represents the statement), while <code>m_treeList</code> points to the first node in execution order (again, this link is not always valid).</p>
+<h2 id="local-var-descriptors">Local var descriptors</h2>
+<p>A <code>LclVarDsc</code> represents a possibly-multiply-defined, possibly-multiply-used temporary. These temporaries may be used
+to represent user local variables, arguments or JIT-created temps. Each lclVar has a <code>gtLclNum</code> which is the
+identifier usually associated with the variable in the JIT and its dumps. The <code>LclVarDsc</code> contains the type, use
+count, weighted use count, frame or register assignment, etc. A local var may be "tracked" (<code>lvTracked</code>), in which
+case it participates in dataflow analysis, and has a secondary name (<code>lvVarIndex</code>) that allows for the use of dense
+bit vectors.</p>
+<h3 id="example-of-post-import-ir">Example of Post-Import IR</h3>
+<p>For this snippet of code (extracted from
+<a href="https://github.com/dotnet/runtime/blob/main/src/tests/JIT/CodeGenBringUpTests/DblRoots.cs">src/tests/JIT/CodeGenBringUpTests/DblRoots.cs</a>), with <code>DOTNET_TieredCompilation=0</code> and using the DblRoots_ro.csproj project to compile it:</p>
+<div class="highlight"><pre><span></span><code>   r1 = (-b + Math.Sqrt(b*b - 4*a*c))/(2*a);
+</code></pre></div>
+<p>A stripped-down dump of the <code>GenTree</code> nodes just after they are imported looks like this:</p>
+<div class="highlight"><pre><span></span><code>STMT00000 (IL 0x000...0x026)
+▌  STOREIND  double
+├──▌  LCL_VAR   byref  V03 arg3
+└──▌  DIV       double
+   ├──▌  ADD       double
+   │  ├──▌  NEG       double
+   │  │  └──▌  LCL_VAR   double V01 arg1
+   │  └──▌  INTRINSIC double sqrt
+   │     └──▌  SUB       double
+   │        ├──▌  MUL       double
+   │        │  ├──▌  LCL_VAR   double V01 arg1
+   │        │  └──▌  LCL_VAR   double V01 arg1
+   │        └──▌  MUL       double
+   │           ├──▌  MUL       double
+   │           │  ├──▌  CNS_DBL   double 4.0000000000000000
+   │           │  └──▌  LCL_VAR   double V00 arg0
+   │           └──▌  LCL_VAR   double V02 arg2
+   └──▌  MUL       double
+      ├──▌  CNS_DBL   double 2.0000000000000000
+      └──▌  LCL_VAR   double V00 arg0
+</code></pre></div>
+<h2 id="types">Types</h2>
+<p>The JIT is primarily concerned with "primitive" types, i.e. integers, reference types, pointers, floating point
+and SIMD types. It must also be concerned with the format of user-defined value types (i.e. struct types derived from
+<code>System.ValueType</code>) – specifically, their size and the offset of any GC references they contain, so that they can be
+correctly initialized and copied. The primitive types are represented in the JIT by the <code>var_types</code> enum, and any
+additional information required for struct types is obtained from the JIT/EE interface by the use of an opaque
+<code>CORINFO_CLASS_HANDLE</code>, which is converted into a <code>ClassLayout</code> instance that caches the most important information.
+All <code>TYP_STRUCT</code>-typed nodes can be queried for the layout they produce via <code>GenTree::GetLayout</code>.</p>
+<p>Some nodes also use "small" integer types - <code>TYP_BYTE</code>, <code>TYP_UBYTE</code>, <code>TYP_SHORT</code> and <code>TYP_USHORT</code>, to represent
+that they produce implicitly sign- or zero-extended <code>TYP_INT</code> values, much like in the IL stack model.</p>
+<h2 id="dataflow-information">Dataflow Information</h2>
+<p>In order to limit throughput impact, the JIT limits the number of lclVars for which liveness information is computed.
+These are the tracked lclVars (<code>lvTracked</code> is true), and they are the only candidates for register allocation (i.e.
+only these lclVars may be assigned registers over their entire lifetime). Defs and uses of untracked lclVars are
+treated as stores and loads to/from the appropriate stack location, and the corresponding nodes act as normal
+operators during register allocation.</p>
+<p>The liveness analysis determines the set of defs, as well as the uses that are upward exposed, for each block. It
+then propagates the liveness information. The result of the analysis is captured in the following:</p>
+<ul>
+<li>The live-in and live-out sets are captured in the <code>bbLiveIn</code> and <code>bbLiveOut</code> fields of the <code>BasicBlock</code>.</li>
+<li>The <code>GTF_VAR_DEF</code> flag is set on a lclVar node (all of which are of type <code>GenTreeLclVarCommon</code>) that is a definition.</li>
+<li>The <code>GTF_VAR_USEASG</code> flag is set (in addition to the <code>GTF_VAR_DEF</code> flag) on partial definitions of a local variable (i.e. <code>GT_LCL_FLD</code> nodes that do not define the entire variable).</li>
+</ul>
+<h2 id="ssa">SSA</h2>
+<p>Static single assignment (SSA) form is constructed in a traditional manner <a href="#[1]">[1]</a>. The SSA names are recorded on
+the lclVar references and point to the <code>LclSsaVarDsc</code> descriptors that contain the defining store node and block in
+which it occurs.</p>
+<h2 id="value-numbering">Value Numbering</h2>
+<p>Value numbering utilizes SSA for lclVar values, but also performs value numbering of expression trees. It takes
+advantage of type safety by not invalidating the value number for field references with a heap write, unless the
+write is to the same field. The IR nodes are annotated with the value numbers, which are indexes into a type-specific
+value number store. Value numbering traverses the trees, performing symbolic evaluation of many operations.</p>
+<h1 id="phases-of-ryujit">Phases of RyuJIT</h1>
+<p>The top-level function of interest is <code>Compiler::compCompile</code>. It invokes the following phases in order.</p>
+<table>
+<thead>
+<tr>
+<th><strong>Phase</strong></th>
+<th><strong>IR Transformations</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#pre-import">Pre-import</a></td>
+<td><code>Compiler-&gt;lvaTable</code> created and filled in for each user argument and variable. <code>BasicBlock</code> list initialized.</td>
+</tr>
+<tr>
+<td><a href="#importation">Importation</a></td>
+<td><code>GenTree</code> nodes created and linked in to <code>Statement</code> nodes, and Statements into BasicBlocks. Inlining candidates identified.</td>
+</tr>
+<tr>
+<td><a href="#inlining">Inlining</a></td>
+<td>The IR for inlined methods is incorporated into the flowgraph.</td>
+</tr>
+<tr>
+<td><a href="#struct-promotion">Struct Promotion</a></td>
+<td>New lclVars are created for each field of a promoted struct.</td>
+</tr>
+<tr>
+<td><a href="#mark-addr-exposed">Mark Address-Exposed Locals</a></td>
+<td>lclVars with references occurring in an address-taken context are marked.  This must be kept up-to-date.</td>
+</tr>
+<tr>
+<td>Early liveness</td>
+<td>Compute lclVar liveness for use by phases up to and including global morph.</td>
+</tr>
+<tr>
+<td>Forward Subtitution</td>
+<td>Eliminate SDSU-like locals by substituting their values directly into uses.</td>
+</tr>
+<tr>
+<td>Physical promotion</td>
+<td>Split struct locals into primitives based on access patterns.</td>
+</tr>
+<tr>
+<td><a href="#morph-blocks">Morph Blocks</a></td>
+<td>Performs localized transformations, including mandatory normalization as well as simple optimizations.</td>
+</tr>
+<tr>
+<td><a href="#eliminate-qmarks">Eliminate Qmarks</a></td>
+<td>All <code>GT_QMARK</code> nodes are eliminated, other than simple ones that do not require control flow.</td>
+</tr>
+<tr>
+<td><a href="#flowgraph-analysis">Flowgraph Analysis</a></td>
+<td>Loops are identified and normalized, cloned and/or unrolled.</td>
+</tr>
+<tr>
+<td><a href="#normalize-ir">Normalize IR for Optimization</a></td>
+<td>lclVar references counts are set, and must be kept valid. Evaluation order of <code>GenTree</code> nodes (<code>gtNext</code>/<code>gtPrev</code>) is determined, and must be kept valid.</td>
+</tr>
+<tr>
+<td><a href="#ssa-vn">SSA and Value Numbering Optimizations</a></td>
+<td>Computes liveness (<code>bbLiveIn</code> and <code>bbLiveOut</code> on <code>BasicBlock</code>s), and dominators. Builds SSA for tracked lclVars. Computes value numbers.</td>
+</tr>
+<tr>
+<td><a href="#licm">Loop Invariant Code Hoisting</a></td>
+<td>Hoists expressions out of loops.</td>
+</tr>
+<tr>
+<td><a href="#copy-propagation">Copy Propagation</a></td>
+<td>Copy propagation based on value numbers.</td>
+</tr>
+<tr>
+<td><a href="#cse">Common Subexpression Elimination (CSE)</a></td>
+<td>Elimination of redundant subexressions based on value numbers.</td>
+</tr>
+<tr>
+<td><a href="#assertion-propagation">Assertion Propagation</a></td>
+<td>Utilizes value numbers to propagate and transform based on properties such as non-nullness.</td>
+</tr>
+<tr>
+<td><a href="#range-analysis">Range analysis</a></td>
+<td>Eliminate array index range checks based on value numbers and assertions</td>
+</tr>
+<tr>
+<td><a href="#iv-opts">Induction variable optimization</a></td>
+<td>Optimize induction variables used inside natural loops based on scalar evolution analysis</td>
+</tr>
+<tr>
+<td><a href="#vn-based-dead-store-elimination">VN-based dead store elimination</a></td>
+<td>Eliminate stores that do not change the value of a local.</td>
+</tr>
+<tr>
+<td><a href="#if-conversion">If conversion</a></td>
+<td>Transform conditional definitions into <code>GT_SELECT</code> operators.</td>
+</tr>
+<tr>
+<td><a href="#rationalization">Rationalization</a></td>
+<td>Flowgraph order changes from <code>FGOrderTree</code> to <code>FGOrderLinear</code>. All <code>GT_COMMA</code> nodes are transformed.</td>
+</tr>
+<tr>
+<td><a href="#lowering">Lowering</a></td>
+<td>Nodes are tranformed for register allocation; Target-specific optimizations are performed.</td>
+</tr>
+<tr>
+<td><a href="#reg-alloc">Register allocation</a></td>
+<td>Registers are assigned (<code>gtRegNum</code> and/or <code>gtRsvdRegs</code>), and the number of spill temps calculated.</td>
+</tr>
+<tr>
+<td><a href="#code-generation">Code Generation</a></td>
+<td>Determines frame layout. Generates code for each <code>BasicBlock</code>. Generates prolog &amp; epilog code for the method. Emits EH, GC and Debug info.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="pre-import"><a name="pre-import"></a>Pre-import</h2>
+<p>Prior to reading in the IL for the method, the JIT initializes the local variable table, and scans the IL to find
+branch targets and form BasicBlocks.</p>
+<h2 id="importation"><a name="importation"></a>Importation</h2>
+<p>Importation is the phase that creates the IR for the method, reading in one IL instruction at a time, and building up
+the statements. During this process, it may need to generate IR with multiple, nested expressions. This is the
+purpose of the non-expression-like IR nodes:</p>
+<ul>
+<li>It may need to evaluate part of the expression into a temp, in which case it will use a comma (<code>GT_COMMA</code>) node to ensure that the temp is evaluated in the proper execution order – i.e. <code>GT_COMMA(GT_STORE_LCL_VAR&lt;temp&gt;(exp), temp)</code> is inserted into the tree where "exp" would go.</li>
+<li>It may need to create conditional expressions, but adding control flow at this point would be quite messy. In this case it generates question mark/colon (?: or <code>GT_QMARK</code>/<code>GT_COLON</code>) trees that may be nested within an expression.</li>
+</ul>
+<p>During importation, tail call candidates (either explicitly marked or opportunistically identified) are identified
+and flagged. They are further validated, and possibly unmarked, during morphing.</p>
+<h2 id="morphing">Morphing</h2>
+<p>The <code>fgMorph</code> phase includes a number of transformations:</p>
+<h3 id="inlining"><a name="inlining"></a>Inlining</h3>
+<p>The <code>fgInline</code> phase determines whether each call site is a candidate for inlining. The initial determination is made
+via a state machine that runs over the candidate method's IL. It estimates the native code size corresponding to the
+inline method, and uses a set of heuristics, including the estimated size of the current method, to determine if
+inlining would be profitable. If so, a separate <code>Compiler</code> object is created, and the importation phase is called to
+create the tree for the candidate inline method. Inlining may be aborted prior to completion, if any conditions are
+encountered that indicate that it may be unprofitable (or otherwise incorrect). If inlining is successful, the
+inlinee compiler's trees are incorporated into the inliner compiler (the "parent"), with arguments and return values
+appropriately transformed.</p>
+<h3 id="struct-promotion"><a name="struct-promotion"></a>Struct Promotion</h3>
+<p>Struct promotion (<code>fgPromoteStructs()</code>) analyzes the local variables and temps, and determines if their fields are
+candidates for tracking (and possibly enregistering) separately. It first determines whether it is possible to
+promote, which takes into account whether the layout may have holes or overlapping fields, whether its fields
+(flattening any contained structs) will fit in registers, etc.</p>
+<p>Next, it determines whether it is likely to be profitable, based on the number of fields, and whether the fields are
+individually referenced.</p>
+<p>When a lclVar is promoted, there are now N+1 lclVars for the struct, where N is the number of fields. The original
+struct lclVar is not considered to be tracked, but its fields may be.</p>
+<h3 id="mark-address-exposed-locals"><a name="mark-addr-exposed"></a>Mark Address-Exposed Locals</h3>
+<p>This phase traverses the expression trees, propagating the context (e.g. taking the address, indirecting) to
+determine which lclVars have their address taken, and which therefore will not be register candidates. If a struct
+lclVar has been promoted, and is then found to be address-taken, it will be considered "dependently promoted", which
+is an odd way of saying that the fields will still be separately tracked, but they will not be register candidates.</p>
+<h3 id="morph-blocks"><a name="morph-blocks"></a>Morph Blocks</h3>
+<p>What is often thought of as "morph" involves localized transformations to the trees. In addition to performing simple
+optimizing transformations, it performs some normalization that is required, such as converting field and array
+accesses into pointer arithmetic. It can (and must) be called by subsequent phases on newly added or modified trees.
+During the main Morph phase, the boolean <code>fgGlobalMorph</code> is set on the <code>Compiler</code> argument, which governs which
+transformations are permissible.</p>
+<h3 id="eliminate-qmarks"><a name="eliminate-qmarks"></a>Eliminate Qmarks</h3>
+<p>This expands most <code>GT_QMARK</code>/<code>GT_COLON</code> trees into blocks, except for the case that is instantiating a condition.</p>
+<h2 id="flowgraph-analysis"><a name="flowgraph-analysis"></a>Flowgraph Analysis</h2>
+<p>At this point, a number of analyses and transformations are done on the flowgraph:</p>
+<ul>
+<li>Computing edge weights, if profile information is available</li>
+<li>Computing reachability and dominators</li>
+<li>Identifying and normalizing loops (transforming while loops to "do while")</li>
+<li>Cloning and unrolling of loops</li>
+</ul>
+<h2 id="normalize-ir-for-optimization"><a name="normalize-ir"></a>Normalize IR for Optimization</h2>
+<p>At this point, a number of properties are computed on the IR, and must remain valid for the remaining phases. We will
+call this "normalization"</p>
+<ul>
+<li><code>lvaMarkLocalVars</code> – if this jit is optimizing, set the reference counts (raw and weighted) for lclVars, sort them,
+and determine which will be tracked (up to <code>JitMaxLocalsToTrack</code>, 1024 by default). If not optimizing, all locals are
+given an implicit reference count of one. Reference counts are not incrementally maintained. They can be recomputed if
+accurate counts are needed.</li>
+<li>Link the trees in evaluation order (setting <code>gtNext</code> and <code>gtPrev</code> fields): <code>fgFindOperOrder()</code> and <code>fgSetBlockOrder()</code>.</li>
+</ul>
+<h2 id="ssa-and-value-numbering-optimizations"><a name="ssa-vn"></a>SSA and Value Numbering Optimizations</h2>
+<p>The next set of optimizations are built on top of SSA and value numbering. First, the SSA representation is built
+(during which dataflow analysis, aka liveness, is computed on the lclVars), then value numbering is done using SSA.</p>
+<h3 id="loop-invariant-code-hoisting"><a name="licm"></a>Loop Invariant Code Hoisting</h3>
+<p>This phase traverses all the loop nests, in outer-to-inner order (thus hoisting expressions outside the largest loop
+in which they are invariant). It traverses all of the statements in the blocks in the loop that are always executed.
+If the statement is:</p>
+<ul>
+<li>A valid CSE candidate</li>
+<li>Has no side-effects</li>
+<li>Does not raise an exception OR occurs in the loop prior to any side-effects</li>
+<li>Has a valid value number, and it is a lclVar defined outside the loop, or its children (the value numbers from which it was computed) are invariant.</li>
+</ul>
+<h3 id="copy-propagation"><a name="copy-propagation"></a>Copy Propagation</h3>
+<p>This phase walks each block in the graph (in dominator-first order, maintaining context between dominator and child)
+keeping track of every live definition. When it encounters a variable that shares the VN with a live definition, it
+is replaced with the variable in the live definition.</p>
+<p>The JIT currently requires that the IR be maintained in conventional SSA form, as there is no "out of SSA"
+translation (see the comments on <code>optVnCopyProp()</code> for more information).</p>
+<h3 id="common-subexpression-elimination-cse"><a name="cse"></a>Common Subexpression Elimination (CSE)</h3>
+<p>Utilizes value numbers to identify redundant computations, which are then evaluated to a new temp lclVar, and then
+reused.</p>
+<h3 id="assertion-propagation"><a name="assertion-propagation"></a>Assertion Propagation</h3>
+<p>Utilizes value numbers to propagate and transform based on properties such as non-nullness.</p>
+<h3 id="induction-variable-optimization"><a name="iv-opts"></a>Induction variable optimization</h3>
+<p>Performs scalar evolution analysis and utilized it to optimize induction variables inside loops.
+Currently this entails IV widening which is done on x64 only.</p>
+<h3 id="range-analysis"><a name="range-analysis"></a>Range analysis</h3>
+<p>Optimize array index range checks based on value numbers and assertions.</p>
+<h3 id="vn-based-dead-store-elimination"><a name="vn-based-dead-store-elimination"></a>VN-based dead store elimination</h3>
+<p>Walks over the SSA descriptors and removes definitions where the new value is identical to the previous.
+This phase invalidates both SSA and value numbers; after this point both should be considered stale.</p>
+<h3 id="if-conversion"><a name="if-conversion"></a>If Conversion</h3>
+<p>Uses simple analysis to transform conditional definitions of locals into unconditional <code>GT_SELECT</code> nodes, which
+will can later be emitted as, e. g., conditional moves.</p>
+<h2 id="rationalization"><a name="rationalization"></a>Rationalization</h2>
+<p>As the JIT has evolved, changes have been made to improve the ability to reason over the tree in both "tree order"
+and "linear order". These changes have been termed the "rationalization" of the IR. In the spirit of reuse and
+evolution, some of the changes have been made only in the later ("backend") components of the JIT. The corresponding
+transformations are made to the IR by a "Rationalizer" component. It is expected that over time some of these changes
+will migrate to an earlier place in the JIT phase order:</p>
+<ul>
+<li>Elimination of "comma" nodes (<code>GT_COMMA</code>). These nodes are introduced for convenience during importation, during which a single tree is constructed at a time, and not incorporated into the statement list until it is completed. When it is necessary, for example, to store a partially-constructed tree into a temporary variable, a <code>GT_COMMA</code> node is used to link it into the tree. However, in later phases, these comma nodes are an impediment to analysis, and thus are eliminated.</li>
+<li>In some cases, it is not possible to fully extract the tree into a separate statement, due to execution order dependencies. In these cases, an "embedded" statement is created. While these are conceptually very similar to the <code>GT_COMMA</code> nodes, they do not masquerade as expressions.</li>
+<li>Elimination of "QMark" (<code>GT_QMARK</code>/<code>GT_COLON</code>) nodes is actually done at the end of morphing, long before the current rationalization phase. The presence of these nodes made analyses (especially dataflow) overly complex.</li>
+<li>Elimination of statements. Without statements, the execution order of a basic block's contents is fully defined by the <code>gtNext</code>/<code>gtPrev</code> links between <code>GenTree</code> nodes.</li>
+</ul>
+<p>For our earlier example (Example of Post-Import IR), here is what the simplified dump looks like just prior to
+Rationalization (the $ annotations are value numbers). Note that some common subexpressions have been computed into
+new temporary lclVars, and that computation has been inserted as a <code>GT_COMMA</code> (comma) node in the IR:</p>
+<div class="highlight"><pre><span></span><code>STMT  (IL 0x000...0x026)
+▌  STOREIND  double $VN.Void
+├──▌  LCL_VAR   byref  V03 arg3         u:1 (last use) $c0
+└──▌  DIV       double $146
+   ├──▌  ADD       double $144
+   │  ├──▌  COMMA     double $83
+   │  │  ├──▌  STORE_LCL_VAR double V06 cse0         d:1 $83
+   │  │  │  └──▌  INTRINSIC double sqrt $83
+   │  │  │     └──▌  SUB       double $143
+   │  │  │        ├──▌  MUL       double $140
+   │  │  │        │  ├──▌  LCL_VAR   double V01 arg1         u:1 $81
+   │  │  │        │  └──▌  LCL_VAR   double V01 arg1         u:1 $81
+   │  │  │        └──▌  MUL       double $142
+   │  │  │           ├──▌  MUL       double $141
+   │  │  │           │  ├──▌  LCL_VAR   double V00 arg0         u:1 $80
+   │  │  │           │  └──▌  CNS_DBL   double 4.0000000000000000 $180
+   │  │  │           └──▌  LCL_VAR   double V02 arg2         u:1 $82
+   │  │  └──▌  LCL_VAR   double V06 cse0         u:1 $83
+   │  └──▌  COMMA     double $84
+   │     ├──▌  STORE_LCL_VAR double V08 cse2         d:1 $84
+   │     │  └──▌  NEG       double $84
+   │     │     └──▌  LCL_VAR   double V01 arg1         u:1 $81
+   │     └──▌  LCL_VAR   double V08 cse2         u:1 $84
+   └──▌  COMMA     double $145
+      ├──▌  STORE_LCL_VAR double V07 cse1         d:1 $145
+      │  └──▌  MUL       double $145
+      │     ├──▌  LCL_VAR   double V00 arg0         u:1 $80
+      │     └──▌  CNS_DBL   double 2.0000000000000000 $181
+      └──▌  LCL_VAR   double V07 cse1         u:1 $145
+</code></pre></div>
+<p>After Rationalize, the nodes are presented in execution order, and the <code>GT_COMMA</code> (comma) and
+<code>Statement</code> nodes have been eliminated:</p>
+<div class="highlight"><pre><span></span><code>        IL_OFFSET void   IL offset: 0x0
+t3 =    LCL_VAR   double V01 arg1         u:1 $81
+t4 =    LCL_VAR   double V01 arg1         u:1 $81
+     ┌──▌  t3     double
+     ├──▌  t4     double
+t5 = ▌  MUL       double $140
+t7 =    LCL_VAR   double V00 arg0         u:1 $80
+t6 =    CNS_DBL   double 4.0000000000000000 $180
+     ┌──▌  t7     double
+     ├──▌  t6     double
+t8 = ▌  MUL       double $141
+t9 =    LCL_VAR   double V02 arg2         u:1 $82
+     ┌──▌  t8     double
+     ├──▌  t9     double
+10 = ▌  MUL       double $142
+     ┌──▌  t5     double
+     ├──▌  t10    double
+11 = ▌  SUB       double $143
+     ┌──▌  t11    double
+12 = ▌  INTRINSIC double sqrt $83
+     ┌──▌  t12    double
+     ▌  STORE_LCL_VAR double V06 cse0         d:1
+43 =    LCL_VAR   double V06 cse0         u:1 $83
+t1 =    LCL_VAR   double V01 arg1         u:1 $81
+     ┌──▌  t1     double
+t2 = ▌  NEG       double $84
+     ┌──▌  t2     double
+     ▌  STORE_LCL_VAR double V08 cse2         d:1
+53 =    LCL_VAR   double V08 cse2         u:1 $84
+     ┌──▌  t43    double
+     ├──▌  t53    double
+13 = ▌  ADD       double $144
+15 =    LCL_VAR   double V00 arg0         u:1 $80
+14 =    CNS_DBL   double 2.0000000000000000 $181
+     ┌──▌  t15    double
+     ├──▌  t14    double
+16 = ▌  MUL       double $145
+     ┌──▌  t16    double
+     ▌  STORE_LCL_VAR double V07 cse1         d:1
+48 =    LCL_VAR   double V07 cse1         u:1 $145
+     ┌──▌  t13    double
+     ├──▌  t48    double
+17 = ▌  DIV       double $146
+t0 =    LCL_VAR   byref  V03 arg3         u:1 (last use) $c0
+     ┌──▌  t0     byref
+     ├──▌  t17    double
+     ▌  STOREIND  double
+        IL_OFFSET void   IL offset: 0x27
+55 =    LCL_VAR   double V08 cse2         u:1 $84
+45 =    LCL_VAR   double V06 cse0         u:1 $83
+     ┌──▌  t55    double
+     ├──▌  t45    double
+33 = ▌  SUB       double $147
+50 =    LCL_VAR   double V07 cse1         u:1 $145
+     ┌──▌  t33    double
+     ├──▌  t50    double
+37 = ▌  DIV       double $148
+20 =    LCL_VAR   byref  V04 arg4         u:1 (last use) $c1
+     ┌──▌  t20    byref
+     ├──▌  t37    double
+     ▌  STOREIND  double
+        IL_OFFSET void   IL offset: 0x4f
+        RETURN    void   $200
+</code></pre></div>
+<h2 id="lowering"><a name="lowering"></a>Lowering</h2>
+<p>Lowering is responsible for transforming the IR in such a way that the control flow, and any register requirements,
+are fully exposed.</p>
+<p>It does an execution-order traversal that performs context-dependent transformations such as
+* expanding switch statements (using a switch table or a series of conditional branches)
+* constructing addressing modes (<code>GT_LEA</code> nodes)
+* determining the code generation strategy for block assignments (e.g. <code>GT_STORE_BLK</code>) which may become helper calls, unrolled loops, or an instruction like <code>rep stos</code>
+* generating machine specific instructions (e.g. generating the <code>BT</code> x86/64 instruction)
+* mark "contained" nodes - such a node does not generate any code and relies on its user to include the node's operation in its own codegen (e.g. memory operands, immediate operands)
+* mark "reg optional" nodes - despite the name, such a node may produce a value in a register but its user does not require a register and can consume the value directly from a memory location</p>
+<p>For example, this:</p>
+<div class="highlight"><pre><span></span><code>t47 =    LCL_VAR   ref    V00 arg0
+t48 =    LCL_VAR   int    V01 arg1
+      ┌──▌  t48    int
+t51 = ▌  CAST      long &lt;- int
+t52 =    CNS_INT   long   2
+      ┌──▌  t51    long
+      ├──▌  t52    long
+t53 = ▌  LSH       long
+t54 =    CNS_INT   long   16 Fseq[#FirstElem]
+      ┌──▌  t53    long
+      ├──▌  t54    long
+t55 = ▌  ADD       long
+      ┌──▌  t47    ref
+      ├──▌  t55    long
+t56 = ▌  ADD       byref
+      ┌──▌  t56    byref
+t44 = ▌  IND       int
+</code></pre></div>
+<p>Is transformed into this, in which the addressing mode is explicit:</p>
+<p><div class="highlight"><pre><span></span><code>t47 =    LCL_VAR   ref    V00 arg0
+t48 =    LCL_VAR   int    V01 arg1
+      ┌──▌  t48    int
+t51 = ▌  CAST      long &lt;- int
+      ┌──▌  t47    ref
+      ├──▌  t51    long
+t79 = ▌  LEA(b+(i*4)+16) byref
+      ┌──▌  t79    byref
+t44 = ▌  IND       int
+</code></pre></div>
+Sometimes <code>Lowering</code> will insert nodes into the execution order before the node that it is currently handling.
+In such cases, it must ensure that they themselves are properly lowered. This includes:</p>
+<ul>
+<li>Generating only legal <code>LIR</code> nodes that do not themselves require lowering.</li>
+<li>Performing any needed containment analysis (e.g. <code>ContainCheckRange()</code>) on the newly added node(s).</li>
+</ul>
+<p>After all nodes are lowered, liveness is run in preparation for register allocation.</p>
+<h2 id="register-allocation"><a name="reg-alloc"></a>Register allocation</h2>
+<p>The RyuJIT register allocator uses a Linear Scan algorithm, with an approach similar to <a href="#[2]">[2]</a>. In discussion it
+is referred to as either <code>LinearScan</code> (the name of the implementing class), or LSRA (Linear Scan Register
+Allocation). In brief, it operates on two main data structures:</p>
+<ul>
+<li><code>Intervals</code> (representing live ranges of variables or tree expressions) and <code>RegRecords</code> (representing physical registers), both of which derive from <code>Referenceable</code>.</li>
+<li><code>RefPositions</code>, which represent uses or defs (or variants thereof, such as ExposedUses) of either <code>Intervals</code> or physical registers.</li>
+</ul>
+<p><code>LinearScan::buildIntervals()</code> traverses the entire method building RefPositions and Intervals as required. For example, for the <code>STORE_BLK</code> node in this snippet:</p>
+<div class="highlight"><pre><span></span><code>t67 =    CNS_INT(h) long   0x2b5acef2c50 static Fseq[s1]
+     ┌──▌  t67    long
+ t0 = ▌  IND       ref
+ t1 =    CNS_INT   long   8 Fseq[#FirstElem]
+     ┌──▌  t0     ref
+     ├──▌  t1     long
+ t2 = ▌  ADD       byref
+     ┌──▌  t2     byref
+ t3 = ▌  IND       struct
+t31 =    LCL_VAR_ADDR byref  V08 tmp1
+     ┌──▌  t31    byref
+     ├──▌  t3     struct
+      ▌  STORE_BLK(40) struct (copy) (Unroll)
+</code></pre></div>
+<p>the following RefPositions are generated:</p>
+<div class="highlight"><pre><span></span><code>N027 (???,???) [000085] -A-XG-------              ▌  STORE_BLK(40) struct (copy) (Unroll) REG NA
+Interval 16: int RefPositions {} physReg:NA Preferences=[allInt]
+&lt;RefPosition #40  @27  RefTypeDef &lt;Ivl:16 internal&gt; STORE_BLK BB01 regmask=[allInt] minReg=1&gt;
+Interval 17: float RefPositions {} physReg:NA Preferences=[allFloat]
+&lt;RefPosition #41  @27  RefTypeDef &lt;Ivl:17 internal&gt; STORE_BLK BB01 regmask=[allFloat] minReg=1&gt;
+&lt;RefPosition #42  @27  RefTypeUse &lt;Ivl:15&gt; BB01 regmask=[allInt] minReg=1 last&gt;
+&lt;RefPosition #43  @27  RefTypeUse &lt;Ivl:16 internal&gt; STORE_BLK BB01 regmask=[allInt] minReg=1 last&gt;
+&lt;RefPosition #44  @27  RefTypeUse &lt;Ivl:17 internal&gt; STORE_BLK BB01 regmask=[allFloat] minReg=1 last&gt;
+</code></pre></div>
+<p>The "@ 27" is the location number of the node. "internal" indicates a register that is internal to the node (in this case 2 internal registers are needed, one float (XMM on XARCH) and one int, as temporaries for copying). "regmask" indicates the register constraints for the <code>RefPosition</code>.</p>
+<h3 id="notable-features-of-ryujit-linearscan">Notable features of RyuJIT LinearScan</h3>
+<p>Unlike most register allocators, LSRA performs register allocation on an IR (Intermediate Representation) that is not
+a direct representation of the target instructions. A given IR node may map to 0, 1 or multiple target instructions.
+Nodes that are "contained" are handled by code generation as part of their parent node and thus may map to 0
+instructions. A simple node will have a 1-to-1 mapping to a target instruction, and a more complex node (e.g.
+<code>GT_STORE_BLK</code>) may map to multiple instructions.</p>
+<h3 id="pre-conditions">Pre-conditions:</h3>
+<p>It is the job of the <code>Lowering</code> phase to transform the IR such that:
+* The nodes are in <code>LIR</code> form (i.e. all expression trees have been linearized, and the execution order of the nodes within a BasicBlock is specified by the <code>gtNext</code> and <code>gtPrev</code> links)
+* All contained nodes are identified (<code>gtFlags</code> has the <code>GTF_CONTAINED</code> bit set)
+* All nodes for which a register is optional are identified (<code>RefPosition::regOptional</code> is <code>true</code>)
+  * This is used for x86 and x64 on operands that can be directly consumed from memory if no register is allocated.
+* All unused values (nodes that produce a result that is not consumed) are identified (<code>gtLIRFlags</code> has the <code>LIR::Flags::UnusedValue</code> bit set)
+  * Since tree temps (the values produced by nodes and consumed by their parent) are expected to be single-def, single-use (SDSU), normally the live range can be determined to end at the use. If there is no use, the register allocator doesn't know where the live range ends.
+* Code can be generated without any context from the parent (consumer) of each node.</p>
+<p>After <code>Lowering</code> has completed, liveness analysis is performed:
+* It identifies which <code>lclVar</code>s should have their liveness computed.
+  * The reason this is done after <code>Lowering</code> is that it can introduce new <code>lclVar</code>s.
+* It then does liveness analysis on those <code>lclVar</code>s, updating the <code>bbLiveIn</code> and <code>bbLiveOut</code> sets for each <code>BasicBlock</code>.
+  * This tells the register allocator which <code>lclVars</code> are live at block boundaries.
+  * Note that "tree temps" cannot be live at block boundaries.</p>
+<h3 id="allocation-overview">Allocation Overview</h3>
+<p>Allocation proceeds in 4 phases:</p>
+<ul>
+<li>Prepration:</li>
+<li>Determine the order in which the <code>BasicBlocks</code> will be allocated, and which predecessor of each block will be used to determine the starting location for variables live-in to the <code>BasicBlock</code>.</li>
+<li>Construct an <code>Interval</code> for each <code>lclVar</code> that may be enregistered.</li>
+<li>Construct a <code>RegRecord</code> for each physical register.</li>
+<li>Walk the <code>BasicBlocks</code> in the determined order building <code>RefPositions</code> for each register use, def, or kill.</li>
+<li>Just prior to building <code>RefPosition</code>s for the node, the <code>TreeNodeInfoInit()</code> method is called to determine its register requirements.</li>
+<li>Allocate the registers by traversing the <code>RefPositions</code>.</li>
+<li>Write back the register assignments, and perform any necessary moves at block boundaries where the allocations don't match.</li>
+</ul>
+<p>Post-conditions:</p>
+<ul>
+<li>The <code>gtRegNum</code> property of all <code>GenTree</code> nodes that require a register has been set to a valid register number.</li>
+<li>For reg-optional nodes, the <code>GTF_NOREG_AT_USE</code> bit is set in <code>gtFlags</code> if a register was not allocated.</li>
+<li>The <code>gtRsvdRegs</code> field (a set/mask of registers) has the requested number of registers specified for internal use.</li>
+<li>All spilled values (lclVar or expression) are marked with <code>GTF_SPILL</code> at their definition. For lclVars, they are also marked with <code>GTF_SPILLED</code> at any use at which the value must be reloaded.</li>
+<li>For all lclVars that are register candidates:</li>
+<li><code>lvRegNum</code> = initial register location (or <code>REG_STK</code>)</li>
+<li><code>lvRegister</code> flag set if it always lives in the same register</li>
+<li><code>lvSpilled</code> flag is set if it is ever spilled</li>
+<li>The maximum number of simultaneously-live spill locations of each type (used for spilling expression trees) has been communicated via calls to <code>compiler-&gt;tmpPreAllocateTemps(type)</code>.</li>
+</ul>
+<h2 id="code-generation"><a name="code-generation"></a>Code Generation</h2>
+<p>The process of code generation is relatively straightforward, as Lowering has done some of the work already. Code
+generation proceeds roughly as follows:</p>
+<ul>
+<li>Determine the frame layout – allocating space on the frame for any lclVars that are not fully enregistered, as well as any spill temps required for spilling non-lclVar expressions.</li>
+<li>For each <code>BasicBlock</code>, in layout order, and each <code>GenTree</code> node in the block, in execution order:</li>
+<li>If the node is "contained" (i.e. its operation is subsumed by a parent node), do nothing.</li>
+<li>Otherwise, "consume" all the register operands of the node.<ul>
+<li>This updates the liveness information (i.e. marking a lclVar as dead if this is the last use), and performs any needed copies.</li>
+<li>This must be done in "spill order" so that any spill/restore code inserted by the register allocator to resolve register conflicts is generated in the correct order. "</li>
+</ul>
+</li>
+<li>Track the live variables in registers, as well as the live stack variables that contain GC refs.</li>
+<li>Produce the <code>instrDesc(s)</code> for the operation, with the current live GC references.</li>
+<li>Update the scope information (debug info) at block boundaries.</li>
+<li>Generate the prolog and epilog code.</li>
+<li>Write the final instruction bytes. It does this by invoking the emitter, which holds all the <code>instrDescs</code>.</li>
+</ul>
+<h1 id="phase-dependent-properties-and-invariants-of-the-ir">Phase-dependent Properties and Invariants of the IR</h1>
+<p>There are several properties of the IR that are valid only during (or after) specific phases of the JIT. This section describes the phase transitions, and how the IR properties are affected.</p>
+<h2 id="phase-transitions">Phase Transitions</h2>
+<ul>
+<li>Flowgraph analysis</li>
+<li>Computes reachability and dominators. These may be invalidated by changes to the flowgraph.</li>
+<li>Computes edge weights, if profile information is available.</li>
+<li>Identifies and normalizes loops. These may be invalidated, but must be marked as such.</li>
+<li>Normalization</li>
+<li>The lclVar reference counts are set by <code>lvaMarkLocalVars()</code>.</li>
+<li>Statement ordering is determined by <code>fgSetBlockOrder()</code>. Execution order is a depth-first preorder traversal of the nodes, with the operands usually executed in order. The exceptions are:<ul>
+<li>Binary operators, which can have the <code>GTF_REVERSE_OPS</code> flag set to indicate that the RHS (<code>gtOp2</code>) should be evaluated before the LHS (<code>gtOp1</code>).</li>
+</ul>
+</li>
+<li>Rationalization</li>
+<li>All <code>GT_COMMA</code> and <code>Statement</code> nodes are removed and their constituent nodes linked into execution order.</li>
+<li>Lowering</li>
+<li><code>GenTree</code> nodes are split or transformed as needed to expose all of their register requirements and any necessary <code>flowgraph</code> changes (e.g., for switch statements).</li>
+</ul>
+<h2 id="gentree-phase-dependent-properties">GenTree phase-dependent properties</h2>
+<p>Ordering:</p>
+<ul>
+<li>For <code>Statement</code> nodes, the <code>m_next</code> and <code>m_prev</code> fields must always be consistent. The last statement in the <code>BasicBlock</code> must have <code>m_next</code> equal to <code>nullptr</code>. By convention, the <code>m_prev</code> of the first statement in the <code>BasicBlock</code> must be the last statement of the <code>BasicBlock</code>.</li>
+<li>In all phases, <code>m_rootNode</code> points to the top-level node of the expression.</li>
+<li>For 'GenTree' nodes, the <code>gtNext</code> and <code>gtPrev</code> fields are either <code>nullptr</code>, prior to ordering, or they are consistent (i.e. <code>A-&gt;gtPrev-&gt;gtNext = A</code>, and <code>A-&gt;gtNext-&gt;gtPrev == A</code>, if they are non-<code>nullptr</code>).</li>
+<li>After normalization the <code>m_treeList</code> of the containing statement points to the first node to be executed.</li>
+<li>Prior to normalization, the <code>gtNext</code> and <code>gtPrev</code> pointers on the expression <code>GenTree</code> nodes are invalid. The expression nodes are only traversed via the links from parent to child (e.g. <code>node-&gt;gtGetOp1()</code>, or <code>node-&gt;gtOp.gtOp1</code>). The <code>gtNext/gtPrev</code> links are set by <code>fgSetBlockOrder()</code>.</li>
+<li>After normalization, and prior to rationalization, the parent/child links remain the primary traversal mechanism. The evaluation order of any nested expression-statements (usually stores) is enforced by the <code>GT_COMMA</code> in which they are contained.</li>
+<li>After rationalization, all <code>GT_COMMA</code> nodes are eliminated, statements are flattened, and the primary traversal mechanism becomes the <code>gtNext/gtPrev</code> links which define the execution order.</li>
+<li>In tree ordering:</li>
+<li>The <code>gtPrev</code> of the first node (<code>m_treeList</code>) is always <code>nullptr</code>.</li>
+<li>The <code>gtNext</code> of the last node (<code>m_rootNode</code>) is always <code>nullptr</code>.</li>
+</ul>
+<h2 id="lclvar-phase-dependent-properties">LclVar phase-dependent properties</h2>
+<p>LclVar ref counts track the number of uses and weighted used of a local in the jit IR. There are two sequences of
+phases over which ref counts are valid, tracked via <code>lvaRefCountState</code>: an early sequence (state <code>RCS_EARLY</code>) and the
+normal sequence (state <code>RCS_NORMAL</code>). Requests for ref counts via <code>lvRefCnt</code> and <code>lvRefCntWtd</code> must be aware of the
+ref count state.</p>
+<p>Before struct promotion the ref counts are invalid. Struct promotion enables <code>RCS_EARLY</code> and it and subsequent phases
+through morph compute and uses ref counts on some locals to guide some struct optimizations. After morph the counts
+go back to longer being valid.</p>
+<p>The <code>RCS_NORMAL</code> sequence begins at normalization. Ref counts are computed and generally available via for the rest
+of the compilation phases. The counts are not incrementally maintained and may go stale as the IR is optimized or
+transformed, or maybe very approximate if the jit is not optimizing. They can be recomputed via <code>lvaComputeRefCounts</code>
+at points where accurate counts are valuable. Currently this happens before and after lower.</p>
+<h1 id="supporting-technologies-and-components">Supporting technologies and components</h1>
+<h2 id="instruction-encoding">Instruction encoding</h2>
+<p>Instruction encoding is performed by the emitter
+(<a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/emit.h">emit.h</a>), using the
+<code>insGroup</code>/<code>instrDesc</code> representation. The code generator calls methods on the emitter to construct <code>instrDescs</code>. The
+encodings information is captured in the following:</p>
+<ul>
+<li>The "instruction" enumeration itemizes the different instructions available on each target, and is used as an index into the various encoding tables (e.g. <code>instInfo[]</code>, <code>emitInsModeFmtTab[]</code>) generated from the <code>instrs{tgt}.h</code> (e.g., <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/instrsxarch.h">instrsxarch.h</a>).</li>
+<li>The skeleton encodings are contained in the tables, and then there are methods on the emitter that handle the special encoding constraints for the various instructions, addressing modes, register types, etc.</li>
+</ul>
+<h2 id="gc-info">GC Info</h2>
+<p>Reporting of live GC references is done in two ways:</p>
+<ul>
+<li>For stack locations that are not tracked (these could be spill locations or lclVars – local variables or temps – that are not register candidates), they are initialized to <code>nullptr</code> in the prolog, and reported as live for the entire method.</li>
+<li>For lclVars with tracked lifetimes, or for expression involving GC references, we report the range over which the reference is live. This is done by the emitter, which adds this information to the instruction group, and which terminates instruction groups when the GC info changes.</li>
+</ul>
+<p>The tracking of GC reference lifetimes is done via the <code>GCInfo</code> class in the JIT. It is declared in
+<a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/jitgcinfo.h">src/jit/jitgcinfo.h</a> (to
+differentiate it from
+<a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/gcinfo.h">src/inc/gcinfo.h</a>), and implemented in
+<a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/gcinfo.cpp">src/jit/gcinfo.cpp</a>.</p>
+<p>In a JitDump, the generated GC info can be seen following the "In gcInfoBlockHdrSave()" line.</p>
+<h2 id="debugger-info">Debugger info</h2>
+<p>Debug info consists primarily of two types of information in the JIT:</p>
+<ul>
+<li>Mapping of IL offsets to native code offsets. This is accomplished via:</li>
+<li>the <code>m_ILOffsetX</code> on the statement nodes (<code>Statement</code>)</li>
+<li>the <code>gtLclILoffs</code> on lclVar references (<code>GenTreeLclVar</code>)</li>
+<li>The IL offsets are captured during CodeGen by calling <code>CodeGen::genIPmappingAdd()</code>, and then written to debug tables by <code>CodeGen::genIPmappingGen()</code>.</li>
+<li>Mapping of user locals to location (register or stack). This is accomplished via:</li>
+<li>Struct <code>siVarLoc</code> (in <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/compiler.h">compiler.h</a>) captures the location</li>
+<li><code>VarScopeDsc</code> (<a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/compiler.h">compiler.h</a>) captures the live range of a local variable in a given location.</li>
+</ul>
+<h2 id="exception-handling">Exception handling</h2>
+<p>Exception handling information is captured in an <code>EHblkDsc</code> for each exception handling region. Each region includes
+the first and last blocks of the try and handler regions, exception type, enclosing region, among other things. Look
+at <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/jiteh.h">jiteh.h</a> and
+<a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/jiteh.cpp">jiteh.cpp</a>, especially, for details.
+Look at <code>Compiler::fgVerifyHandlerTab()</code> to see how the exception table constraints are verified.</p>
+<h1 id="reading-a-jitdump">Reading a JitDump</h1>
+<p>One of the best ways of learning about the JIT compiler is examining a compilation dump in detail. The dump shows you
+all the really important details of the basic data structures without all the implementation detail of the code.
+Debugging a JIT bug almost always begins with a JitDump. Only after the problem is isolated by the dump does it make
+sense to start debugging the JIT code itself.</p>
+<p>Dumps are also useful because they give you good places to place breakpoints. If you want to see what is happening at
+some point in the dump, simply search for the dump text in the source code. This gives you a great place to put a
+conditional breakpoint.</p>
+<p>There is not a strong convention about what or how the information is dumped, but generally you can find
+phase-specific information by searching for the phase name. Some useful points follow.</p>
+<h2 id="how-to-create-a-jitdump">How to create a JitDump</h2>
+<p>You can enable dumps by setting the <code>DOTNET_JitDump</code> environment variable to a space-separated list of the method(s)
+you want to dump. For example:</p>
+<div class="highlight"><pre><span></span><code>:: Print out lots of useful info when
+:: compiling methods named Main/GetEnumerator
+set &quot;DOTNET_JitDump=Main GetEnumerator&quot;
+</code></pre></div>
+<p>See <a href="viewing-jit-dumps.md#setting-configuration-variables">Setting configuration variables</a> for more
+details on this.</p>
+<p>Full instructions for dumping the compilation of some managed code can be found here:
+<a href="viewing-jit-dumps.md">viewing-jit-dumps.md</a></p>
+<h2 id="reading-expression-trees">Reading expression trees</h2>
+<p>Expression trees are displayed using a pre-order traversal, with the subtrees of a node being displayed under the
+node in operand order (e.g. <code>gtOp1</code>, <code>gtOp2</code>). This is similar to the way trees are displayed in typical user
+interfaces (e.g. folder trees). Note that the operand order may be different from the actual execution order,
+determined by <code>GTF_REVERSE_OPS</code> or other means. The operand order usually follows the order in high level languages
+so that the typical infix, left to right expression <code>a - b</code> becomes prefix, top to bottom tree:</p>
+<div class="highlight"><pre><span></span><code>▌  SUB       double
+├──▌  LCL_VAR   double V03 a
+└──▌  LCL_VAR   double V02 b
+</code></pre></div>
+<p>Calls initially display in source order - <code>Order(1, 2, 3, 4)</code> is:</p>
+<div class="highlight"><pre><span></span><code>[000004] --C-G-------              *  CALL      void   Program.Order
+[000000] ------------ arg0         +--*  CNS_INT   int    1
+[000001] ------------ arg1         +--*  CNS_INT   int    2
+[000002] ------------ arg2         +--*  CNS_INT   int    3
+[000003] ------------ arg3         \--*  CNS_INT   int    4
+</code></pre></div>
+<p>but call morphing may change the order depending on the ABI so the above may become:</p>
+<div class="highlight"><pre><span></span><code>[000004] --CXG+------              *  CALL      void   Program.Order
+[000002] -----+------ arg2 on STK  +--*  CNS_INT   int    3
+[000003] -----+------ arg3 on STK  +--*  CNS_INT   int    4
+[000000] -----+------ arg0 in ecx  +--*  CNS_INT   int    1
+[000001] -----+------ arg1 in edx  \--*  CNS_INT   int    2
+</code></pre></div>
+<p>where the node labels (e.g. arg0) help identifying the call arguments after reordering.</p>
+<p>Here is a full dump of an entire statement:</p>
+<div class="highlight"><pre><span></span><code>STMT00000 (IL 0x010...  ???)
+[000025] --C-G-------              └──▌  RETURN    double
+[000023] --C-G-------                 └──▌  CALL      double C.DblSqrt
+[000022] ------------ arg0               └──▌  MUL       double
+[000018] ------------                       ├──▌  MUL       double
+[000014] ------------                       │  ├──▌  MUL       double
+[000010] ------------                       │  │  ├──▌  LCL_VAR   double V03 loc0
+[000013] ------------                       │  │  └──▌  SUB       double
+[000011] ------------                       │  │     ├──▌  LCL_VAR   double V03 loc0
+[000012] ------------                       │  │     └──▌  LCL_VAR   double V00 arg0
+[000017] ------------                       │  └──▌  SUB       double
+[000015] ------------                       │     ├──▌  LCL_VAR   double V03 loc0
+[000016] ------------                       │     └──▌  LCL_VAR   double V01 arg1
+[000021] ------------                       └──▌  SUB       double
+[000019] ------------                          ├──▌  LCL_VAR   double V03 loc0
+[000020] ------------                          └──▌  LCL_VAR   double V02 arg2
+</code></pre></div>
+<p>Tree nodes are identified by their <code>gtTreeID</code>. This field only exists in DEBUG builds, but is quite useful for
+debugging, since all tree nodes are created via the <code>GenTree::GenTree</code> constructor (in
+<a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/compiler.hpp">src/jit/compiler.hpp</a>). If you find a
+bad tree and wish to understand how it got corrupted, you can place a conditional breakpoint at the end of
+<code>GenTree::GenTree</code> to see when it is created, and then a data breakpoint on the field that you believe is corrupted.</p>
+<p>The trees are connected by line characters (either in ASCII, by default, or in slightly more readable Unicode when
+<code>DOTNET_JitDumpASCII=0</code> is specified), to make it a bit easier to read.</p>
+<h2 id="variable-naming">Variable naming</h2>
+<p>The dump uses the index into the local variable table as its name. The arguments to the function come first, then the
+local variables, then any compiler generated temps. Thus in a function with 2 parameters (remember "this" is also a
+parameter), and one local variable, the first argument would be variable 0, the second argument variable 1, and the
+local variable would be variable 2. As described earlier, tracked variables are given a tracked variable index which
+identifies the bit for that variable in the dataflow bit vectors. This can lead to confusion as to whether the
+variable number is its index into the local variable table, or its tracked index. In the dumps when we refer to a
+variable by its local variable table index we use the 'V' prefix, and when we print the tracked index we prefix it by
+a 'T'.</p>
+<h2 id="references">References</h2>
+<p><a name="[1]"></a>
+[1] P. Briggs, K. D. Cooper, T. J. Harvey, and L. T. Simpson, "Practical improvements to the construction and destruction of static single assignment form," Software --- Practice and Experience, vol. 28, no. 8, pp. 859---881, Jul. 1998.</p>
+<p><a name="[2]"></a>
+[2] Wimmer, C. and Mössenböck, D. "Optimized Interval Splitting in a Linear Scan Register Allocator," ACM VEE 2005, pp. 132-141. <a href="http://portal.acm.org/citation.cfm?id=1064998&amp;dl=ACM&amp;coll=ACM&amp;CFID=105967773&amp;CFTOKEN=80545349">http://portal.acm.org/citation.cfm?id=1064998&amp;dl=ACM&amp;coll=ACM&amp;CFID=105967773&amp;CFTOKEN=80545349</a></p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+  
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+        
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../threading/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Threading">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Threading
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../porting-ryujit/" class="md-footer__link md-footer__link--next" aria-label="Next: Porting RyuJIT to other platforms">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Porting RyuJIT to other platforms
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+in <a href="https://github.com/jurakovic/runtime" target="_blank">jurakovic/runtime</a>
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/jurakovic/runtime" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/dotnet/runtime" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.action.view", "navigation.footer"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      
+    
+  </body>
+</html>

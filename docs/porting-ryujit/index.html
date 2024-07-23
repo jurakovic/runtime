@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://jurakovic.github.io/runtime/vectors-and-intrinsics/">
+        <link rel="canonical" href="https://jurakovic.github.io/runtime/porting-ryujit/">
       
       
-        <link rel="prev" href="../guide-for-porting/">
+        <link rel="prev" href="../ryujit-overview/">
       
       
-        <link rel="next" href="../ilc-architecture/">
+        <link rel="next" href="../type-system/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>Vectors and Intrinsics - The Book of the Runtime</title>
+        <title>Porting RyuJIT to other platforms - The Book of the Runtime</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#vectors-and-hardware-intrinsics-support" class="md-skip">
+        <a href="#ryujit-porting-to-different-platforms" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Vectors and Intrinsics
+              Porting RyuJIT to other platforms
             
           </span>
         </div>
@@ -372,10 +372,19 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../porting-ryujit/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -384,6 +393,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -692,19 +702,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../vectors-and-intrinsics/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -713,7 +714,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -857,214 +857,215 @@
     
       
     
-    <a href="https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/botr/vectors-and-intrinsics.md" title="View source of this page" target="_blank" class="md-content__button md-icon">
+    <a href="https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/jit/porting-ryujit.md" title="View source of this page"" target="_blank" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.15 8.15 0 0 1-1.23-2Z"/></svg>
     </a>
   
 
 
-<h1 id="vectors-and-hardware-intrinsics-support">Vectors and Hardware Intrinsics Support</h1>
-<hr />
-<h1 id="introduction">Introduction</h1>
-<p>The CoreCLR runtime has support for several varieties of hardware intrinsics, and various ways to compile code which uses them. This support varies by target processor, and the code produced depends on how the jit compiler is invoked. This document describes the various behaviors of intrinsics in the runtime, and concludes with implications  for developers working on the runtime and libraries portions of the runtime.</p>
-<h1 id="acronyms-and-definitions">Acronyms and definitions</h1>
-<table>
-<thead>
-<tr>
-<th>Acronym</th>
-<th>Definition</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>AOT</td>
-<td>Ahead of time. In this document, it refers to compiling code before the process launches and saving it into a file for later use.</td>
-</tr>
-</tbody>
-</table>
-<h1 id="intrinsics-apis">Intrinsics apis</h1>
-<p>Most hardware intrinsics support is tied to the use of various Vector apis. There are 4 major api surfaces that are supported by the runtime</p>
+<h1 id="ryujit-porting-to-different-platforms">RyuJIT: Porting to different platforms</h1>
+<p>First, understand the JIT architecture by reading <a href="../ryujit-overview/">RyuJIT overview</a>.</p>
+<h1 id="what-is-a-platform">What is a Platform?</h1>
 <ul>
-<li>The fixed length float vectors. <code>Vector2</code>, <code>Vector3</code>, and <code>Vector4</code>. These vector types represent a struct of floats of various lengths. For type layout, ABI and, interop purposes they are represented in exactly the same way as a structure with an appropriate number of floats in it. Operations on these vector types are supported on all architectures and platforms, although some architectures may optimize various operations.</li>
-<li>The variable length <code>Vector&lt;T&gt;</code>. This represents vector data of runtime-determined length. In any given process the length of a <code>Vector&lt;T&gt;</code> is the same in all methods, but this length may differ between various machines or environment variable settings read at startup of the process. The <code>T</code> type variable may be the following types (<code>System.Byte</code>, <code>System.SByte</code>, <code>System.Int16</code>, <code>System.UInt16</code>, <code>System.Int32</code>, <code>System.UInt32</code>, <code>System.Int64</code>, <code>System.UInt64</code>, <code>System.Single</code>, and <code>System.Double</code>), and allows use of integer or double data within a vector. The length and alignment of <code>Vector&lt;T&gt;</code> is unknown to the developer at compile time (although discoverable at runtime by using the <code>Vector&lt;T&gt;.Count</code> api), and <code>Vector&lt;T&gt;</code> may not exist in any interop signature. Operations on these vector types are supported on all architectures and platforms, although some architectures may optimize various operations if the <code>Vector&lt;T&gt;.IsHardwareAccelerated</code> api returns true.</li>
-<li><code>Vector64&lt;T&gt;</code>, <code>Vector128&lt;T&gt;</code>, <code>Vector256&lt;T&gt;</code>, and <code>Vector512&lt;T&gt;</code> represent fixed-sized vectors that closely resemble the fixed- sized vectors available in C++. These structures can be used in any code that runs, but very few features are supported directly on these types other than creation. They are used primarily in the processor specific hardware intrinsics apis.</li>
-<li>Processor specific hardware intrinsics apis such as <code>System.Runtime.Intrinsics.X86.Ssse3</code>. These apis map directly to individual instructions or short instruction sequences that are specific to a particular hardware instruction. These apis are only usable on hardware that supports the particular instruction. See https://github.com/dotnet/designs/blob/master/accepted/2018/platform-intrinsics.md for the design of these.</li>
+<li>Target instruction set</li>
+<li>Target pointer size</li>
+<li>Target operating system</li>
+<li>Target calling convention and ABI (Application Binary Interface)</li>
+<li>Runtime data structures (not really covered here)</li>
+<li>GC encoding</li>
+<li>All targets use the same GC encoding scheme and APIs, except for Windows x86, which uses JIT32_GCENCODER.</li>
+<li>Debug information (mostly the same for all targets)</li>
+<li>EH (exception handling) information (not really covered here)</li>
 </ul>
-<h1 id="how-to-use-intrinsics-apis">How to use intrinsics apis</h1>
-<p>There are 3 models for use of intrinsics apis.</p>
-<ol>
-<li>Usage of <code>Vector2</code>, <code>Vector3</code>, <code>Vector4</code>, and <code>Vector&lt;T&gt;</code>. For these, its always safe to just use the types. The jit will generate code that is as optimal as it can for the logic, and will do so unconditionally.</li>
-<li>Usage of <code>Vector64&lt;T&gt;</code>, <code>Vector128&lt;T&gt;</code>, <code>Vector256&lt;T&gt;</code>, and <code>Vector512&lt;T&gt;</code>. These types may be used unconditionally, but are only truly useful when also using the platform specific hardware intrinsics apis.</li>
-<li>Usage of platform intrinsics apis. All usage of these apis should be wrapped in an <code>IsSupported</code> check of the appropriate kind. Then, within the <code>IsSupported</code> check the platform specific api may be used. If multiple instruction sets are used, then the application developer must have checks for the instruction sets as used on each one of them.</li>
-</ol>
-<h1 id="effect-of-usage-of-hardware-intrinsics-on-how-code-is-generated">Effect of usage of hardware intrinsics on how code is generated</h1>
-<p>Hardware intrinsics have dramatic impacts on codegen, and the codegen of these hardware intrinsics is dependent on the ISA available for the target machine when the code is compiled.</p>
-<p>If the code is compiled at runtime by the JIT in a just-in-time manner, then the JIT will generate the best code it can based on the current processor's ISA. This use of hardware intrinsics is indendent of jit compilation tier. <code>MethodImplOptions.AggressiveOptimization</code> may be used to bypass compilation of tier 0 code and always produce tier 1 code for the method. In addition, the current policy of the runtime is that <code>MethodImplOptions.AggressiveOptimization</code> may also be used to bypass compilation of code as R2R code, although that may change in the future.</p>
-<p>For AOT compilation, the situation is far more complex. This is due to the following principles of how our AOT compilation model works.</p>
-<ol>
-<li>AOT compilation must never under any circumstance change the semantic behavior of code except for changes in performance.</li>
-<li>If AOT code is generated, it should be used unless there is an overriding reason to avoid using it.</li>
-<li>It must be exceedingly difficult to misuse the AOT compilation tool to violate principle 1.</li>
-</ol>
-<h2 id="crossgen2-model-of-hardware-intrinsic-usage">Crossgen2 model of hardware intrinsic usage</h2>
-<p>There are 2 sets of instruction sets known to the compiler.
-- The baseline instruction set which defaults to (Sse, Sse2), but may be adjusted via compiler option.
-- The optimistic instruction set which defaults to (Sse3, Ssse3, Sse41, Sse42, Popcnt, Pclmulqdq, and Lzcnt).</p>
-<p>Code will be compiled using the optimistic instruction set to drive compilation, but any use of an instruction set beyond the baseline instruction set will be recorded, as will any attempt to use an instruction set beyond the optimistic set if that attempted use has a semantic effect. If the baseline instruction set includes <code>Avx2</code> then the size and characteristics of of <code>Vector&lt;T&gt;</code> is known. Any other decisions about ABI may also be encoded. For instance, it is likely that the ABI of <code>Vector256&lt;T&gt;</code> and <code>Vector512&lt;T&gt;</code> will vary based on the presence/absence of <code>Avx</code> support.</p>
+<p>One advantage of the CLR is that the VM (mostly) hides the (non-ABI) OS differences.</p>
+<h1 id="the-very-high-level-view">The Very High Level View</h1>
+<p>The following components need to be updated, or target-specific versions created, for a new platform.</p>
 <ul>
-<li>Any code which uses <code>Vector&lt;T&gt;</code> will not be compiled AOT unless the size of <code>Vector&lt;T&gt;</code> is known.</li>
-<li>Any code which passes a <code>Vector256&lt;T&gt;</code> or <code>Vector512&lt;T&gt;</code> as a parameter on a Linux or Mac machine will not be compiled AOT unless the support for the <code>Avx</code> instruction set is known.</li>
-<li>Non-platform intrinsics which require more hardware support than the optimistic supported hardware capability will not take advantage of that capability. MethodImplOptions.AggressiveOptimization may be used to disable compilation of this sub-par code.</li>
-<li>Code which takes advantage of instructions sets in the optimistic set will not be used on a machine which only supports the baseline instruction set.</li>
-<li>Code which attempts to use instruction sets outside of the optimistic set will generate code that will not be used on machines with support for the instruction set.</li>
+<li>The basics</li>
+<li>target.h</li>
+<li>Instruction set architecture:</li>
+<li>registerXXX.h</li>
+<li>emitXXX.h, emitfmtXXX.h</li>
+<li>instrsXXX.h, emitXXX.cpp and targetXXX.cpp</li>
+<li>lowerXXX.cpp</li>
+<li>lsraXXX.cpp</li>
+<li>codegenXXX.cpp and simdcodegenXXX.cpp</li>
+<li>unwindXXX.cpp</li>
+<li>Calling Convention and ABI: all over the place</li>
+<li>32 vs. 64 bits</li>
+<li>Also all over the place. Some pointer size-specific data is centralized in target.h, but probably not 100%.</li>
 </ul>
-<h4 id="characteristics-which-result-from-rules">Characteristics which result from rules</h4>
+<h1 id="porting-stages-and-steps">Porting stages and steps</h1>
+<p>There are several steps to follow to port the JIT (some of which can be be done in parallel), described below.</p>
+<h2 id="initial-bring-up">Initial bring-up</h2>
 <ul>
-<li>Code which uses platform intrinsics within the optimistic instruction set will generate good code.</li>
-<li>Code which relies on platform intrinsics not within the baseline or optimistic set will cause runtime jit and startup time concerns if used on hardware which does support the instruction set.</li>
-<li><code>Vector&lt;T&gt;</code> code has runtime jit and startup time concerns unless the baseline is raised to include <code>Avx2</code>.</li>
+<li>Create the new platform-specific files</li>
+<li>Create the platform-specific build instructions (in CMakeLists.txt). This probably will require
+  new platform-specific build instructions at the root level, as well as the JIT level of the source tree.</li>
+<li>Focus on MinOpts; disable the optimization phases, or always test with <code>DOTNET_JITMinOpts=1</code>.</li>
+<li>Disable optional features, such as:</li>
+<li><code>FEATURE_EH</code> -- if 0, all exception handling blocks are removed. Of course, tests with exception handling
+    that depend on exceptions being thrown and caught won't run correctly.</li>
+<li><code>FEATURE_STRUCTPROMOTE</code></li>
+<li><code>FEATURE_FASTTAILCALL</code></li>
+<li><code>FEATURE_TAILCALL_OPT</code></li>
+<li><code>FEATURE_SIMD</code></li>
+<li>Build the new JIT as an altjit. In this mode, a "base" JIT is invoked to compile all functions except
+  the one(s) specified by the <code>DOTNET_AltJit</code> variable. For example, setting <code>DOTNET_AltJit=Add</code> and running
+  a test will use the "base" JIT (say, the Windows x64 targeting JIT) to compile all functions <em>except</em>
+  <code>Add</code>, which will be first compiled by the new altjit, and if it fails, fall back to the "base" JIT. In this
+  way, only very limited JIT functionality need to work, as the "base" JIT takes care of most functions.</li>
+<li>Implement the basic instruction encodings. Test them using a method like <code>CodeGen::genArm64EmitterUnitTests()</code>.</li>
+<li>Implement the bare minimum to get the compiler building and generating code for very simple operations, like addition.</li>
+<li>Focus on the CodeGenBringUpTests (src\tests\JIT\CodeGenBringUpTests), starting with the simple ones.</li>
+<li>These are designed such that for a test <code>XXX.cs</code>, there is a single interesting function named <code>XXX</code> to compile
+    (that is, the name of the source file is the same as the name of the interesting function. This was done to make
+    the scripts to invoke these tests very simple.). Set <code>DOTNET_AltJit=XXX</code> so the new JIT only attempts to
+    compile that one function.</li>
+<li>Merged test groups interfere with the simplicity of these tests by removing the entry point from each individual
+    test and creating a single wrapper that calls all of the tests in a single process. To restore the
+    old behavior, build the tests with the environment variable <code>BuildAsStandalone</code> set to <code>true</code>.</li>
+<li>Use <code>DOTNET_JitDisasm</code> to see the generated code for functions, even if the code isn't run.</li>
 </ul>
-<h4 id="code-review-rules-for-use-of-platform-intrinsics">Code review rules for use of platform intrinsics</h4>
+<h2 id="expand-test-coverage">Expand test coverage</h2>
 <ul>
-<li>Any use of a platform intrinsic in the codebase SHOULD be wrapped with a call to the associated IsSupported property. This wrapping may be done within the same function that uses the hardware intrinsic, but this is not required as long as the programmer can control all entrypoints to a function that uses the hardware intrinsic.</li>
-<li>If an application developer is highly concerned about startup performance, developers should avoid use intrinsics beyond Sse42, or should use Crossgen with an updated baseline instruction set support.</li>
+<li>Get more and more tests to run successfully:</li>
+<li>Run more of the <code>JIT</code> directory of tests</li>
+<li>Run all of the Pri-0 "innerloop" tests</li>
+<li>Run all of the Pri-1 "outerloop" tests</li>
+<li>It is helpful to collect data on asserts generated by the JIT across the entire test base, and fix the asserts in
+  order of frequency. That is, fix the most frequently occurring asserts first.</li>
+<li>Track the number of asserts, and number of tests with/without asserts, to help determine progress.</li>
 </ul>
-<h3 id="crossgen2-adjustment-to-rules-for-systemprivatecorelibdll">Crossgen2 adjustment to rules for System.Private.CoreLib.dll</h3>
-<p>Since System.Private.CoreLib.dll is known to be code reviewed with the code review rules as written below with System.Private.CoreLib.dll, it is possible to relax rule "Code which attempts to use instruction sets outside of the optimistic set will generate code that will not be used on machines with support for the instruction set." What this will do is allow the generation of non-optimal code for these situations, but through the magic of code review and analyzers, the generated logic will still work correctly.</p>
-<h4 id="code-review-and-analyzer-rules-for-code-written-in-systemprivatecorelibdll">Code review and analyzer rules for code written in System.Private.CoreLib.dll</h4>
+<h2 id="bring-the-optimizer-phases-on-line">Bring the optimizer phases on-line</h2>
 <ul>
-<li>Any use of a platform intrinsic in the codebase MUST be wrapped with a call to an associated IsSupported property. This wrapping MUST be done within the same function that uses the hardware intrinsic, OR the function which uses the platform intrinsic must have the <code>CompExactlyDependsOn</code> attribute used to indicate that this function will unconditionally call platform intrinsics of from some type.</li>
-<li>Within a single function that uses platform intrinsics, unless marked with the <code>CompExactlyDependsOn</code> attribute it must behave identically regardless of whether IsSupported returns true or not. This allows the R2R compiler to compile with a lower set of intrinsics support, and yet expect that the behavior of the function will remain unchanged in the presence of tiered compilation.</li>
-<li>Excessive use of intrinsics may cause startup performance problems due to additional jitting, or may not achieve desired performance characteristics due to suboptimal codegen. To fix this, we may, in the future, change the compilation rules to compile the methods marked with<code>CompExactlyDependsOn</code> with the appropriate platform intrinsics enabled.</li>
+<li>Run tests with and without <code>DOTNET_JITMinOpts=1</code>.</li>
+<li>It probably makes sense to set <code>DOTNET_TieredCompilation=0</code> (or disable it for the platform entirely) until much later.</li>
 </ul>
-<p>Correct use of the <code>IsSupported</code> properties and <code>CompExactlyDependsOn</code> attribute is checked by an analyzer during build of <code>System.Private.CoreLib</code>. This analyzer requires that all usage of <code>IsSupported</code> properties conform to a few specific patterns. These patterns are supported via either if statements or the ternary operator.</p>
-<p>The supported conditional checks are</p>
-<ol>
-<li>
-<p>Simple if statement checking IsSupported flag surrounding usage
-<div class="highlight"><pre><span></span><code>if (PlatformIntrinsicType.IsSupported)
-{
-    PlatformIntrinsicType.IntrinsicMethod();
-}
-</code></pre></div></p>
+<h2 id="improve-quality">Improve quality</h2>
+<ul>
+<li>When the tests pass with the basic modes, start running with <code>JitStress</code> and <code>JitStressRegs</code> stress modes.</li>
+<li>Bring <code>GCStress</code> on-line. This also requires VM work.</li>
+<li>Work on <code>DOTNET_GCStress=4</code> quality. When crossgen/ngen is brought on-line, test with <code>DOTNET_GCStress=8</code>
+  and <code>DOTNET_GCStress=C</code> as well.</li>
+</ul>
+<h2 id="work-on-performance">Work on performance</h2>
+<ul>
+<li>Determine a strategy for measuring and improving performance, both throughput (compile time) and generated code
+  quality (CQ).</li>
+</ul>
+<h2 id="work-on-platform-parity">Work on platform parity</h2>
+<ul>
+<li>Implement features that were intentionally disabled, or for which implementation was delayed.</li>
+<li>Implement SIMD (<code>Vector&lt;T&gt;</code>) and hardware intrinsics support.</li>
+</ul>
+<h1 id="front-end-changes">Front-end changes</h1>
+<ul>
+<li>Calling Convention</li>
+<li>Struct args and returns seem to be the most complex differences<ul>
+<li>Importer and morph are highly aware of these</li>
+<li>E.g. <code>fgMorphArgs()</code>, <code>fgFixupStructReturn()</code>, <code>fgMorphCall()</code>, <code>fgPromoteStructs()</code> and the various struct assignment morphing methods</li>
+</ul>
 </li>
-<li>
-<p>If statement check checking a platform intrinsic type which implies
-that the intrinsic used is supported.</p>
-</li>
-</ol>
-<div class="highlight"><pre><span></span><code>if (Avx2.X64.IsSupported)
-{
-    Avx2.IntrinsicMethod();
-}
-</code></pre></div>
-<ol>
-<li>Nested if statement where there is an outer condition which is an
-OR'd together series of IsSupported checks for mutually exclusive
-conditions and where the inner check is an else clause where some checks
-are excluded from applying.</li>
-</ol>
-<div class="highlight"><pre><span></span><code>if (Avx2.IsSupported || ArmBase.IsSupported)
-{
-    if (Avx2.IsSupported)
-    {
-        // Do something
-    }
-    else
-    {
-        ArmBase.IntrinsicMethod();
-    }
-}
-</code></pre></div>
-<ol>
-<li>Within a method marked with <code>CompExactlyDependsOn</code> for a less advanced attribute, there may be a use of an explicit IsSupported check for a more advanced cpu feature. If so, the behavior of the overall function must remain the same regardless of whether or not the CPU feature is enabled. The analyzer will detect this usage as a warning, so that any use of IsSupported in a helper method is examined to verify that that use follows the rule of preserving exactly equivalent behavior.</li>
-</ol>
-<div class="highlight"><pre><span></span><code>[CompExactlyDependsOn(typeof(Sse41))]
-int DoSomethingHelper()
-{
-#pragma warning disable IntrinsicsInSystemPrivateCoreLibAttributeNotSpecificEnough // The else clause is semantically equivalent
-    if (Avx2.IsSupported)
-#pragma warning disable IntrinsicsInSystemPrivateCoreLibAttributeNotSpecificEnough
-    {
-        Avx2.IntrinsicThatDoesTheSameThingAsSse41IntrinsicAndSse41.Intrinsic2();
-    }
-    else
-    {
-        Sse41.Intrinsic();
-        Sse41.Intrinsic2();
-    }
-}
-</code></pre></div>
-<ul>
-<li>NOTE: If the helper needs to be used AND behave differently with different instruction sets enabled, correct logic requires spreading the <code>CompExactlyDependsOn</code> attribute to all callers such that no caller could be compiled expecting the wrong behavior. See the <code>Vector128.ShuffleUnsafe</code> method, and various uses.</li>
+<li>HFAs on ARM</li>
+<li>Tail calls are target-dependent, but probably should be less so</li>
+<li>Intrinsics: each platform recognizes different methods as intrinsics (e.g. <code>Sin</code> only for x86, <code>Round</code> everywhere BUT amd64)</li>
+<li>Target-specific morphs such as for mul, mod and div</li>
 </ul>
-<p>The behavior of the <code>CompExactlyDependsOn</code> is that 1 or more attributes may be applied to a given method. If any of the types specified via the attribute will not have an invariant result for its associated <code>IsSupported</code> property at runtime, then the method will not be compiled or inlined into another function during R2R compilation. If no type so described will have a true result for the <code>IsSupported</code> method, then the method will not be compiled or inlined into another function during R2R compilation.</p>
-<ol>
-<li>In addition to directly using the IsSupported properties to enable/disable support for intrinsics, simple static properties written in the following style may be used to reduce code duplication.</li>
-</ol>
-<div class="highlight"><pre><span></span><code>static bool IsVectorizationSupported =&gt; Avx2.IsSupported || PackedSimd.IsSupported
-
-public void SomePublicApi()
-{
-    if (IsVectorizationSupported)
-        SomeVectorizationHelper();
-    else
-    {
-        // Non-Vectorized implementation
-    }
-}
-
-[CompExactlyDependsOn(typeof(Avx2))]
-[CompExactlyDependsOn(typeof(PackedSimd))]
-private void SomeVectorizationHelper()
-{
-}
-</code></pre></div>
-<h4 id="non-deterministic-intrinsics-in-systemprivatecorelib">Non-Deterministic Intrinsics in System.Private.Corelib</h4>
-<p>Some APIs exposed in System.Private.Corelib are intentionally non-deterministic across hardware and instead only ensure determinism within the scope of a single process. To facilitate the support of such APIs, the JIT defines <code>Compiler::BlockNonDeterministicIntrinsics(bool mustExpand)</code> which should be used to help block such APIs from expanding in scenarios such as ReadyToRun. Additionally, such APIs should recursively call themselves so that indirect invocation (such as via a delegate, function pointer, reflection, etc) will compute the same result.</p>
-<p>An example of such a non-deterministic API is the <code>ConvertToIntegerNative</code> APIs exposed on <code>System.Single</code> and <code>System.Double</code>. These APIs convert from the source value to the target integer type using the fastest mechanism available for the underlying hardware. They exist due to the IEEE 754 specification leaving conversions undefined when the input cannot fit into the output (for example converting <code>float.MaxValue</code> to <code>int</code>) and thus different hardware having historically provided differing behaviors on these edge cases. They allow developers who do not need to be concerned with edge case handling but where the performance overhead of normalizing results for the default cast operator is too great.</p>
-<p>Another example is the various <code>*Estimate</code> APIs, such as <code>float.ReciprocalSqrtEstimate</code>. These APIs allow a user to likewise opt into a faster result at the cost of some inaccuracy, where the exact inaccuracy encountered depends on the input and the underlying hardware the instruction is executed against.</p>
-<h1 id="mechanisms-in-the-jit-to-generate-correct-code-to-handle-varied-instruction-set-support">Mechanisms in the JIT to generate correct code to handle varied instruction set support</h1>
-<p>The JIT receives flags which instruct it on what instruction sets are valid to use, and has access to a new jit interface api <code>notifyInstructionSetUsage(isa, bool supportBehaviorRequired)</code>.</p>
-<p>The notifyInstructionSetUsage api is used to notify the AOT compiler infrastructure that the code may only execute if the runtime environment of the code is exactly the same as the boolean parameter indicates it should be. For instance, if <code>notifyInstructionSetUsage(Avx, false)</code> is used, then the code generated must not be used if the <code>Avx</code> instruction set is usable. Similarly <code>notifyInstructionSetUsage(Avx, true)</code> will indicate that the code may only be used if the <code>Avx</code> instruction set is available.</p>
-<p>While the above api exists, it is not expected that general purpose code within the JIT will use it. In general jitted code is expected to use a number of different apis to understand the available hardware instruction support available.</p>
-<table>
-<thead>
-<tr>
-<th>Api</th>
-<th>Description of use</th>
-<th>Exact behavior</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>compExactlyDependsOn(isa)</code></td>
-<td>Use when making a decision to use or not use an instruction set when the decision will affect the semantics of the generated code. Should never be used in an assert.</td>
-<td>Return whether or not an instruction set is supported. Calls notifyInstructionSetUsage with the result of that computation.</td>
-</tr>
-<tr>
-<td><code>compOpportunisticallyDependsOn(isa)</code></td>
-<td>Use when making an opportunistic decision to use or not use an instruction set. Use when the instruction set usage is a "nice to have optimization opportunity", but do not use when a false result may change the semantics of the program. Should never be used in an assert.</td>
-<td>Return whether or not an instruction set is supported. Calls notifyInstructionSetUsage if the instruction set is supported.</td>
-</tr>
-<tr>
-<td><code>compIsaSupportedDebugOnly(isa)</code></td>
-<td>Use to assert whether or not an instruction set is supported</td>
-<td>Return whether or not an instruction set is supported. Does not report anything. Only available in debug builds.</td>
-</tr>
-<tr>
-<td><code>getVectorTByteLength()</code></td>
-<td>Use to get the size of a <code>Vector&lt;T&gt;</code> value.</td>
-<td>Determine the size of the <code>Vector&lt;T&gt;</code> type. If on the architecture the size may vary depending on whatever rules. Use <code>compExactlyDependsOn</code> to perform the queries so that the size is consistent between compile time and runtime.</td>
-</tr>
-<tr>
-<td><code>getMaxVectorByteLength()</code></td>
-<td>Get the maximum number of bytes that might be used in a SIMD type during this compilation.</td>
-<td>Query the set of instruction sets supported, and determine the largest simd type supported. Use <code>compOpportunisticallyDependsOn</code> to perform the queries so that the maximum size needed is the only one recorded.</td>
-</tr>
-</tbody>
-</table>
+<h1 id="backend-changes">Backend Changes</h1>
+<ul>
+<li>Lowering: fully expose control flow and register requirements</li>
+<li>Code Generation: traverse blocks in layout order, generating code (InstrDescs) based on register assignments on nodes</li>
+<li>Then, generate prolog &amp; epilog, as well as GC, EH and scope tables</li>
+<li>ABI changes:</li>
+<li>Calling convention register requirements<ul>
+<li>Lowering of calls and returns</li>
+<li>Code sequences for prologs &amp; epilogs</li>
+</ul>
+</li>
+<li>Allocation &amp; layout of frame</li>
+</ul>
+<h1 id="target-isa-configuration">Target ISA "Configuration"</h1>
+<ul>
+<li>Conditional compilation (set in jit.h, based on incoming define, e.g. #ifdef X86)
+<div class="highlight"><pre><span></span><code><span class="n">_TARGET_64_BIT_</span><span class="w"> </span><span class="p">(</span><span class="mi">32</span><span class="w"> </span><span class="n">bit</span><span class="w"> </span><span class="n">target</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">just</span><span class="w"> </span><span class="o">!</span><span class="w"> </span><span class="n">_TARGET_64BIT_</span><span class="p">)</span>
+<span class="n">_TARGET_XARCH_</span><span class="p">,</span><span class="w"> </span><span class="n">_TARGET_ARMARCH_</span>
+<span class="n">_TARGET_AMD64_</span><span class="p">,</span><span class="w"> </span><span class="n">_TARGET_X86_</span><span class="p">,</span><span class="w"> </span><span class="n">_TARGET_ARM64_</span><span class="p">,</span><span class="w"> </span><span class="n">_TARGET_ARM_</span>
+</code></pre></div></li>
+<li>Target.h</li>
+<li>InstrsXXX.h</li>
+</ul>
+<h1 id="instruction-encoding">Instruction Encoding</h1>
+<ul>
+<li>The <code>insGroup</code> and <code>instrDesc</code> data structures are used for encoding</li>
+<li><code>instrDesc</code> is initialized with the opcode bits, and has fields for immediates and register numbers.</li>
+<li><code>instrDesc</code>s are collected into <code>insGroup</code> groups</li>
+<li>A label may only occur at the beginning of a group</li>
+<li>The emitter is called to:</li>
+<li>Create new instructions (<code>instrDesc</code>s), during CodeGen</li>
+<li>Emit the bits from the <code>instrDesc</code>s after CodeGen is complete</li>
+<li>Update Gcinfo (live GC vars &amp; safe points)</li>
+</ul>
+<h1 id="adding-encodings">Adding Encodings</h1>
+<ul>
+<li>The instruction encodings are captured in instrsXXX.h. These are the opcode bits for each instruction</li>
+<li>The structure of each instruction set's encoding is target-dependent</li>
+<li>An "instruction" is just the representation of the opcode</li>
+<li>An instance of <code>instrDesc</code> represents the instruction to be emitted</li>
+<li>For each "type" of instruction, emit methods need to be implemented. These follow a pattern but a target may have unique ones, e.g.
+<div class="highlight"><pre><span></span><code><span class="n">emitter</span><span class="o">::</span><span class="n">emitInsMov</span><span class="p">(</span><span class="n">instruction</span><span class="w"> </span><span class="n">ins</span><span class="p">,</span><span class="w"> </span><span class="n">emitAttr</span><span class="w"> </span><span class="n">attr</span><span class="p">,</span><span class="w"> </span><span class="n">GenTree</span><span class="o">*</span><span class="w"> </span><span class="n">node</span><span class="p">)</span>
+<span class="n">emitter</span><span class="o">::</span><span class="n">emitIns_R_I</span><span class="p">(</span><span class="n">instruction</span><span class="w"> </span><span class="n">ins</span><span class="p">,</span><span class="w"> </span><span class="n">emitAttr</span><span class="w"> </span><span class="n">attr</span><span class="p">,</span><span class="w"> </span><span class="n">regNumber</span><span class="w"> </span><span class="n">reg</span><span class="p">,</span><span class="w"> </span><span class="kt">ssize_t</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
+<span class="n">emitter</span><span class="o">::</span><span class="n">emitInsTernary</span><span class="p">(</span><span class="n">instruction</span><span class="w"> </span><span class="n">ins</span><span class="p">,</span><span class="w"> </span><span class="n">emitAttr</span><span class="w"> </span><span class="n">attr</span><span class="p">,</span><span class="w"> </span><span class="n">GenTree</span><span class="o">*</span><span class="w"> </span><span class="n">dst</span><span class="p">,</span><span class="w"> </span><span class="n">GenTree</span><span class="o">*</span><span class="w"> </span><span class="n">src1</span><span class="p">,</span><span class="w"> </span><span class="n">GenTree</span><span class="o">*</span><span class="w"> </span><span class="n">src2</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">currently</span><span class="w"> </span><span class="n">Arm64</span><span class="w"> </span><span class="n">only</span><span class="p">)</span>
+</code></pre></div></li>
+</ul>
+<h1 id="lowering">Lowering</h1>
+<ul>
+<li>Lowering ensures that all register requirements are exposed for the register allocator</li>
+<li>Use count, def count, "internal" reg count, and any special register requirements</li>
+<li>Does half the work of code generation, since all computation is made explicit<ul>
+<li>But it is NOT necessarily a 1:1 mapping from lowered tree nodes to target instructions</li>
+</ul>
+</li>
+<li>Its first pass does a tree walk, transforming the instructions. Some of this is target-independent. Notable exceptions:<ul>
+<li>Calls and arguments</li>
+<li>Switch lowering</li>
+<li>LEA transformation</li>
+</ul>
+</li>
+<li>Its second pass walks the nodes in execution order<ul>
+<li>Sets register requirements</li>
+<li>sometimes changes the register requirements children (which have already been traversed)</li>
+<li>Sets the block order and node locations for LSRA</li>
+<li><code>LinearScan::startBlockSequence()</code> and <code>LinearScan::moveToNextBlock()</code></li>
+</ul>
+</li>
+</ul>
+<h1 id="register-allocation">Register Allocation</h1>
+<ul>
+<li>Register allocation is largely target-independent</li>
+<li>The second phase of Lowering does nearly all the target-dependent work</li>
+<li>Register candidates are determined in the front-end</li>
+<li>Local variables or temps, or fields of local variables or temps</li>
+<li>Not address-taken, plus a few other restrictions</li>
+<li>Sorted by <code>lvaSortByRefCount()</code>, and determined by <code>lvIsRegCandidate()</code></li>
+</ul>
+<h1 id="addressing-modes">Addressing Modes</h1>
+<ul>
+<li>The code to find and capture addressing modes is particularly poorly abstracted</li>
+<li><code>genCreateAddrMode()</code>, in CodeGenCommon.cpp traverses the tree looking for an addressing mode, then captures its constituent elements (base, index, scale &amp; offset) in "out parameters"</li>
+<li>It never generates code, and is only used by <code>gtSetEvalOrder</code>, and by Lowering</li>
+</ul>
+<h1 id="code-generation">Code Generation</h1>
+<ul>
+<li>For the most part, the code generation method structure is the same for all architectures</li>
+<li>Most code generation methods start with "gen"</li>
+<li>Theoretically, CodeGenCommon.cpp contains code "mostly" common to all targets (this factoring is imperfect)</li>
+<li>Method prolog, epilog,</li>
+<li><code>genCodeForBBList()</code></li>
+<li>Walks the trees in execution order, calling <code>genCodeForTreeNode()</code>, which needs to handle all nodes that are not "contained"</li>
+<li>Generates control flow code (branches, EH) for the block</li>
+</ul>
 
 
 
@@ -1101,7 +1102,7 @@ private void SomeVectorizationHelper()
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../guide-for-porting/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Guide For Porting">
+          <a href="../ryujit-overview/" class="md-footer__link md-footer__link--prev" aria-label="Previous: RyuJIT Overview">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
@@ -1111,20 +1112,20 @@ private void SomeVectorizationHelper()
                 Previous
               </span>
               <div class="md-ellipsis">
-                Guide For Porting
+                RyuJIT Overview
               </div>
             </div>
           </a>
         
         
           
-          <a href="../ilc-architecture/" class="md-footer__link md-footer__link--next" aria-label="Next: ILC Compiler Architecture">
+          <a href="../type-system/" class="md-footer__link md-footer__link--next" aria-label="Next: Type System">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                ILC Compiler Architecture
+                Type System
               </div>
             </div>
             <div class="md-footer__button md-icon">

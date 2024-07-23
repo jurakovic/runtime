@@ -15,6 +15,10 @@ rm -rf site
 # temp file
 echo "$mkdocs_config" > mkdocs.yml
 
+# copy out-of-scope files
+cp docs/design/coreclr/botr/../jit/ryujit-overview.md docs/design/coreclr/botr/ryujit-overview.md
+cp docs/design/coreclr/botr/../jit/porting-ryujit.md docs/design/coreclr/botr/porting-ryujit.md
+
 # hide toc on all pages (no other proposed solutions work)
 mapfile -t files < <(find docs/design/coreclr/botr -type f -iwholename "*.md")
 for file in "${files[@]}"; do
@@ -28,6 +32,8 @@ docker run --rm -it -v ${PWD}:/docs mkdocs-botr build
 
 # undoing temp changes
 rm mkdocs.yml
+rm docs/design/coreclr/botr/ryujit-overview.md
+rm docs/design/coreclr/botr/porting-ryujit.md
 git restore '*.md'
 
 echo "Checking out '$branch' branch"
@@ -46,8 +52,9 @@ find docs/assets/javascripts -type f -iwholename "*.min.js" -exec sed -i -r 's/(
 # change view url from raw to github
 find docs -type f -iwholename "*.html" -exec sed -i -r 's/(href="https:\/\/github\.com\/dotnet\/runtime\/)(raw)(.*" title="View source of this page")/\1blob\3/' {} +
 
-# fix chapters url
+# fix index urls
 sed -i -r 's/(href=")(..\/botr)(">All Book of the Runtime \(BOTR\) chapters on GitHub)/\1https:\/\/github.com\/dotnet\/runtime\/blob\/main\/docs\/design\/coreclr\/botr" target="_blank\3/' docs/index.html
+sed -i -r 's|(../jit/)(.*)(.md)|\2/|g' docs/index.html
 
 # add footer url
 text='in <a href="https://github.com/jurakovic/runtime" target="_blank" rel="noopener">jurakovic/runtime</a>'

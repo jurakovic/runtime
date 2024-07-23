@@ -53,8 +53,8 @@ nav:
   - Introduction to the Common Language Runtime: intro-to-clr.md
   - Garbage Collection Design: garbage-collection.md
   - Threading: threading.md
-  #- RyuJIT Overview: ../jit/ryujit-overview.md
-  #- Porting RyuJIT to other platforms: ../jit/porting-ryujit.md
+  - RyuJIT Overview: ryujit-overview.md
+  - Porting RyuJIT to other platforms: porting-ryujit.md
   - Type System: type-system.md
   - Type Loader: type-loader.md
   - Method Descriptor: method-descriptor.md
@@ -71,7 +71,7 @@ nav:
   - Mixed Mode Assemblies: mixed-mode.md
   - Guide For Porting: guide-for-porting.md
   - Vectors and Intrinsics: vectors-and-intrinsics.md
-  #- ...
+  #- ... # messes up all titles
   - ilc-architecture.md
   - managed-type-system.md
   - r2r-perfmap-format.md

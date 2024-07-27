@@ -37,6 +37,9 @@ plugins:
   - awesome-pages
 
 extra:
+  analytics:
+    provider: google
+    property: G-233EMZJM16
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/jurakovic/runtime

@@ -25,7 +25,7 @@ This repo has two *main* branches:
 
 ## Files
 
-[Dockerfile](./Dockerfile) - defines docker image used for docs build (ensures *virtually* the same environment regardless of machine used for build)
+[Dockerfile](./Dockerfile) - defines docker image used for `mkdocs build` (ensures *virtually* the same environment regardless of machine used for build)
 
 [build.sh](./build.sh) - does the docs build and all *heavy lifting*
 
@@ -78,8 +78,6 @@ docker restart botr
 Browse <http://localhost:9903>
 
 #### Create docker image
-
-> Used for `mkdocs build`. More details below.
 
 ```
 docker build -t mkdocs-botr .

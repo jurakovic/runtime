@@ -1,7 +1,7 @@
 
 # The Book of the Runtime Build Repo
 
-This repository is a fork of the [dotnet/runtime](https://github.com/dotnet/runtime), created solely to build [_The Book of the Runtime_](https://github.com/dotnet/runtime/tree/main/docs/design/coreclr/botr/README.md) using MkDocs and host it on GitHub Pages.
+This repository is a fork of the [dotnet/runtime](https://github.com/dotnet/runtime), created solely to build the [_Book of the Runtime_](https://github.com/dotnet/runtime/tree/main/docs/design/coreclr/botr/README.md) using MkDocs and host it on GitHub Pages.
 
 It provides easy-to-navigate interface with dark and light themes and interactive search functionality.
 
@@ -13,13 +13,27 @@ Site is available at <https://jurakovic.github.io/runtime/>.
 
 This repo has two *main* branches:
 
-- [docs](https://github.com/jurakovic/runtime/tree/docs)
-	- contains built docs together with required scripts and files
-	- created as [orphan](https://git-scm.com/docs/git-checkout#Documentation/git-checkout.txt---orphanltnew-branchgt) branch disconnected from all the other branches and commits
-	- set as default branch in this repo
-- [main](https://github.com/jurakovic/runtime/tree/main)
-	- used as documentation source for site build
-	- kept in sync with upstream main branch
+[docs](https://github.com/jurakovic/runtime/tree/docs)
+- contains built docs together with required scripts and files
+- created as [orphan](https://git-scm.com/docs/git-checkout#Documentation/git-checkout.txt---orphanltnew-branchgt) branch disconnected from all the other branches and commits
+- set as default branch in this repo
+
+[main](https://github.com/jurakovic/runtime/tree/main)
+- used as documentation source for site build
+- kept in sync with upstream main branch
+
+
+## Files
+
+[Dockerfile](./Dockerfile) - defines docker image used for docs build (ensures *virtually* the same environment regardless of machine used for build)
+
+[build.sh](./build.sh) - does the docs build and all *heavy lifting*
+
+[check.sh](./check.sh) - checks for docs updates in upstream repo
+
+[commit.txt](./commit.txt) - tracks last commit used for docs build
+
+[mkdocs.yml](./mkdocs.yml) - mkdocs configuration
 
 ## Commands
 
@@ -83,17 +97,6 @@ docker build -t mkdocs-botr .
 ./check.sh
 ```
 
-## Files
-
-[Dockerfile](./Dockerfile) - defines docker image used for docs build (ensures *virtually* the same environment regardless of machine used for build)
-
-[build.sh](./build.sh) - does the docs build and all *heavy lifting*
-
-[check.sh](./check.sh) - checks for docs updates in upstream repo
-
-[commit.txt](./commit.txt) - tracks last commit used for docs build
-
-[mkdocs.yml](./mkdocs.yml) - mkdocs configuration
 
 ## References
 

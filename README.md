@@ -3,9 +3,9 @@
 
 This repository is a fork of the [dotnet/runtime](https://github.com/dotnet/runtime), created solely to build the [_Book of the Runtime_](https://github.com/dotnet/runtime/tree/main/docs/design/coreclr/botr/README.md) using MkDocs and host it on GitHub Pages.
 
-It provides easy-to-navigate interface with dark and light themes and interactive search functionality.
+The site provides easy-to-navigate interface with dark and light themes and interactive search functionality.
 
-Site is available at <https://jurakovic.github.io/runtime/>.
+It is available at <https://jurakovic.github.io/runtime/>.
 
 <!-- > This repo only provides GitHub Pages site and does not alter original documentation. For documentation updates please refer to the dotnet/runtime [contributing](https://github.com/dotnet/runtime/blob/main/CONTRIBUTING.md) guidelines. -->
 
@@ -19,7 +19,7 @@ This repo has two *main* branches:
 - set as default branch in this repo
 
 [main](https://github.com/jurakovic/runtime/tree/main)
-- used as documentation source for site build
+- used as documentation source for build
 - kept in sync with upstream main branch
 
 

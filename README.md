@@ -114,4 +114,5 @@ MkDocs Awesome Pages Plugin
 #### What others say about BOTR
 
 <https://www.hanselman.com/blog/the-book-of-the-runtime-the-internals-of-the-net-runtime-that-you-wont-find-in-the-documentation>  
+<https://mattwarren.org/2018/03/23/Exploring-the-internals-of-the-.NET-Runtime/>  
 <https://news.ycombinator.com/item?id=15346747>  

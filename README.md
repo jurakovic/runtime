@@ -25,13 +25,13 @@ This repo has two *main* branches:
 
 #### Clone
 
-> [Treeles](https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/) [clone](https://git-scm.com/docs/git-clone#Documentation/git-clone.txt-code--filtercodeemltfilter-specgtem) and [sparse checkout](https://git-scm.com/docs/git-sparse-checkout) are used because we only want `/docs/` and `/*` (root) files. Otherwise on `main` branch all ~2 GB files would be checked out.
+> [Treeles](https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/) [clone](https://git-scm.com/docs/git-clone#Documentation/git-clone.txt-code--filtercodeemltfilter-specgtem) and [sparse checkout](https://git-scm.com/docs/git-sparse-checkout) are used because we only want `/docs/` and `/*` (root) files.  
+> Otherwise hundreds MB of data would be downloaded and checked out on `main` branch.
 
 ```bash
-git clone --branch main --no-checkout --filter=tree:0 https://github.com/jurakovic/runtime.git t2
+git clone --branch docs --filter=tree:0 https://github.com/jurakovic/runtime.git
 cd runtime
 git sparse-checkout set docs
-git checkout docs
 ```
 
 #### Rebase `main`
@@ -68,7 +68,7 @@ Browse <http://localhost:9903>
 > Used for `mkdocs build`. More details below.
 
 ```
-docker build . -t mkdocs-botr
+docker build -t mkdocs-botr .
 ```
 
 #### Build docs
@@ -97,17 +97,19 @@ Defines docker image used for build. That docker images ensures *virtually* the 
 
 ## References
 
-TODO
+MkDocs  
+<https://www.mkdocs.org>  
+<https://github.com/mkdocs/mkdocs>  
 
-<!--
-https://www.mkdocs.org/
-https://github.com/mkdocs/mkdocs
+Material for MkDocs  
+<https://squidfunk.github.io/mkdocs-material>  
+<https://github.com/squidfunk/mkdocs-material>  
 
-https://squidfunk.github.io/mkdocs-material/
-https://github.com/squidfunk/mkdocs-material
+MkDocs Awesome Pages Plugin  
+<https://github.com/lukasgeiter/mkdocs-awesome-pages-plugin>  
 
-https://github.com/lukasgeiter/mkdocs-awesome-pages-plugin
+#### What others say about BOTR
 
-https://www.hanselman.com/blog/the-book-of-the-runtime-the-internals-of-the-net-runtime-that-you-wont-find-in-the-documentation
-https://news.ycombinator.com/item?id=15346747
--->
+<https://www.hanselman.com/blog/the-book-of-the-runtime-the-internals-of-the-net-runtime-that-you-wont-find-in-the-documentation>  
+<https://news.ycombinator.com/item?id=15346747>  
+

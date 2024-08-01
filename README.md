@@ -85,15 +85,15 @@ docker build -t mkdocs-botr .
 
 ## Files
 
-TODO
+[Dockerfile](./Dockerfile) - defines docker image used for docs build (ensures *virtually* the same environment regardless of machine used for build)
 
-<!--
+[build.sh](./build.sh) - does the docs build and all *heavy lifting*
 
-**Dockerfile**
+[check.sh](./check.sh) - checks for docs updates in upstream repo
 
-Defines docker image used for build. That docker images ensures *virtually* the same environment regardless of machine used for build.
+[commit.txt](./commit.txt) - tracks last commit used for docs build
 
--->
+[mkdocs.yml](./mkdocs.yml) - mkdocs configuration
 
 ## References
 
@@ -112,4 +112,3 @@ MkDocs Awesome Pages Plugin
 
 <https://www.hanselman.com/blog/the-book-of-the-runtime-the-internals-of-the-net-runtime-that-you-wont-find-in-the-documentation>  
 <https://news.ycombinator.com/item?id=15346747>  
-

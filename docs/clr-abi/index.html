@@ -886,7 +886,8 @@
 <p>ARM: See <a href="https://learn.microsoft.com/cpp/build/overview-of-arm-abi-conventions">Overview of ARM32 ABI Conventions</a>.</p>
 <p>ARM64: See <a href="https://learn.microsoft.com/cpp/build/arm64-windows-abi-conventions">Overview of ARM64 ABI conventions</a>.</p>
 <h2 id="non-windows-abi-documentation">Non-Windows ABI documentation</h2>
-<p>Arm corporation ABI documentation (for ARM32 and ARM64) is <a href="https://developer.arm.com/architectures/system-architectures/software-standards/abi">here</a> and <a href="https://github.com/ARM-software/abi-aa">here</a>.</p>
+<p>Arm corporation ABI documentation (for ARM32 and ARM64) is <a href="https://developer.arm.com/architectures/system-architectures/software-standards/abi">here</a> and <a href="https://github.com/ARM-software/abi-aa">here</a>.
+Apple's ARM64 calling convention differences can be found <a href="https://developer.apple.com/documentation/xcode/writing-arm64-code-for-apple-platforms">here</a>.</p>
 <p>The Linux System V x86_64 ABI is documented in <a href="https://github.com/hjl-tools/x86-psABI/wiki/x86-64-psABI-1.0.pdf">System V Application Binary Interface / AMD64 Architecture Processor Supplement</a>, with document source material <a href="https://gitlab.com/x86-psABIs/x86-64-ABI">here</a>.</p>
 <p>The LoongArch64 ABI documentation is <a href="https://github.com/loongson/LoongArch-Documentation/blob/main/docs/LoongArch-ELF-ABI-EN.adoc">here</a></p>
 <h1 id="general-unwindframe-layout">General Unwind/Frame Layout</h1>
@@ -937,6 +938,8 @@
 <p><em>Normal PInvoke</em> - The VM shares IL stubs based on signatures, but wants the right method to show up in call stack and exceptions, so the MethodDesc for the exact PInvoke is passed in the (x86) <code>EAX</code> / (AMD64) <code>R10</code> / (ARM, ARM64) <code>R12</code> (in the JIT: <code>REG_SECRET_STUB_PARAM</code>). Then in the IL stub, when the JIT gets <code>CORJIT_FLG_PUBLISH_SECRET_PARAM</code>, it must move the register into a compiler temp. The value is returned for the intrinsic <code>NI_System_StubHelpers_GetStubContext</code>.</p>
 <h2 id="small-primitive-returns">Small primitive returns</h2>
 <p>Primitive value types smaller than 32-bits are widened to 32-bits: signed small types are sign extended and unsigned small types are zero extended. This can be different from the standard calling conventions that may leave the state of unused bits in the return register undefined.</p>
+<h2 id="small-primitive-arguments">Small primitive arguments</h2>
+<p>Small primitive arguments have undefined upper bits. This can be different from the standard calling conventions that may require normalization (e.g. on ARM32 and Apple ARM64).</p>
 <h1 id="pinvokes">PInvokes</h1>
 <p>The convention is that any method with an InlinedCallFrame (either an IL stub or a normal method with an inlined PInvoke) saves/restores all non-volatile integer registers in its prolog/epilog respectively. This is done so that the InlinedCallFrame can just contain a return address, a stack pointer and a frame pointer. Then using just those three it can start a full stack walk using the normal RtlVirtualUnwind.</p>
 <p>When encountering a PInvoke, the JIT will query the VM if the GC transition should be suppressed. Suppression of the GC transition is indicated by the addition of an attribute on the PInvoke definition. If the VM indicates the GC transition is to be suppressed, the PInvoke frame will be omitted in either the IL stub or inlined scenario and a GC Poll will be inserted near the unmanaged call site. If an enclosing function contains more than one inlined PInvoke but not all have requested a suppression of the GC transition a PInvoke frame will still be constructed for the other inlined PInvokes.</p>

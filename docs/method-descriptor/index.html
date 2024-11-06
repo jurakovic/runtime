@@ -828,6 +828,26 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Runtime logging for developers
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -926,7 +946,7 @@
 <p>Each MethodDesc logically has an entry point, but we do not allocate these eagerly at MethodDesc creation time. The invariant is that once the method is identified as a method to run, or is used in virtual overriding, we will allocate the entrypoint.</p>
 <p>The slot is either in MethodTable or in MethodDesc itself. The location of the slot is determined by <code>mdcHasNonVtableSlot</code> bit on MethodDesc.</p>
 <p>The slot is stored in MethodTable for methods that require efficient lookup via slot index, e.g. virtual methods or methods on generic types. The MethodDesc contains the slot index to allow fast lookup of the entry point in this case.</p>
-<p>Otherwise, the slot is part of the MethodDesc itself. This arrangement improves data locality and saves working set. Also, it is not even always possible to preallocate a slot in a MethodTable upfront for dynamically created MethodDescs, such as for methods added by Edit &amp; Continue, instantiations of generic methods or <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/System.Private.CoreLib/src/System/Reflection/Emit/DynamicMethod.cs">dynamic methods</a>.</p>
+<p>Otherwise, the slot is part of the MethodDesc itself. This arrangement improves data locality and saves working set. Also, it is not even always possible to preallocate a slot in a MethodTable upfront for dynamically created MethodDescs, such as for methods added by Edit &amp; Continue, instantiations of generic methods or <a href="https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Reflection/Emit/DynamicMethod.cs">dynamic methods</a>.</p>
 <h2 id="methoddesc-chunks">MethodDesc Chunks</h2>
 <p>The MethodDescs are allocated in chunks to save space. Multiple MethodDesc tend to have identical MethodTable and upper bits of metadata token. MethodDescChunk is formed by hoisting the common information in front of an array of multiple MethodDescs. The MethodDesc contains just the index of itself in the array.</p>
 <p><img alt="Figure 1" src="../images/methoddesc-fig1.png" /></p>

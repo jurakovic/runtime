@@ -1,0 +1,1165 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://jurakovic.github.io/runtime/logging/">
+      
+      
+        <link rel="prev" href="../shared-generics/">
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.29">
+    
+    
+      
+        <title>Runtime logging for developers - The Book of the Runtime</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.76a95c52.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function n(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],n("js",new Date),n("config","G-233EMZJM16"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){this.value&&n("event","search",{search_term:this.value})}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");n("event","feedback",{page:t,data:e}),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){n("config","G-233EMZJM16",{page_path:e.pathname})})});var e=document.createElement("script");e.async=!0,e.src="https://www.googletagmanager.com/gtag/js?id=G-233EMZJM16",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#runtime-logging-for-developers" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="The Book of the Runtime" class="md-header__button md-logo" aria-label="The Book of the Runtime" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            The Book of the Runtime
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Runtime logging for developers
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jurakovic/runtime" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dotnet/runtime
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="The Book of the Runtime" class="md-nav__button md-logo" aria-label="The Book of the Runtime" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    The Book of the Runtime
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jurakovic/runtime" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dotnet/runtime
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../botr-faq/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Book of the Runtime FAQ
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intro-to-clr/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction to the Common Language Runtime
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../garbage-collection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Garbage Collection Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../threading/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Threading
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ryujit-overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RyuJIT Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../porting-ryujit/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Porting RyuJIT to other platforms
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../type-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Type System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../type-loader/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Type Loader
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../method-descriptor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Method Descriptor
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../virtual-stub-dispatch/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Virtual Stub Dispatch
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stackwalking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Stack Walking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../corelib/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    System.Private.CoreLib and calling into the runtime
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dac-notes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Data Access Component (DAC) Notes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../profiling/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Profiling
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../profilability/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Implementing Profilability
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../exceptions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    What Every Dev needs to Know About Exceptions in the Runtime
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readytorun-overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ReadyToRun Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clr-abi/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CLR ABI
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xplat-minidump-generation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cross-platform Minidumps
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mixed-mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mixed Mode Assemblies
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-for-porting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Guide For Porting
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vectors-and-intrinsics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Vectors and Intrinsics
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ilc-architecture/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ILC Compiler Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../managed-type-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Managed Type System Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../r2r-perfmap-format/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ready to run PerfMap format
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readytorun-format/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ReadyToRun File Format
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shared-generics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shared Generics Design
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Runtime logging for developers
+  </span>
+  
+
+      </a>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+    
+      
+    
+    <a href="https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/botr/logging.md" title="View source of this page" target="_blank" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.15 8.15 0 0 1-1.23-2Z"/></svg>
+    </a>
+  
+
+
+<h1 id="runtime-logging-for-developers">Runtime logging for developers</h1>
+<p>Date: Feb. 2024</p>
+<p>The .NET runtime codebase is massive, spread across thousands of files in multiple languages. There are thousands of log messages spread throughout that codebase, and most of them are disabled by default. So how do you, a runtime developer beset by all manner of mysterious test failures, get those messages out of the runtime and into your console or log files? And how should you go about adding log messages appropriately to new code you're writing?</p>
+<p><em>NOTE: This document will repeatedly reference many environment variables. For a detailed list of environment variables supported by the runtime and explanations of what they do, consult <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/clrconfigvalues.h"><code>clrconfigvalues.h</code></a>, <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/gc/gcconfig.h"><code>gcconfig.h</code></a>, and <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/jit/jitconfigvalues.h"><code>jitconfigvalues.h</code></a>.</em></p>
+<h1 id="types-of-logging">Types of logging</h1>
+<h2 id="eventpipe">EventPipe</h2>
+<p>EventPipe is a cross-platform tracing system similar to ETW that is used widely in the .NET runtime.
+For a detailed overview of EventPipe, see <a href="https://learn.microsoft.com/en-us/dotnet/core/diagnostics/eventpipe">the EventPipe documentation pages on .NET Learn</a>. It offers excellent performance along with lots of flexibility, so it is one of the main ways to get information from an active runtime that we advertise. Most events that we support in debug builds also are exposed in release builds.</p>
+<p>For basic scenarios, you can use the <a href="https://learn.microsoft.com/en-us/dotnet/core/diagnostics/dotnet-counters"><code>dotnet-counters</code></a> tool to monitor events and performance counters the runtime reports through EventPipe. For example, to collect the default counters from a project while running it, you could use <code>dotnet-counters collect -- dotnet exec myapp.dll</code>, where the part after <code>--</code> specifies a command to trace.</p>
+<p>You can also use the <a href="https://learn.microsoft.com/en-us/dotnet/core/diagnostics/dotnet-trace"><code>dotnet-trace</code></a> tool to capture EventPipe events from the runtime on the fly. It provides command line options you can use to filter events by severity level or based on keywords. For example, to capture informational GC events from a project while running it, you could use <code>dotnet-trace collect --clreventlevel informational --clrevents gc -- dotnet exec myapp.dll</code>, where the part after <code>--</code> specifies a command to trace. The <code>collect</code> command also supports a set of convenient default profiles, accessible via the <code>--profile</code> switch, i.e. <code>--profile gc-collect</code>:
+<div class="highlight"><pre><span></span><code>cpu-sampling     - Useful for tracking CPU usage and general .NET runtime information. This is the default option if no profile or providers are specified.
+gc-verbose       - Tracks GC collections and samples object allocations.
+gc-collect       - Tracks GC collections only at very low overhead.
+database         - Captures ADO.NET and Entity Framework database commands
+</code></pre></div></p>
+<p>The <code>dotnet-trace collect</code> command will produce a <code>.nettrace</code> file, which you can analyze via <code>dotnet-trace report topN</code> (for CPU sampling information) or <code>dotnet-trace convert</code>. You can also open this <code>.nettrace</code> file directly in Visual Studio to inspect it, for example by double-clicking it in solution explorer or dragging it into the Visual Studio window.</p>
+<p>If your application fails to run under <code>dotnet-counters</code> or <code>dotnet-trace</code>'s monitoring, try passing the <code>--show-child-io</code> tool argument to make the child process's output visible so you can spot any error messages. Make sure you're running it from the right working directory with any necessary environment variables.</p>
+<p>Please see the linked documentation pages for more information on how to use each of the above tools. They have an extensive set of options and some helpful features like time limits, attaching to existing processes, and configurable output formatting.</p>
+<p>To emit your very own EventPipe events from within the C++ part of the runtime, you can use the <code>FireEtwXXX</code> APIs, or their convenience wrappers within the <code>ETW::</code> C++ namespace. You likely will want to create new type(s) of events instead of using existing ones. The events are generated by the <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/scripts/genEventing.py"><code>genEventing.py</code></a> script based on the definitions in <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/ClrEtwAll.man"><code>ClrEtwAll.man</code></a>.</p>
+<p>To emit EventPipe events from C# you can use the <a href="https://learn.microsoft.com/en-us/dotnet/core/diagnostics/eventsource-getting-started"><code>System.Diagnostics.Tracing.EventSource</code></a> class, by defining your own event types derived from it. See its documentation for examples and more details.</p>
+<h2 id="alternative-event-consumers">Alternative event consumers</h2>
+<p>For advanced scenarios, EventSource and the C++ event wrappers both support standard event tracing systems on their respective platforms (ETW on Windows, LTTNG on Linux). EventPipe itself does not integrate with these systems, but the runtime's layers on top of EventPipe will also use them if they are enabled.</p>
+<p>On Windows you can use standard <a href="https://learn.microsoft.com/en-us/windows-hardware/test/wpt/event-tracing-for-windows">ETW</a> tools like <a href="https://learn.microsoft.com/en-us/windows-hardware/test/wpt/windows-performance-recorder">WPR</a> with its '.NET Activity' scenario. A convenient all-purpose tool for collecting and analyzing ETW traces on Windows is <a href="https://github.com/microsoft/perfview">PerfView</a>. To use PerfView you'll want to consult its <a href="http://htmlpreview.github.io/?https://github.com/Microsoft/perfview/blob/main/src/PerfView/SupportFiles/UsersGuide.htm">extensive documentation</a> or go through the tutorial, but a basic starting point is to launch your application via the <em>Collect</em>-&gt;<em>Run</em> menu option, and then double-click the resulting recording in the explorer pane to the left in order to open it.</p>
+<p>On Linux you can use <a href="https://lttng.org/">LTTNG</a>, and the <a href="https://learn.microsoft.com/en-us/dotnet/core/diagnostics/trace-perfcollect-lttng">perfcollect script</a> is a useful tool you can use for a more ETW-like experience.</p>
+<h2 id="stresslog">StressLog</h2>
+<p>The StressLog is a circular buffer inside the runtime process that usually does not escape, and most StressLog messages are available in retail builds, which makes it useful for troubleshooting issues with GC or other subsystems in production scenarios. To enable it, you can set the <code>DOTNET_StressLog</code> environment variable to <code>1</code>, and you can configure it using environment variables, as demonstrated below:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span>Enable<span class="w"> </span>StressLog
+<span class="nb">set</span><span class="w"> </span><span class="nv">DOTNET_StressLog</span><span class="o">=</span><span class="m">1</span>
+
+<span class="nb">echo</span><span class="w"> </span>Show<span class="w"> </span>JIT<span class="w"> </span>log<span class="w"> </span>messages
+<span class="nb">set</span><span class="w"> </span><span class="nv">DOTNET_LogFacility</span><span class="o">=</span>0x00000008
+
+<span class="nb">echo</span><span class="w"> </span>Only<span class="w"> </span>show<span class="w"> </span>warnings<span class="w"> </span>or<span class="w"> </span>errors
+<span class="nb">set</span><span class="w"> </span><span class="nv">DOTNET_LogLevel</span><span class="o">=</span><span class="m">3</span>
+
+<span class="nb">echo</span><span class="w"> </span>If<span class="w"> </span>the<span class="w"> </span>buffer<span class="w"> </span>is<span class="w"> </span>filling<span class="w"> </span>too<span class="w"> </span>quickly,<span class="w"> </span>it<span class="w"> </span>can<span class="w"> </span>be<span class="w"> </span>helpful<span class="w"> </span>to<span class="w"> </span><span class="nb">set</span><span class="w"> </span>large<span class="w"> </span>buffer<span class="w"> </span>sizes.
+<span class="nb">echo</span><span class="w"> </span>But<span class="w"> </span><span class="k">if</span><span class="w"> </span>you<span class="w"> </span>have<span class="w"> </span>many<span class="w"> </span>threads,<span class="w"> </span>you<span class="w"> </span>may<span class="w"> </span>want<span class="w"> </span>to<span class="w"> </span><span class="nb">set</span><span class="w"> </span>a<span class="w"> </span>low<span class="w"> </span>limit<span class="w"> </span>to<span class="w"> </span>avoid<span class="w"> </span>exhausting<span class="w"> </span>memory.
+<span class="nb">echo</span><span class="w"> </span>Set<span class="w"> </span>a<span class="w"> </span>per-thread<span class="w"> </span>size<span class="w"> </span>limit<span class="w"> </span><span class="k">for</span><span class="w"> </span>StressLog<span class="w"> </span>of<span class="w"> </span>20MB.<span class="w"> </span>Config<span class="w"> </span>settings<span class="w"> </span>default<span class="w"> </span>to<span class="w"> </span>hex.
+<span class="nb">set</span><span class="w"> </span><span class="nv">DOTNET_StressLogSize</span><span class="o">=</span><span class="m">1400000</span>
+
+<span class="nb">echo</span><span class="w"> </span>Set<span class="w"> </span>a<span class="w"> </span>process-wide<span class="w"> </span>size<span class="w"> </span>limit<span class="w"> </span><span class="k">for</span><span class="w"> </span>all<span class="w"> </span>StressLogs<span class="w"> </span><span class="o">(</span>combined<span class="o">)</span><span class="w"> </span>of<span class="w"> </span>400MB.<span class="w"> </span>Config<span class="w"> </span>settings<span class="w"> </span>default<span class="w"> </span>to<span class="w"> </span>hex.
+<span class="nb">set</span><span class="w"> </span><span class="nv">DOTNET_TotalStressLogSize</span><span class="o">=</span><span class="m">18000000</span>
+
+<span class="nb">echo</span><span class="w"> </span>Write<span class="w"> </span>the<span class="w"> </span>StressLog<span class="s1">&#39;s to a file instead of memory for cases where you can&#39;</span>t<span class="w"> </span>attach<span class="w"> </span>a<span class="w"> </span>debugger<span class="w"> </span>or<span class="w"> </span>get<span class="w"> </span>a<span class="w"> </span>dump<span class="w"> </span>file.
+<span class="nb">set</span><span class="w"> </span><span class="nv">DOTNET_StressLogFilename</span><span class="o">=</span>mystresslog.log
+</code></pre></div>
+<p>To write your own messages to the StressLog from C++, you can use the <code>STRESS_LOGN(facility, level, msg, ...)</code> macros, i.e. <code>STRESS_LOG1(LF_GC, LL_ERROR, "A significant but non-fatal error occurred in the garbage collector! Here's my favorite number: %d\n", 42)</code> where the first argument is one or more logging facilities (you can combine them using <code>|</code> i.e. <code>LF_GC | LF_GCROOTS</code>), the second argument is a severity level, and the third argument is the log message format string. See <a href="#log-facilities-and-levels">log facilities and levels</a>, below, for more information.</p>
+<p>You can't write your own messages to the StressLog from C#. If for some reason you need to while testing, perhaps you could expose it via a custom qcall.</p>
+<h2 id="traditional-net-runtime-logging">Traditional .NET Runtime Logging</h2>
+<p>"Traditional" log messages are only available in debug or checked builds of the runtime. To enable them, you can set the <code>DOTNET_LogEnable</code> environment variable to <code>1</code>, and configure them using environment variables. There are various configuration variables for traditional logging, demonstrated below:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span>Enable<span class="w"> </span>traditional<span class="w"> </span>logging
+<span class="nb">set</span><span class="w"> </span><span class="nv">DOTNET_LogEnable</span><span class="o">=</span><span class="m">1</span>
+
+<span class="nb">echo</span><span class="w"> </span>Show<span class="w"> </span>JIT<span class="w"> </span>log<span class="w"> </span>messages
+<span class="nb">set</span><span class="w"> </span><span class="nv">DOTNET_LogFacility</span><span class="o">=</span>0x00000008
+
+<span class="nb">echo</span><span class="w"> </span>Only<span class="w"> </span>show<span class="w"> </span>warnings<span class="w"> </span>or<span class="w"> </span>errors
+<span class="nb">set</span><span class="w"> </span><span class="nv">DOTNET_LogLevel</span><span class="o">=</span><span class="m">3</span>
+
+<span class="nb">echo</span><span class="w"> </span>Log<span class="w"> </span>messages<span class="w"> </span>to<span class="w"> </span>the<span class="w"> </span>debugger
+<span class="nb">set</span><span class="w"> </span><span class="nv">DOTNET_LogToDebugger</span><span class="o">=</span><span class="m">0</span>
+
+<span class="nb">echo</span><span class="w"> </span>Log<span class="w"> </span>messages<span class="w"> </span>to<span class="w"> </span>the<span class="w"> </span>console
+<span class="nb">set</span><span class="w"> </span><span class="nv">DOTNET_LogToConsole</span><span class="o">=</span><span class="m">1</span>
+
+<span class="nb">echo</span><span class="w"> </span>Log<span class="w"> </span>messages<span class="w"> </span>to<span class="w"> </span>a<span class="w"> </span>specific<span class="w"> </span>file
+<span class="nb">set</span><span class="w"> </span><span class="nv">DOTNET_LogToFile</span><span class="o">=</span><span class="m">0</span>
+<span class="nb">set</span><span class="w"> </span><span class="nv">DOTNET_LogFile</span><span class="o">=</span>mylog.log
+
+<span class="nb">echo</span><span class="w"> </span>Append<span class="w"> </span>log<span class="w"> </span>messages<span class="w"> </span>to<span class="w"> </span>the<span class="w"> </span>file<span class="w"> </span>instead<span class="w"> </span>of<span class="w"> </span>erasing<span class="w"> </span>it<span class="w"> </span>at<span class="w"> </span>start
+<span class="nb">set</span><span class="w"> </span><span class="nv">DOTNET_LogFileAppend</span><span class="o">=</span><span class="m">1</span>
+
+<span class="nb">echo</span><span class="w"> </span>Flush<span class="w"> </span>the<span class="w"> </span>log<span class="w"> </span>file<span class="w"> </span>after<span class="w"> </span>every<span class="w"> </span>write<span class="w"> </span>to<span class="w"> </span>ensure<span class="w"> </span>messages<span class="w"> </span>are<span class="w"> </span>not<span class="w"> </span>lost<span class="w"> </span>after<span class="w"> </span>a<span class="w"> </span>crash
+<span class="nb">set</span><span class="w"> </span><span class="nv">DOTNET_LogFlushFile</span><span class="o">=</span><span class="m">1</span>
+
+<span class="nb">echo</span><span class="w"> </span>Attach<span class="w"> </span>the<span class="w"> </span>process<span class="w"> </span>ID<span class="w"> </span>to<span class="w"> </span>every<span class="w"> </span>log<span class="w"> </span>message<span class="w"> </span><span class="k">for</span><span class="w"> </span>multi-process<span class="w"> </span>scenarios
+<span class="nb">set</span><span class="w"> </span><span class="nv">DOTNET_LogWithPid</span><span class="o">=</span><span class="m">1</span>
+</code></pre></div>
+<p>This classical logging system is not frequently used, so individual log messages you encounter may be partially or completely nonfunctional - for example, 64-bit-only issues in outdated log statements - but the basics should always work.</p>
+<p>To send your own traditional log messages from C++, you can use the <code>LOG((facility, level, msg, ...))</code> macro, i.e. <code>LOG((LF_GC, LL_INFO10000, "An insignificant thing happened in the garbage collector.\n"))</code>. The arguments are roughly equivalent to those described above for StressLog. See <a href="#log-facilities-and-levels">log facilities and levels</a>, below, for more information on facilities and levels.</p>
+<p>Note that the <code>LOG</code> and <code>STRESS_LOG</code> macros are very similar, so for debugging purposes you can temporarily convert a <code>LOG((...))</code> statement into a <code>STRESS_LOG(...)</code> statement in order to take advantage of StressLog functionality to diagnose an issue.</p>
+<p>If you need to send messages to the traditional log from C#, similar to StressLog you could expose it via a custom qcall temporarily.</p>
+<h2 id="log-facilities-and-levels">Log Facilities and Levels</h2>
+<p>StressLog and traditional logging both rely on the <code>DOTNET_LogFacility</code>, <code>DOTNET_LogFacility2</code>, and <code>DOTNET_LogLevel</code> environment variables to control their level of verbosity and filter the information logged.</p>
+<p><code>DOTNET_LogLevel</code> allows filtering out log messages of lower importance, regardless of category. This variable is specified as an integer, not a named constant. The levels as of this writing are listed below, and come from <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/log.h"><code>log.h</code></a>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">LL_EVERYTHING</span><span class="w">  </span><span class="mi">10</span>
+<span class="n">LL_INFO1000000</span><span class="w">  </span><span class="mi">9</span><span class="w"> </span><span class="c1">// can be expected to generate 1,000,000 logs per small but not trivial run</span>
+<span class="n">LL_INFO100000</span><span class="w">   </span><span class="mi">8</span><span class="w"> </span><span class="c1">// can be expected to generate 100,000 logs per small but not trivial run</span>
+<span class="n">LL_INFO10000</span><span class="w">    </span><span class="mi">7</span><span class="w"> </span><span class="c1">// can be expected to generate 10,000 logs per small but not trivial run</span>
+<span class="n">LL_INFO1000</span><span class="w">     </span><span class="mi">6</span><span class="w"> </span><span class="c1">// can be expected to generate 1,000 logs per small but not trivial run</span>
+<span class="n">LL_INFO100</span><span class="w">      </span><span class="mi">5</span><span class="w"> </span><span class="c1">// can be expected to generate 100 logs per small but not trivial run</span>
+<span class="n">LL_INFO10</span><span class="w">       </span><span class="mi">4</span><span class="w"> </span><span class="c1">// can be expected to generate 10 logs per small but not trivial run</span>
+<span class="n">LL_WARNING</span><span class="w">      </span><span class="mi">3</span>
+<span class="n">LL_ERROR</span><span class="w">        </span><span class="mi">2</span>
+<span class="n">LL_FATALERROR</span><span class="w">   </span><span class="mi">1</span>
+<span class="n">LL_ALWAYS</span><span class="w">       </span><span class="mi">0</span><span class="w"> </span><span class="c1">// impossible to turn off (log level never negative)</span>
+</code></pre></div>
+<p><code>DOTNET_LogFacility</code> and <code>DOTNET_LogFacility2</code> allow filtering messages to specific categories. These variables are specified as integers, not named constants. For example, the <code>LF_GC</code> facility's value is <code>0x00000001</code> or just <code>1</code>. The list of available options for <code>DOTNET_LogFacility1</code> as of this writing are listed below, and come from <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/loglf.h"><code>loglf.h</code></a>:
+<div class="highlight"><pre><span></span><code><span class="n">LF_GC</span><span class="w">                </span><span class="mh">0x00000001</span>
+<span class="n">LF_GCINFO</span><span class="w">            </span><span class="mh">0x00000002</span>
+<span class="n">LF_STUBS</span><span class="w">             </span><span class="mh">0x00000004</span>
+<span class="n">LF_JIT</span><span class="w">               </span><span class="mh">0x00000008</span>
+<span class="n">LF_LOADER</span><span class="w">            </span><span class="mh">0x00000010</span>
+<span class="n">LF_METADATA</span><span class="w">          </span><span class="mh">0x00000020</span>
+<span class="n">LF_SYNC</span><span class="w">              </span><span class="mh">0x00000040</span>
+<span class="n">LF_EEMEM</span><span class="w">             </span><span class="mh">0x00000080</span>
+<span class="n">LF_GCALLOC</span><span class="w">           </span><span class="mh">0x00000100</span>
+<span class="n">LF_CORDB</span><span class="w">             </span><span class="mh">0x00000200</span>
+<span class="n">LF_CLASSLOADER</span><span class="w">       </span><span class="mh">0x00000400</span>
+<span class="n">LF_CORPROF</span><span class="w">           </span><span class="mh">0x00000800</span>
+<span class="n">LF_DIAGNOSTICS_PORT</span><span class="w">  </span><span class="mh">0x00001000</span>
+<span class="n">LF_DBGALLOC</span><span class="w">          </span><span class="mh">0x00002000</span>
+<span class="n">LF_EH</span><span class="w">                </span><span class="mh">0x00004000</span>
+<span class="n">LF_ENC</span><span class="w">               </span><span class="mh">0x00008000</span>
+<span class="n">LF_ASSERT</span><span class="w">            </span><span class="mh">0x00010000</span>
+<span class="n">LF_VERIFIER</span><span class="w">          </span><span class="mh">0x00020000</span>
+<span class="n">LF_THREADPOOL</span><span class="w">        </span><span class="mh">0x00040000</span>
+<span class="n">LF_GCROOTS</span><span class="w">           </span><span class="mh">0x00080000</span>
+<span class="n">LF_INTEROP</span><span class="w">           </span><span class="mh">0x00100000</span>
+<span class="n">LF_MARSHALER</span><span class="w">         </span><span class="mh">0x00200000</span>
+<span class="n">LF_TIEREDCOMPILATION</span><span class="w"> </span><span class="mh">0x00400000</span><span class="w"> </span><span class="c1">// This used to be IJW, but now repurposed for tiered compilation</span>
+<span class="n">LF_ZAP</span><span class="w">               </span><span class="mh">0x00800000</span>
+<span class="n">LF_STARTUP</span><span class="w">           </span><span class="mh">0x01000000</span><span class="w"> </span><span class="c1">// Log startup and shutdown failures</span>
+<span class="n">LF_APPDOMAIN</span><span class="w">         </span><span class="mh">0x02000000</span>
+<span class="n">LF_CODESHARING</span><span class="w">       </span><span class="mh">0x04000000</span>
+<span class="n">LF_STORE</span><span class="w">             </span><span class="mh">0x08000000</span>
+<span class="n">LF_SECURITY</span><span class="w">          </span><span class="mh">0x10000000</span>
+<span class="n">LF_LOCKS</span><span class="w">             </span><span class="mh">0x20000000</span>
+<span class="n">LF_BCL</span><span class="w">               </span><span class="mh">0x40000000</span>
+</code></pre></div></p>
+<p><code>DOTNET_LogFacility2</code> is newer, and at present only has one facility available: <code>LF2_MULTICOREJIT</code>, with a value of <code>0x00000001</code>.</p>
+<p>If you're trying to capture a specific message in the log and it's not showing up, make sure you've checked its log level/facility and set your environment variables accordingly!</p>
+<h2 id="mono-logging">Mono logging</h2>
+<p>Builds of .NET using the Mono runtime have their own Mono-specific log configuration environment variables that control what diagnostic information is logged by the runtime.</p>
+<p>You can use <code>MONO_LOG_LEVEL</code> to configure the overall verbosity by setting it to one of <code>"error"</code>, <code>"critical"</code>, <code>"warning"</code>, <code>"message"</code>, <code>"info"</code>, or <code>"debug"</code>. You can use <code>MONO_LOG_MASK</code> to filter the log messages down to specific categories like <code>gc</code> or <code>aot</code>. For a full list of mask options, see <a href="https://github.com/dotnet/runtime/blob/main/src/mono/mono/utils/mono-logger.c"><code>mono-logger.c</code></a>'s <code>mono_trace_set_mask_string</code> function.</p>
+<p>When dealing with Mono's interpreter, the <code>MONO_VERBOSE_METHOD</code> environment variable turns on verbose logging for methods with a specific name. This can be very helpful if you are investigating situations where a method is being compiled or optimized incorrectly, or you're not certain which version of a method is running.</p>
+<h2 id="webassembly-logging">WebAssembly logging</h2>
+<p>To configure Mono logging in WebAssembly builds of the runtime, you will need to specify your environment variable(s) in the form of a JSON blob inside of a config item inside your csproj, like so:
+<div class="highlight"><pre><span></span><code><span class="nt">&lt;ItemGroup&gt;</span>
+<span class="w">  </span><span class="nt">&lt;WasmExtraConfig</span><span class="w"> </span><span class="na">Include=</span><span class="s">&quot;environmentVariables&quot;</span><span class="w"> </span><span class="na">Value=</span><span class="s">&#39;</span>
+<span class="s">{</span>
+<span class="s">  &quot;MONO_LOG_LEVEL&quot;: &quot;warning&quot;,</span>
+<span class="s">  &quot;MONO_LOG_MASK&quot;: &quot;all&quot;</span>
+<span class="s">}&#39;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ItemGroup&gt;</span>
+</code></pre></div>
+Environment variables set externally at build time or at web browser launch time will not automatically flow through into the WASM runtime.</p>
+<p>For WebAssembly builds of the runtime there is an additional interop layer written in TypeScript that has its own logging facilities, defined in <a href="https://github.com/dotnet/runtime/blob/main/src/mono/browser/runtime/logging.ts"><code>logging.ts</code></a>.</p>
+<p>For debug-severity log messages from the TypeScript layer, they will be suppressed by default unless the <code>diagnosticTracing</code> flag is set. To set it, call <code>.withDiagnosticTracing(true)</code> on the <code>dotnet</code> object during startup, or add an extra config item to your csproj like so:
+<div class="highlight"><pre><span></span><code><span class="nt">&lt;ItemGroup&gt;</span>
+<span class="w">  </span><span class="nt">&lt;WasmExtraConfig</span><span class="w"> </span><span class="na">Include=</span><span class="s">&quot;diagnosticTracing&quot;</span><span class="w"> </span><span class="na">Value=</span><span class="s">&quot;true&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/ItemGroup&gt;</span>
+</code></pre></div></p>
+<p>All other log severities are enabled by default, and they will be written to the developer tools console when running in a web browser. When running automated tests from the command line or running an application in an environment like node.js or the v8 shell, they will be written to standard output and/or standard error.</p>
+<p>To send messages from within TypeScript, use the appropriate API - <code>mono_log_error</code> for severe errors, <code>mono_log_info</code> for important information, and <code>mono_log_debug</code> for things that ordinary users will never need to see.</p>
+<p>If for some reason you need to access this logging facility directly from C/C++, you can use the <code>mono_wasm_trace_logger</code> function. Note that fatal errors sent through this function will trigger an immediate process exit after they are written.</p>
+<p>By default the jiterpreter will only log error messages to the console, but if <code>MONO_VERBOSE_METHOD</code> is used, it will also log verbose information on traces within verbose methods. More advanced logging in the jiterpreter requires editing the configuration variables in <a href="https://github.com/dotnet/runtime/blob/main/src/mono/browser/runtime/jiterpreter.ts"><code>jiterpreter.ts</code></a> and compiling the runtime from source.</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+  
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+        
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../shared-generics/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Shared Generics Design">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Shared Generics Design
+              </div>
+            </div>
+          </a>
+        
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+in <a href="https://github.com/jurakovic/runtime" target="_blank">jurakovic/runtime</a>
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/jurakovic/runtime" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/dotnet/runtime" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.action.view", "navigation.footer"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      
+    
+  </body>
+</html>

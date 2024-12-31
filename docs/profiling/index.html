@@ -949,10 +949,10 @@
 <p>The other interface involved for profiling is <em>ICorProfilerInfo</em>.  The profiler calls this, as required, to obtain more information to help its analysis.  For example, whenever the CLR calls FunctionEnter it supplies a value for the FunctionId.  The profiler can discover more information about that FunctionId by calling the <em>ICorProfilerInfo::GetFunctionInfo</em> to discover the function's parent class, its name, etc, etc.</p>
 <p>The picture so far describes what happens once the application and profiler are running.  But how are the two connected together when an application is started?  The CLR makes the connection during its initialization in each process.  It decides whether to connect to a profiler, and which profiler that should be, depending upon the value for two environment variables, checked one after the other:</p>
 <ul>
-<li>Cor_Enable_Profiling - only connect with a profiler if this environment variable exists and is set to a non-zero value.</li>
-<li>Cor_Profiler - connect with the profiler with this CLSID or ProgID (which must have been stored previously in the Registry). The Cor_Profiler environment variable is defined as a string:<ul>
-<li>set Cor_Profiler={32E2F4DA-1BEA-47ea-88F9-C5DAF691C94A}, or</li>
-<li>set Cor_Profiler="MyProfiler"</li>
+<li>CORECLR_ENABLE_PROFILING - only connect with a profiler if this environment variable exists and is set to a non-zero value.</li>
+<li>CORECLR_PROFILER - connect with the profiler with this CLSID or ProgID (which must have been stored previously in the Registry). The CORECLR_PROFILER environment variable is defined as a string:<ul>
+<li>set CORECLR_PROFILER={32E2F4DA-1BEA-47ea-88F9-C5DAF691C94A}, or</li>
+<li>set CORECLR_PROFILER="MyProfiler"</li>
 </ul>
 </li>
 <li>The profiler class is the one that implements <em>ICorProfilerCallback/ICorProfilerCallback2</em>. It is required that a profiler implement ICorProfilerCallback2; if it does not, it will not be loaded.</li>
@@ -1047,7 +1047,7 @@
 <h2 id="how-to-profile-a-nt-service">How to profile a NT Service</h2>
 <p>Profiling is enabled through environment variables, and since NT Services are started when the Operating System boots, those environment variables must be present and set to the required value at that time.  Thus, to profile an NT Service, the appropriate environment variables must be set in advance, system-wide, via:</p>
 <p>MyComputer -&gt; Properties -&gt; Advanced -&gt; EnvironmentVariables -&gt; System Variables</p>
-<p>Both <strong>Cor_Enable_Profiling</strong> and <strong>COR_PROFILER have to be set</strong> , and the user must ensure that the Profiler DLL is registered.  Then, the target machine should be re-booted so that the NT Services pick up those changes.  Note that this will enable profiling on a system-wide basis.  So, to prevent every managed application that is run subsequently from being profiled, the user should delete those system environment variables after the re-boot.</p>
+<p>Both <strong>CORECLR_ENABLE_PROFILING</strong> and <strong>CORECLR_PROFILER have to be set</strong> , and the user must ensure that the Profiler DLL is registered.  Then, the target machine should be re-booted so that the NT Services pick up those changes.  Note that this will enable profiling on a system-wide basis.  So, to prevent every managed application that is run subsequently from being profiled, the user should delete those system environment variables after the re-boot.</p>
 <h1 id="profiling-api-high-level-description">Profiling API – High-Level Description</h1>
 <h2 id="loader-callbacks">Loader Callbacks</h2>
 <p>The loader callbacks are those issued for app domain, assembly, module, and class loading.</p>

@@ -13,9 +13,6 @@ rm -rf site
 # temp config
 echo "$(git show $branch:mkdocs.yml)" > mkdocs.yml
 
-mkdir -p docs/stylesheets
-echo "$(git show $branch:docs/stylesheets/extra.css)" > docs/stylesheets/extra.css
-
 # copy out-of-scope files
 cp docs/design/coreclr/botr/../jit/ryujit-overview.md docs/design/coreclr/botr/ryujit-overview.md
 cp docs/design/coreclr/botr/../jit/porting-ryujit.md docs/design/coreclr/botr/porting-ryujit.md
@@ -45,7 +42,6 @@ rm -rf docs
 
 # rename
 mv site docs
-git restore '*.css'
 
 # change dotnet repo to fork; fix api url
 find docs -type f -iwholename "*.html" -exec sed -i -r 's|(href="https://github.com/)(dotnet)(/runtime" title="Go to repository")|\1jurakovic\3|' {} +

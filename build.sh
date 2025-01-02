@@ -24,11 +24,8 @@ for file in "${files[@]}"; do
   sed -i 's|\.\./\.\./\.\./\.\.|https://github.com/dotnet/runtime/blob/main|g' "$file"
   sed -i 's|\.\./\.\.|https://github.com/dotnet/runtime/blob/main/docs/design|g' "$file"
   sed -i 's|\.\.|https://github.com/dotnet/runtime/blob/main/docs/design/coreclr|g' "$file"
+  sed -i -r 's|(../jit/)(.*.md)|\2|g' "$file"
 done
-
-# fixes...
-sed -i -r 's|(../jit/)(.*.md)|\2|g' docs/design/coreclr/botr/README.md
-
 
 echo "Staring mkdocs build"
 docker run --rm -it -v ${PWD}:/docs mkdocs-botr build

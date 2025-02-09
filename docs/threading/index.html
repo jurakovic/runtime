@@ -987,9 +987,9 @@
 <p>It is important to understand that GCX_COOP effectively acquires a lock on the GC heap. No GC may proceed while the thread is in cooperative mode. And native code cannot be "hijacked" as is done for managed code, so the thread will remain in cooperative mode until it explicitly switches back to preemptive mode.</p>
 <p>Thus entering cooperative mode in native code is discouraged. In cases where cooperative mode must be entered, it should be kept to as short a time as possible. The thread should not be blocked in this mode, and in particular cannot generally acquire locks safely.</p>
 <p>Similarly, GCX_PREEMP potentially <em>releases</em> a lock that had been held by the thread. Great care must be taken to ensure that all GC references are properly protected before entering preemptive mode.</p>
-<p>The <a href="../../../coding-guidelines/clr-code-guide.md">Rules of the Code</a> document describes the disciplines needed to ensure safety around GC mode switches.</p>
+<p>The <a href="https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/clr-code-guide.md">Rules of the Code</a> document describes the disciplines needed to ensure safety around GC mode switches.</p>
 <h2 id="crst">Crst</h2>
-<p>Just as Monitor is the preferred locking mechanism for managed code, Crst is the preferred mechanism for VM code. Like Monitor, Crst is a hybrid lock that is aware of hosts and GC modes. Crst also implements deadlock avoidance via "lock leveling," described in the <a href="../../../coding-guidelines/clr-code-guide.md#2.6.4">Crst Leveling chapter of the BotR</a>.</p>
+<p>Just as Monitor is the preferred locking mechanism for managed code, Crst is the preferred mechanism for VM code. Like Monitor, Crst is a hybrid lock that is aware of hosts and GC modes. Crst also implements deadlock avoidance via "lock leveling," described in the <a href="https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/clr-code-guide.md#2.6.4">Crst Leveling chapter of the BotR</a>.</p>
 <p>It is generally illegal to acquire a Crst while in cooperative mode, though exceptions are made where absolutely necessary.</p>
 <h1 id="special-threads">Special Threads</h1>
 <p>In addition to managing threads created by managed code, the CLR creates several "special" threads for its own use.</p>

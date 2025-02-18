@@ -17,19 +17,17 @@ echo "$(git show $branch:mkdocs.yml)" > mkdocs.yml
 cp docs/design/coreclr/botr/../jit/ryujit-overview.md docs/design/coreclr/botr/ryujit-overview.md
 cp docs/design/coreclr/botr/../jit/porting-ryujit.md docs/design/coreclr/botr/porting-ryujit.md
 
-# hide toc on all pages (no other proposed solutions work)
 mapfile -t files < <(find docs/design/coreclr/botr -type f -iwholename "*.md")
 for file in "${files[@]}"; do
+  # hide toc on all pages (no other proposed solutions work)
   sed -i '1s/^/---\nhide:\n  - toc\n---\n/' "$file"
-  sed -i 's|(\.\./\.\./\.\./\.\./|(https://github.com/dotnet/runtime/blob/main/|g' "$file"
-  sed -i 's|]: \.\./\.\./\.\./\.\./|]: https://github.com/dotnet/runtime/blob/main/|g' "$file"
-  sed -i 's|(\.\./\.\./\.\./|(https://github.com/dotnet/runtime/blob/main/docs/|g' "$file"
-  sed -i 's|]: \.\./\.\./\.\./|]: https://github.com/dotnet/runtime/blob/main/docs/|g' "$file"
-  sed -i 's|(\.\./\.\./|(https://github.com/dotnet/runtime/blob/main/docs/design/|g' "$file"
-  sed -i 's|]: \.\./\.\./|]: https://github.com/dotnet/runtime/blob/main/docs/design/|g' "$file"
-  sed -i 's|(\.\./|(https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/|g' "$file"
-  sed -i 's|]: \.\./|]: https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/|g' "$file"
-  sed -i -r 's|(\.\.\/jit\/)(\.*\.md)|\2|g' "$file"
+  # change relative links for out-of-scope files to github
+  sed -i -r 's;(\(|]: )\.\./\.\./\.\./\.\./;\1https://github.com/dotnet/runtime/blob/main/;g' "$file"
+  sed -i -r 's;(\(|]: )\.\./\.\./\.\./;\1https://github.com/dotnet/runtime/blob/main/docs/;g' "$file"
+  sed -i -r 's;(\(|]: )\.\./\.\./;\1https://github.com/dotnet/runtime/blob/main/docs/design/;g' "$file"
+  sed -i -r 's;(\(|]: )\.\./;\1https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/;g' "$file"
+  # update links to jit files, because they are copied to botr dir (cp commands above)
+  sed -i -r 's;(\.\.\/jit\/)(\.*\.md);\2;g' "$file"
 done
 
 echo "Staring mkdocs build"

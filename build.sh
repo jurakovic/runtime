@@ -18,7 +18,7 @@ cp docs/design/coreclr/botr/../jit/ryujit-overview.md docs/design/coreclr/botr/r
 cp docs/design/coreclr/botr/../jit/porting-ryujit.md docs/design/coreclr/botr/porting-ryujit.md
 
 # temp fix to images path in jit file
-sed -i -r 's;]\(images;]\(../jit/images;g' docs/design/coreclr/botr/ryujit-overview.md
+sed -i -r 's;]\(images;]\(https://raw.githubusercontent.com/dotnet/runtime/refs/heads/main/docs/design/coreclr/jit/images;g' docs/design/coreclr/botr/ryujit-overview.md
 
 mapfile -t files < <(find docs/design/coreclr/botr -type f -iwholename "*.md")
 for file in "${files[@]}"; do

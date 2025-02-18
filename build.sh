@@ -22,9 +22,13 @@ mapfile -t files < <(find docs/design/coreclr/botr -type f -iwholename "*.md")
 for file in "${files[@]}"; do
   sed -i '1s/^/---\nhide:\n  - toc\n---\n/' "$file"
   sed -i 's|(\.\./\.\./\.\./\.\./|(https://github.com/dotnet/runtime/blob/main/|g' "$file"
+  sed -i 's|]: \.\./\.\./\.\./\.\./|]: https://github.com/dotnet/runtime/blob/main/|g' "$file"
   sed -i 's|(\.\./\.\./\.\./|(https://github.com/dotnet/runtime/blob/main/docs/|g' "$file"
+  sed -i 's|]: \.\./\.\./\.\./|]: https://github.com/dotnet/runtime/blob/main/docs/|g' "$file"
   sed -i 's|(\.\./\.\./|(https://github.com/dotnet/runtime/blob/main/docs/design/|g' "$file"
+  sed -i 's|]: \.\./\.\./|]: https://github.com/dotnet/runtime/blob/main/docs/design/|g' "$file"
   sed -i 's|(\.\./|(https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/|g' "$file"
+  sed -i 's|]: \.\./|]: https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/|g' "$file"
   sed -i -r 's|(\.\.\/jit\/)(\.*\.md)|\2|g' "$file"
 done
 

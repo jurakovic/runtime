@@ -21,13 +21,13 @@ mapfile -t files < <(find docs/design/coreclr/botr -type f -iwholename "*.md")
 for file in "${files[@]}"; do
   # hide toc on all pages (no other proposed solutions work)
   sed -i '1s/^/---\nhide:\n  - toc\n---\n/' "$file"
-  # change relative links for out-of-scope files to github
+  # update links to jit files, because they are copied to botr dir (cp commands above)
+  sed -i -r 's;\.\./jit/;;g' "$file"
+# change relative links for out-of-scope files to github
   sed -i -r 's;(\(|]: )\.\./\.\./\.\./\.\./;\1https://github.com/dotnet/runtime/blob/main/;g' "$file"
   sed -i -r 's;(\(|]: )\.\./\.\./\.\./;\1https://github.com/dotnet/runtime/blob/main/docs/;g' "$file"
   sed -i -r 's;(\(|]: )\.\./\.\./;\1https://github.com/dotnet/runtime/blob/main/docs/design/;g' "$file"
   sed -i -r 's;(\(|]: )\.\./;\1https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/;g' "$file"
-  # update links to jit files, because they are copied to botr dir (cp commands above)
-  sed -i -r 's;(\.\.\/jit\/)(\.*\.md);\2;g' "$file"
 done
 
 echo "Staring mkdocs build"

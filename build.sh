@@ -17,8 +17,8 @@ echo "$(git show $branch:mkdocs.yml)" > mkdocs.yml
 cp docs/design/coreclr/botr/../jit/ryujit-overview.md docs/design/coreclr/botr/ryujit-overview.md
 cp docs/design/coreclr/botr/../jit/porting-ryujit.md docs/design/coreclr/botr/porting-ryujit.md
 
-# fix profiling.md; e.g. List<int> => `List<int>`
-sed -i -r 's/(\w+<[a-zA-Z,]+>)/`\1`/g' docs/design/coreclr/botr/profiling.md
+# fix profiling.md; e.g. List<int> => List&lt;int&gt;
+sed -i -r 's/(\w+)(<)([a-zA-Z,]+)(>)/\1\&lt;\3\&gt;/g' docs/design/coreclr/botr/profiling.md
 
 # temp fix to images path in jit file
 sed -i -r 's;]\(images;]\(https://raw.githubusercontent.com/dotnet/runtime/refs/heads/main/docs/design/coreclr/jit/images;g' docs/design/coreclr/botr/ryujit-overview.md

@@ -31,6 +31,8 @@ theme:
   features:
     - content.action.view
     - navigation.footer
+    - navigation.instant
+    - navigation.indexes
 
 plugins:
   - search

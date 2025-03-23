@@ -12,7 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: 'docs'
+          ref: 'docs_old'
           sparse-checkout: 'docs'
           fetch-depth: 0
 

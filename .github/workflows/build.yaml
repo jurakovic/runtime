@@ -21,7 +21,7 @@ jobs:
           git config core.fileMode false
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          sudo chown -R $USER .
+          chown -R $USER .
           chmod +x ./build.sh ./check.sh
         shell: bash
 

@@ -31,15 +31,14 @@ jobs:
           echo "y" | sudo ./check.sh
           if [ ! $? -eq 0 ]; then exit 0; fi
 
+          # chown because build was run as root
           sudo chown -R $USER .
+
           git status -s
           git add .
           git diff --cached --quiet --exit-code
-          if [ ! $? -eq 0 ]
-          then
-            git commit -m "Update docs"
-            git push
-          else
-            echo "No git changes"
-          fi
+          if [ ! $? -eq 0 ]; then echo "No git changes"; exit 0; fi
+
+          git commit -m "Update docs"
+          git push
         shell: bash {0}

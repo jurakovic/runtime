@@ -28,7 +28,7 @@ jobs:
       - name: Build
         run: |
           docker pull ghcr.io/jurakovic/mkdocs-botr:latest
-          echo "y" | ./check.sh
+          echo "y" | sudo ./check.sh
           git status -s
           git add .
           git diff --cached --quiet --exit-code

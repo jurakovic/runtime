@@ -37,7 +37,7 @@ for file in "${files[@]}"; do
 done
 
 echo "Staring mkdocs build"
-docker run --rm -it -v ${PWD}:/docs ghcr.io/jurakovic/mkdocs-botr:latest build
+docker run --rm -v ${PWD}:/docs ghcr.io/jurakovic/mkdocs-botr:latest build
 #for debugging:
 #docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh ghcr.io/jurakovic/mkdocs-botr:latest
 

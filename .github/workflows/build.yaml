@@ -23,6 +23,8 @@ jobs:
 
       - name: Build
         run: |
+          ls -ld /tmp
+          ls -ld .
           docker pull ghcr.io/jurakovic/mkdocs-botr:latest
           chmod +x ./build.sh
           ./build.sh

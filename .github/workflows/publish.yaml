@@ -1,4 +1,4 @@
-name: Update Docs
+name: Build Docs
 
 permissions:
   contents: write

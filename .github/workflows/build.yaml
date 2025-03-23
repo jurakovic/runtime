@@ -1,0 +1,44 @@
+name: Build Docs
+
+permissions:
+  contents: write
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: '${{ github.ref_name }}'
+          sparse-checkout: 'docs'
+          fetch-depth: 0
+
+      - name: Git Config
+        run: |
+          git config core.fileMode false
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          chmod +x ./build.sh ./check.sh
+        shell: bash
+
+      - name: Build
+        run: |
+          docker pull ghcr.io/jurakovic/mkdocs-botr:latest
+
+          echo "y" | sudo ./check.sh
+          if [ ! $? -eq 0 ]; then exit 0; fi
+
+          # chown because build was run as root
+          sudo chown -R $USER .
+
+          git status -s
+          git add .
+          git diff --cached --quiet --exit-code
+          if [ ! $? -eq 0 ]; then echo "No git changes"; exit 0; fi
+
+          git commit -m "Update docs"
+          git push
+        shell: bash {0}

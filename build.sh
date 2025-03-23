@@ -37,9 +37,9 @@ for file in "${files[@]}"; do
 done
 
 echo "Staring mkdocs build"
-docker run --rm -it -v ${PWD}:/docs mkdocs-botr build
+docker run --rm -v ${PWD}:/docs ghcr.io/jurakovic/mkdocs-botr:latest build </dev/null
 #for debugging:
-#docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh mkdocs-botr
+#docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh ghcr.io/jurakovic/mkdocs-botr:latest
 
 # undoing temp changes
 rm mkdocs.yml

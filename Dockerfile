@@ -6,6 +6,8 @@
 
 FROM squidfunk/mkdocs-material:9.5.27
 
+LABEL org.opencontainers.image.source=https://github.com/jurakovic/runtime
+
 # upgrade package if there is no newer docker image
 RUN pip install --no-cache-dir 'mkdocs-material==9.5.29' --upgrade
 

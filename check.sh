@@ -7,13 +7,12 @@ prev=$(cat commit.txt)
 if [ $curr = $prev ]
 then
   echo "There are no changes"
-  read -p "Continue with build anyway? (y/n) " yn
 else
   echo "There are changes"
   read -p "Continue with build? (y/n) " yn
 fi
 
-if [ -z "$yn" ] || [ "$yn" != "y" ]; then exit 0; fi;
+if [ -z "$yn" ] || [ "$yn" != "y" ]; then exit 1; fi;
 
 ./build.sh
 

@@ -18,17 +18,22 @@ jobs:
 
       - name: Git Config
         run: |
+          ls -la
           git config core.fileMode false
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          chown -R $USER .
+          echo $USER
+          sudo chown -R $USER .
+          ls -la
           chmod +x ./build.sh ./check.sh
+          ls -la
         shell: bash
 
       - name: Build
         run: |
           docker pull ghcr.io/jurakovic/mkdocs-botr:latest
-          echo "y" | sudo ./check.sh
+          echo "y" | ./check.sh
+          ls -la
           git status -s
           git add .
           git diff --cached --quiet --exit-code

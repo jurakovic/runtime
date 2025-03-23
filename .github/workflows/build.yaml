@@ -27,7 +27,10 @@ jobs:
       - name: Build
         run: |
           docker pull ghcr.io/jurakovic/mkdocs-botr:latest
+
           echo "y" | sudo ./check.sh
+          if [ ! $? -eq 0 ]; then exit 0; fi
+
           sudo chown -R $USER .
           git status -s
           git add .

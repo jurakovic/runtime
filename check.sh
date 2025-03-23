@@ -12,7 +12,7 @@ else
   read -p "Continue with build? (y/n) " yn
 fi
 
-if [ -z "$yn" ] || [ "$yn" != "y" ]; then exit 0; fi;
+if [ -z "$yn" ] || [ "$yn" != "y" ]; then exit 1; fi;
 
 ./build.sh
 

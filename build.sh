@@ -4,7 +4,7 @@
 branch=$(git branch --show-current)
 
 echo "Checking out 'main' branch"
-git checkout main
+git checkout main --force
 git pull
 
 # clear any leftovers

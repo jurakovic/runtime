@@ -46,6 +46,7 @@ This repo has two *main* branches:
 git clone --branch docs --filter=tree:0 https://github.com/jurakovic/runtime.git
 cd runtime
 git sparse-checkout set docs
+git sparse-checkout set .github
 ```
 
 #### Rebase `main`

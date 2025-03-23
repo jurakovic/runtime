@@ -19,12 +19,22 @@ jobs:
       - name: Git Config
         run: |
           git config core.fileMode false
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
         shell: bash
 
       - name: Build
         run: |
           docker pull ghcr.io/jurakovic/mkdocs-botr:latest
+          echo ${{ github.run_number }}
+          echo ${{ github.run_id }}
+          echo ${{ github.job }}
           chmod +x ./build.sh ./check.sh
           echo "y" | sudo ./check.sh
-          git status
+          git status -s
+          #git add .
+          #git commit -m "update docs"
+          #git checkout -b "build_${{ github.run_number }}"
+          #git checkout -b "build_7"
+          #git push --set-upstream origin build_7
         shell: bash

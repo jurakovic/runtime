@@ -77,10 +77,10 @@ docker restart botr
 
 Browse <http://localhost:9903>
 
-#### Create docker image
+#### Pull docker image
 
 ```
-docker build -t mkdocs-botr .
+docker pull ghcr.io/jurakovic/mkdocs-botr:latest .
 ```
 
 #### Build docs

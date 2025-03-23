@@ -23,10 +23,11 @@ jobs:
 
       - name: Build
         run: |
+          whoami
           ls -ld /tmp
           ls -ld .
           docker pull ghcr.io/jurakovic/mkdocs-botr:latest
           chmod +x ./build.sh
-          ./build.sh
+          sudo ./build.sh
           git status
         shell: bash

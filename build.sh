@@ -48,8 +48,7 @@ rm docs/design/coreclr/botr/porting-ryujit.md
 git restore '*.md'
 
 echo "Checking out '$branch' branch"
-#git checkout $branch
-git checkout docs_old
+git checkout $branch
 
 # clear old build
 rm -rf docs

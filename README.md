@@ -7,15 +7,13 @@ The site provides easy-to-navigate interface with dark and light themes and inte
 
 It is available at <https://jurakovic.github.io/runtime/>.
 
-<!-- > This repo only provides GitHub Pages site and does not alter original documentation. For documentation updates please refer to the dotnet/runtime [contributing](https://github.com/dotnet/runtime/blob/main/CONTRIBUTING.md) guidelines. -->
-
 ## Overview
 
 This repo has two *main* branches:
 
 [docs](https://github.com/jurakovic/runtime/tree/docs)
 - contains built docs together with required scripts and files
-- created as [orphan](https://git-scm.com/docs/git-checkout#Documentation/git-checkout.txt---orphanltnew-branchgt) branch disconnected from all the other branches and commits
+- created as [orphan](https://git-scm.com/docs/git-checkout#Documentation/git-checkout.txt---orphanltnew-branchgt) branch disconnected from all other branches and commits
 - set as default branch in this repo
 
 [main](https://github.com/jurakovic/runtime/tree/main)
@@ -25,9 +23,9 @@ This repo has two *main* branches:
 
 ## Files
 
-[Dockerfile](./Dockerfile) - defines docker image used for `mkdocs build` (ensures *virtually* the same environment regardless of machine used for build)
+[Dockerfile](./Dockerfile) - defines docker image used for `mkdocs build`
 
-[build.sh](./build.sh) - does the docs build and all *heavy lifting*
+[build.sh](./build.sh) - does docs build and some file modifications before and after build
 
 [check.sh](./check.sh) - checks for docs updates in upstream repo
 

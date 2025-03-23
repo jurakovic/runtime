@@ -2,7 +2,7 @@
 
 #curr=$(git log -n 1 --format="%h" --abbrev=40 -- docs/design/coreclr/botr)
 curr=$(curl -s "https://api.github.com/repos/dotnet/runtime/commits?path=docs/design/coreclr/botr&per_page=1" | jq -r '.[0].sha')
-prev="foo"
+prev=$(cat commit.txt)
 
 if [ $curr = $prev ]
 then

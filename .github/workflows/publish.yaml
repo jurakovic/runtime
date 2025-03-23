@@ -18,6 +18,8 @@ jobs:
 
       - name: Build
         run: |
-          find . -depth -maxdepth 1
-          docker images
+          docker pull ghcr.io/jurakovic/mkdocs-botr:latest
+          chmod +x ./build.sh
+          ./build.sh
+          git status
         shell: bash

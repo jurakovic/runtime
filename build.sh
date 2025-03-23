@@ -37,7 +37,6 @@ for file in "${files[@]}"; do
 done
 
 echo "Staring mkdocs build"
-docker pull ghcr.io/jurakovic/mkdocs-botr:latest # move to pipeline code
 docker run --rm -it -v ${PWD}:/docs ghcr.io/jurakovic/mkdocs-botr:latest build
 #for debugging:
 #docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh ghcr.io/jurakovic/mkdocs-botr:latest

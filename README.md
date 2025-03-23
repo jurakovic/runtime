@@ -25,7 +25,7 @@ This repo has two *main* branches:
 
 [Dockerfile](./Dockerfile) - defines docker image used for `mkdocs build`
 
-[build.sh](./build.sh) - does docs build and some file modifications before and after build
+[build.sh](./build.sh) - does docs build and required file modifications before and after build
 
 [check.sh](./check.sh) - checks for docs updates in upstream repo
 

@@ -30,10 +30,10 @@ jobs:
           echo "y" | sudo ./check.sh
           git status -s
           git add .
-          (set +e; git diff --cached --quiet --exit-code)
+          git diff --cached --quiet --exit-code
           if [ ! $? -eq 0 ]
           then
             git commit -m "Update docs"
             git push
           fi
-        shell: bash
+        shell: bash {0}

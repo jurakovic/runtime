@@ -1,0 +1,21 @@
+name: Update Docs
+
+permissions:
+  contents: write
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build
+        run: |
+          find . -depth -maxdepth 1
+          docker images
+        shell: bash

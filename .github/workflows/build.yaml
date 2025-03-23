@@ -26,15 +26,14 @@ jobs:
       - name: Build
         run: |
           docker pull ghcr.io/jurakovic/mkdocs-botr:latest
-          echo ${{ github.run_number }}
-          echo ${{ github.run_id }}
-          echo ${{ github.job }}
           chmod +x ./build.sh ./check.sh
           echo "y" | sudo ./check.sh
           git status -s
-          #git add .
-          #git commit -m "update docs"
-          #git checkout -b "build_${{ github.run_number }}"
-          #git checkout -b "build_7"
-          #git push --set-upstream origin build_7
+          git add .
+          git diff --cached --quiet --exit-code
+          if [ ! $? -eq 0 ]
+          then
+            git commit -m "Update docs"
+            git push
+          fi
         shell: bash

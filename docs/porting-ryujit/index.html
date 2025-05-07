@@ -915,13 +915,18 @@
 <li>The basics</li>
 <li>target.h</li>
 <li>Instruction set architecture:</li>
-<li>registerXXX.h</li>
-<li>emitXXX.h, emitfmtXXX.h</li>
-<li>instrsXXX.h, emitXXX.cpp and targetXXX.cpp</li>
-<li>lowerXXX.cpp</li>
-<li>lsraXXX.cpp</li>
-<li>codegenXXX.cpp and simdcodegenXXX.cpp</li>
-<li>unwindXXX.cpp</li>
+<li>registerXXX.h - defines all registers used by the architecture and any aliases for them</li>
+<li>emitXXX.h - defines signatures for public instruction emission methods (e.g. "emit an instruction which takes a single integer argument") and private architecture-specific helpers</li>
+<li>emitXXX.cpp - implementation for emitXXX.h</li>
+<li>emitfmtXXX.h - optionally defines validity rules for how instructions should be formatted (e.g. RISC-V has no rules defined)</li>
+<li>instrsXXX.h - defines per-architecture instructions in assembly</li>
+<li>targetXXX.h - defines architectural constraints used elsewhere, such as "bitmask for all integer registers where callee is saved" or "size in bytes of a floating point register"</li>
+<li>targetXXX.cpp - implements ABI classifier for this architecture</li>
+<li>lowerXXX.cpp - implements <a href="https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/jit/ryujit-overview.md#lowering">Lowering</a> for this architecture</li>
+<li>lsraXXX.cpp - implements register requirement setting based on <a href="https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/jit/ryujit-overview.md#gentree-nodes">GenTree Nodes</a></li>
+<li>codegenXXX.cpp - implements main codegen for this architecture (i.e. generating per-architecture instructions based on <a href="https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/jit/ryujit-overview.md#gentree-nodes">GenTree Nodes</a>)</li>
+<li>hwintrinsic*XXX.* and simdashwintrinsic*XXX.h - defines and implements hardware intrinsic features, e.g. vector instructions</li>
+<li>unwindXXX.cpp - implements public unwinding API and unwind info dumping for debug use</li>
 <li>Calling Convention and ABI: all over the place</li>
 <li>32 vs. 64 bits</li>
 <li>Also all over the place. Some pointer size-specific data is centralized in target.h, but probably not 100%.</li>

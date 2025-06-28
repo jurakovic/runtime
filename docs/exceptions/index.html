@@ -911,7 +911,8 @@
 EX_CATCH
   // If we&#39;re here, something failed.
   m_finalDisposition = terminallyHopeless;
-EX_END_CATCH(RethrowTransientExceptions)
+  RethrowTransientExceptions();
+EX_END_CATCH
 </code></pre></div>
 <p>The EX_TRY macro simply introduces the try block, and is much like the C++ "try", except that it also includes an opening brace, "{".</p>
 <h2 id="ex_catch">EX_CATCH</h2>
@@ -935,7 +936,8 @@ EX_TRY
     // . . . do something that might throw
 EX_CATCH
     throwable = GET_THROWABLE();
-EX_END_CATCH(RethrowTransientExceptions)
+    RethrowTransientExceptions();
+EX_END_CATCH
 // . . . do something with throwable
 GCPROTECT_END()
 </code></pre></div>
@@ -944,10 +946,9 @@ GCPROTECT_END()
 if (pEx-&gt;IsType(CLRException::GetType())) {/* ... */}
 </code></pre></div>
 <p>would tell whether the exception is (or derives from) CLRException.</p>
-<h2 id="ex_end_catchrethrowtransientexceptions">EX_END_CATCH(RethrowTransientExceptions)</h2>
-<p>In the example above, "RethrowTransientExceptions" is an argument to the EX_END_CATCH macro; it is one of three pre-defined macros that can be thought of "exception disposition". Here are the macros, and their meanings:</p>
+<h2 id="rethrowtransientexceptions">RethrowTransientExceptions</h2>
+<p>In the example above, "RethrowTransientExceptions" is a macro in the <code>EX_CATCH</code> block; it is one of three pre-defined macros that can be thought of "exception disposition". Here are the macros, and their meanings:</p>
 <ul>
-<li><em>SwallowAllExceptions</em>: This is aptly named, and very simple. As the name suggests, it swallows everything. While simple and appealing, this is often not the right thing to do.</li>
 <li><em>RethrowTerminalExceptions</em>. A better name would be "RethrowThreadAbort", which is what this macro does.</li>
 <li><em>RethrowTransientExceptions</em>. The best definition of a "transient" exception is one that might not occur if tried again, possibly in a different context. These are the transient exceptions:</li>
 <li>COR_E_THREADABORTED</li>
@@ -962,8 +963,7 @@ if (pEx-&gt;IsType(CLRException::GetType())) {/* ... */}
 <li>MSEE_E_ASSEMBLYLOADINPROGRESS</li>
 </ul>
 <p>The CLR developer with doubts about which macro to use should probably pick <em>RethrowTransientExceptions</em>.</p>
-<p>In every case, however, the developer writing an EX_END_CATCH needs to think hard about which exception should be caught, and should catch only those exceptions. And, because the macros catch everything anyway, the only way to not catch an exception is to rethrow it.</p>
-<p>If an EX_CATCH / EX_END_CATCH block has properly categorized its exceptions, and has rethrown wherever necessary, then SwallowAllExceptions is the way to tell the macros that no further rethrowing is necessary.</p>
+<p>In every case, however, the developer writing an EX_CATCH block needs to think hard about which exception should be caught, and should catch only those exceptions. And, because the macros catch everything anyway, the only way to not catch an exception is to rethrow it.</p>
 <h2 id="ex_catch_hresult">EX_CATCH_HRESULT</h2>
 <p>Sometimes all that is needed is the HRESULT corresponding to an exception, particularly when the code is in an interface from COM. For these cases, EX_CATCH_HRESULT is simpler than writing a while EX_CATCH block. A typical case would look like this:</p>
 <div class="highlight"><pre><span></span><code>HRESULT hr;
@@ -1039,8 +1039,8 @@ EX_END_HOOK
 <h2 id="managed-code-into-the-runtime">Managed code into the runtime</h2>
 <p>This is the "fcall", "jit helper", and so forth. The typical way that the runtime reports errors back to managed code is through a managed exception. So, if an fcall function, directly or indirectly, raises a managed exception, that's perfectly fine. The normal CLR managed exception implementation will "do the right thing" and look for an appropriate managed handler.</p>
 <p>On the other hand, if an fcall function can do anything that might throw a CLR internal exception (one of the C++ exceptions), that exception must not be allowed to leak back out to managed code. To handle this case, the CLR has the UnwindAndContinueHandler (UACH), which is a set of code to catch the C++ EH exceptions, and re-raise them as managed exceptions.</p>
-<p>Any runtime function that is called from managed code, and might throw a C++ EH exception, must wrap the throwing code in INSTALL_UNWIND_AND_CONTINUE_HANDLER / UNINSTALL_UNWIND_AND_CONTINUE_HANDLER.  Installing a HELPER_METHOD_FRAME will automatically install the UACH. There is a non-trivial amount of overhead to installing a UACH, so they shouldn't be used everywhere. One technique that is used in performance critical code is to run without a UACH, and install one just before throwing an exception.</p>
-<p>When a C++ exception is thrown, and there is a missing UACH, the typical failure will be a Contract Violation of "GC_TRIGGERS called in a GC_NOTRIGGER region" in CPFH_RealFirstPassHandler. To fix these, look for managed to runtime transitions, and check for INSTALL_UNWIND_AND_CONTINUE_HANDLER or HELPER_METHOD_FRAME_BEGIN_XXX.</p>
+<p>Any runtime function that is called from managed code, and might throw a C++ EH exception, must wrap the throwing code in INSTALL_UNWIND_AND_CONTINUE_HANDLER / UNINSTALL_UNWIND_AND_CONTINUE_HANDLER. There is a non-trivial amount of overhead to installing a UACH, so they shouldn't be used everywhere. One technique that is used in performance critical code is to run without a UACH, and install one just before throwing an exception.</p>
+<p>When a C++ exception is thrown, and there is a missing UACH, the typical failure will be a Contract Violation of "GC_TRIGGERS called in a GC_NOTRIGGER region" in CPFH_RealFirstPassHandler. To fix these, look for managed to runtime transitions, and check for INSTALL_UNWIND_AND_CONTINUE_HANDLER.</p>
 <h2 id="runtime-code-into-managed-code">Runtime code into managed code</h2>
 <p>The transition from the runtime into managed code has highly platform-dependent requirements. On 32-bit Windows platforms, the CLR's managed exception code requires that "COMPlusFrameHandler" is installed just before entering managed code. These transitions are handled by highly specialized helper functions, which take care of the appropriate exception handlers. It is very unlikely that any typical new calls into managed would use any other way in. In the event that the COMPlusFrameHandler were missing, the most likely effect would be that exception handling code in the target managed code simply wouldn't be executed – no finally blocks, and no catch blocks.</p>
 <h2 id="runtime-code-into-external-native-code">Runtime code into external native code</h2>

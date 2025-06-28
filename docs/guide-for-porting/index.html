@@ -1297,12 +1297,6 @@ Here is an annotated list of the stubs implemented for Unix on Arm64.</p>
     called.</p>
 </li>
 <li>
-<p><code>LazyMachStateCaptureState</code>/<code>HelperMethodFrameRestoreState</code> – Needed to
-    support a GC occurring with an FCALL or HCALL on the stack. (Incorrect
-    implementations will cause unpredictable crashes during or after garbage
-    collection)</p>
-</li>
-<li>
 <p><code>NDirectImportThunk</code> – Needed to support saving off a set of arguments to
     a p/invoke so that the runtime can find the actual target. Also uses one
     of the secret arguments (Used by all p/invoke methods)</p>

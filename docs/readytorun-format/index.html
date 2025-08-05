@@ -2051,15 +2051,60 @@ the first byte of the encoding specify the number of following bytes as follows:
 * the unsigned number 12 (<code>0x0000000c</code>) would be expressed as the single byte <code>0x18</code>.
 * The unsigned number 1000 (<code>0x000003e8</code>) would be expressed as the two bytes <code>0xa1, 0x0f</code></p>
 <h2 id="sparse-array">Sparse Array</h2>
-<p><strong>TODO</strong>: Document native format sparse array</p>
+<p>The NativeArray provides O(1) indexed access while maintaining compact storage through null element compression (empty blocks share storage) and variable-sized offset encoding (adapts to data size).</p>
+<p>The array is made up of three parts, the header, block index, and the blocks.</p>
+<p>The header is a variable encoded value where:
+- Bits 0-1: Entry index size
+  - 0 = uint8 offsets
+  - 1 = uint16 offsets
+  - 2 = uint32 offsets
+- Bits 2-31: Number of elements in the array</p>
+<p>The block index immediately follows the header in memory and consists of one offset entry per block (dynamic size encoded in the header), where each entry points to the location of a data block relative to the start of the block index section. The array uses a maximum block size of 16 elements, the block index effectively maps every group of 16 consecutive array indices to their corresponding data blocks.</p>
+<p>The following the block index are the actual data blocks. These are made up of two types of nodes. Tree nodes and Data nodes.</p>
+<p>Tree nodes are made up of a variable length encoded uint where:
+- Bit 0: If set, the node has a lower index child
+- Bit 1: If set, the node has a higher index child
+- Bits 2-31: Shifted relative offset of higher index child</p>
+<p>Data nodes contain the user defined data.</p>
+<p>Since each block has at most 16 elements, they have a depth of <code>4</code>.</p>
+<h3 id="lookup-algorithm-steps">Lookup Algorithm Steps</h3>
+<p><strong>Step 1: Read the Header</strong>
+- Decode the variable-length encoded header value from the array
+- Extract the entry index size from bits 0-1 (0=uint8, 1=uint16, 2=uint32 offsets)
+- Extract the total number of elements from bits 2-31 by right-shifting the header value by 2 bits
+- Use this information to determine how to interpret the block index entries and validate array bounds</p>
+<p><strong>Step 2: Calculate Block Offset</strong>
+- Determine the block index <code>blockIndex</code> containing the target element by dividing the index by the block size (16).
+- Calculate the memory location containing the block offset <code>pBlockOffset = baseOffset + entrySize * blockIndex</code> where <code>baseOffset</code> is the address immediately following the header and <code>entrySize</code> is determined by the low bits of the header.
+- Read the block offset <code>blockOffset</code> from the block index table using the calculated <code>pBlockOffset</code> and entry size determined by the header.
+- Add the <code>baseOffset</code> to convert the relative <code>blockOffset</code> to an absolute position.</p>
+<p><strong>Step 3: Initialize Tree Navigation</strong>
+- Using the <code>blockOffset</code> calculated above, begin traversal at the root of the block's binary tree structure</p>
+<p><strong>Step 4: Navigate Binary Tree</strong>
+For each level of the tree (iterating through bit positions 8, 4, 2, 1):</p>
+<p><strong>Step 4a: Read Node Descriptor</strong>
+- Decode the current node's control value, which contains navigation flags and child offset information
+- Extract flags indicating the presence of left and right child nodes
+- Extract the relative offset to the right child node (if present)</p>
+<p><strong>Step 4b: Determine Navigation Direction</strong>
+- Test the current bit position against the target index
+- If the bit is set in the target index, attempt to navigate to the right child
+- If the bit is clear in the target index, attempt to navigate to the left child</p>
+<p><strong>Step 4c: Follow Navigation Path</strong>
+- If the desired child exists (indicated by the appropriate flag), update the current position
+- For right child navigation, add the encoded offset to the current position
+- For left child navigation, move to the position immediately following the current node
+- Continue to the next bit level if navigation was successful</p>
+<p><strong>Step 5: Return Element Location</strong>
+- Upon successful traversal, return the final offset position which points to the stored data.
+- If traversal is not successful (child node does not exist), the element can not be found in the array and return a failure status.</p>
 <h2 id="hashtable">Hashtable</h2>
 <p>Conceptually, a native hash table is a header that describe the dimensions of the table, a table that maps hash values of the keys to buckets followed with a list of buckets that store the values. These three things are stored consecutively in the format.</p>
-<p>To make look up fast, the number of buckets is always a power of 2. The table is simply a sequence of <code>(1 + number of buckets)</code> cells, for the first <code>(number of buckets)</code> cells, its stores the offset of the bucket list from the beginning of the whole native hash table. The last cell stores the offset to the end of the buckets.</p>
-<p>Each bucket is a sequence of entries. An entry has a hash code and an offset to the object stored. The entries are sorted by hash code.</p>
+<p>To make look up fast, the number of buckets is always a power of 2. The table is simply a sequence of <code>(1 + number of buckets)</code> cells, for the first <code>(number of buckets)</code> cells, its stores the offset of the bucket list from the beginning of the whole native hash table. The last cell stores the offset to the end of the buckets. Entries are mapped to buckets using <code>x</code> lowest bits of the hash not in the lowest byte where <code>2^x = (number of buckets)</code>. For example, if <code>x=2</code> the following bits marked with <code>X</code> would be used in a 32-bit hash <code>b00000000_00000000_000000XX_00000000</code>.</p>
 <p>Physically, the header is a single byte. The most significant six bits is used to store the number of buckets in its base-2 logarithm. The remaining two bits are used for storing the entry size, as explained below:</p>
 <p>Because the offsets to the bucket lists are often small numbers, the table cells are variable sized.
 It could be either 1 byte, 2 bytes or 4 bytes. The three cases are described with two bits. <code>00</code> means it is one byte, <code>01</code> means it is two bytes and <code>10</code> means it is four bytes.</p>
-<p>The remaining data are the entries. The entries has only the least significant byte of the hash code, followed by the offset to the actual object stored in the hash table.</p>
+<p>The remaining data are the entries. The entries has only the least significant byte of the hash code, followed by the offset to the actual object stored in the hash table. The entries are sorted by hash code.</p>
 <p>To perform a lookup, one starts with reading the header, computing the hash code, using the number of buckets to determine the number of bits to mask away from the hash code, look it up in the table using the right pointer size, find the bucket list, find the next bucket list (or the end of the table) so that we know where to stop, search the entries in that list and then we will find the object if we have a hit, or we have a miss.</p>
 <p>To enumerate all the values, simply walk from the first entry and go all the way to the end of the hash table.</p>
 <p>To see this in action, we can take a look at the following example, with these objects placed in the native hash table.</p>
@@ -2085,11 +2130,11 @@ It could be either 1 byte, 2 bytes or 4 bytes. The three cases are described wit
 </tr>
 <tr>
 <td style="text-align: left;">S</td>
-<td style="text-align: center;">0x1238</td>
+<td style="text-align: center;">0x1338</td>
 </tr>
 </tbody>
 </table>
-<p>Suppose we decided to have only two buckets, then only the least significant digit will be used to index the table, the whole hash table will look like this:</p>
+<p>Suppose we decided to have only two buckets, then only the 9th bit will be used to index the table, the whole hash table will look like this:</p>
 <table>
 <thead>
 <tr>
@@ -2109,25 +2154,25 @@ It could be either 1 byte, 2 bytes or 4 bytes. The three cases are described wit
 <tr>
 <td style="text-align: left;">Table</td>
 <td style="text-align: left;">1</td>
-<td style="text-align: center;">0x08</td>
+<td style="text-align: center;">0x04</td>
 <td>This is the representation of the unsigned integer 4, which correspond to the offset of the bucket correspond to hash code <code>0</code>.</td>
 </tr>
 <tr>
 <td style="text-align: left;">Table</td>
 <td style="text-align: left;">2</td>
-<td style="text-align: center;">0x14</td>
+<td style="text-align: center;">0x0A</td>
 <td>This is the representation of the unsigned integer 10, which correspond to the offset of the bucket correspond to hash code <code>1</code>.</td>
 </tr>
 <tr>
 <td style="text-align: left;">Table</td>
 <td style="text-align: left;">3</td>
-<td style="text-align: center;">0x18</td>
+<td style="text-align: center;">0x0C</td>
 <td>This is the representation of the unsigned integer 12, which correspond to the offset of the end of the whole hash table.</td>
 </tr>
 <tr>
 <td style="text-align: left;">Bucket1</td>
 <td style="text-align: left;">4</td>
-<td style="text-align: center;">0x32</td>
+<td style="text-align: center;">0x31</td>
 <td>This is the least significant byte of the hash code of P</td>
 </tr>
 <tr>
@@ -2139,7 +2184,7 @@ It could be either 1 byte, 2 bytes or 4 bytes. The three cases are described wit
 <tr>
 <td style="text-align: left;">Bucket1</td>
 <td style="text-align: left;">6</td>
-<td style="text-align: center;">0x34</td>
+<td style="text-align: center;">0x32</td>
 <td>This is the least significant byte of the hash code of Q</td>
 </tr>
 <tr>
@@ -2151,7 +2196,7 @@ It could be either 1 byte, 2 bytes or 4 bytes. The three cases are described wit
 <tr>
 <td style="text-align: left;">Bucket1</td>
 <td style="text-align: left;">8</td>
-<td style="text-align: center;">0x38</td>
+<td style="text-align: center;">0x34</td>
 <td>This is the least significant byte of the hash code of R</td>
 </tr>
 <tr>
@@ -2163,7 +2208,7 @@ It could be either 1 byte, 2 bytes or 4 bytes. The three cases are described wit
 <tr>
 <td style="text-align: left;">Bucket2</td>
 <td style="text-align: left;">10</td>
-<td style="text-align: center;">0x31</td>
+<td style="text-align: center;">0x38</td>
 <td>This is the least significant byte of the hash code of S</td>
 </tr>
 <tr>

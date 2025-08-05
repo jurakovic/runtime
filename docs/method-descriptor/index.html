@@ -918,7 +918,7 @@
 <p>Used for less common IL methods that have generic instantiation or that do not have preallocated slot in method table.</p>
 <p><strong>FCall</strong></p>
 <p>Internal methods implemented in unmanaged code. These are <a href="../corelib/">methods marked with MethodImplAttribute(MethodImplOptions.InternalCall) attribute</a>, delegate constructors and tlbimp constructors.</p>
-<p><strong>NDirect</strong></p>
+<p><strong>PInvoke</strong></p>
 <p>P/Invoke methods. These are methods marked with DllImport attribute.</p>
 <p><strong>EEImpl</strong></p>
 <p>Delegate methods whose implementation is provided by the runtime (Invoke, BeginInvoke, EndInvoke). See <a href="https://github.com/dotnet/runtime/blob/main/docs/project/dotnet-standards.md">ECMA 335 Partition II - Delegates</a>.</p>
@@ -1082,13 +1082,13 @@ nop
 jmp entrypoint
 dw pMethodDesc
 </code></pre></div>
-<p><strong>NDirectImportPrecode</strong></p>
-<p>NDirectImportPrecode is used for lazy binding of unmanaged P/Invoke targets. This precode is for convenience and to reduce amount of platform specific plumbing.</p>
-<p>Each NDirectMethodDesc has NDirectImportPrecode in addition to the regular precode.</p>
-<p>NDirectImportPrecode looks like this on x86:</p>
+<p><strong>PInvokeImportPrecode</strong></p>
+<p>PInvokeImportPrecode is used for lazy binding of unmanaged P/Invoke targets. This precode is for convenience and to reduce amount of platform specific plumbing.</p>
+<p>Each PInvokeMethodDesc has PInvokeImportPrecode in addition to the regular precode.</p>
+<p>PInvokeImportPrecode looks like this on x86:</p>
 <div class="highlight"><pre><span></span><code>mov eax,pMethodDesc
 mov eax,eax // dummy instruction that marks the type of the precode
-jmp NDirectImportThunk // loads P/Invoke target for pMethodDesc lazily
+jmp PInvokeImportThunk // loads P/Invoke target for pMethodDesc lazily
 </code></pre></div>
 
 

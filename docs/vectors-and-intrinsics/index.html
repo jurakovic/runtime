@@ -939,8 +939,8 @@
 </ol>
 <h2 id="crossgen2-model-of-hardware-intrinsic-usage">Crossgen2 model of hardware intrinsic usage</h2>
 <p>There are 2 sets of instruction sets known to the compiler.
-- The baseline instruction set which defaults to (Sse, Sse2), but may be adjusted via compiler option.
-- The optimistic instruction set which defaults to (Sse3, Ssse3, Sse41, Sse42, Popcnt, Pclmulqdq, and Lzcnt).</p>
+- The baseline instruction set which defaults to x86-64-v2 (SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, and POPCNT), but may be adjusted via compiler option.
+- The optimistic instruction set which defaults to (AES, GFNI, SHA, WAITPKG, and X86SERIALIZE).</p>
 <p>Code will be compiled using the optimistic instruction set to drive compilation, but any use of an instruction set beyond the baseline instruction set will be recorded, as will any attempt to use an instruction set beyond the optimistic set if that attempted use has a semantic effect. If the baseline instruction set includes <code>Avx2</code> then the size and characteristics of of <code>Vector&lt;T&gt;</code> is known. Any other decisions about ABI may also be encoded. For instance, it is likely that the ABI of <code>Vector256&lt;T&gt;</code> and <code>Vector512&lt;T&gt;</code> will vary based on the presence/absence of <code>Avx</code> support.</p>
 <ul>
 <li>Any code which uses <code>Vector&lt;T&gt;</code> will not be compiled AOT unless the size of <code>Vector&lt;T&gt;</code> is known.</li>

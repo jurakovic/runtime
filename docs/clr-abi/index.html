@@ -1257,6 +1257,22 @@ x64 currently saves RBP, RSI and RDI while ARM64 saves just FP and LR.</p>
 <p>The extra state created by the JIT for synchronized methods (lock taken flag) must be preserved during remap. The JIT stores this state in the preserved region, and increases the size of the preserved region reported in GC info accordingly.</p>
 <h2 id="generics_1">Generics</h2>
 <p>EnC is supported for adding and editing generic methods and methods on generic types and generic methods on non-generic types.</p>
+<h1 id="portable-entrypoints">Portable entrypoints</h1>
+<p>On platforms that allow dynamic code generation, the runtime abstracts away execution strategies for dynamically loaded methods by allocating <a href="../method-descriptor/#precode"><code>Precode</code></a>s. The <code>Precode</code> is a small code fragment that is used as a temporary method entrypoint until the actual method code is acquired. <code>Precode</code>s are also used as part of the execution for methods that do not have regular JITed or AOT-compiled code, for example stubs or interpreted methods. <code>Precode</code>s allow native code to use the same native code calling convention irrespective of the execution strategy used by the target method.</p>
+<p>On platforms that do not allow dynamic code generation (Wasm), the runtime abstracts away execution strategies by allocating portable entrypoints for dynamically loaded methods. The <code>PortableEntryPoint</code> is a data structure that allows efficient transition to the desired execution strategy for the target method. When the runtime is configured to use portable entrypoints, the managed calling convention is modified as follows:</p>
+<ul>
+<li>
+<p>The native code to call is obtained by dereferencing the entrypoint</p>
+</li>
+<li>
+<p>The entrypoint address is passed in as an extra last hidden argument. The extra hidden argument must be present in signatures of all methods. It is unused by the code of JITed or AOT-compiled methods.</p>
+</li>
+</ul>
+<p>Pseudo code for a call with portable entrypoints:</p>
+<blockquote>
+<p><code>(*(void**)pfn)(arg0, arg1, ..., argN, pfn)</code></p>
+</blockquote>
+<p>Portable entrypoints are used for Wasm with interpreter only currently. Note that portable entrypoints are unnecessary for Wasm with native AOT since native AOT does not support dynamic loading.</p>
 <h1 id="system-v-x86_64-support">System V x86_64 support</h1>
 <p>This section relates mostly to calling conventions on System V systems (such as Ubuntu Linux and Mac OS X).
 The general rules outlined in the System V x86_64 ABI documentation are followed with a few exceptions, described below:</p>

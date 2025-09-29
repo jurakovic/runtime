@@ -2,147 +2,147 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://jurakovic.github.io/runtime/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/botr-faq/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/clr-abi/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/corelib/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/dac-notes/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/exceptions/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/garbage-collection/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/guide-for-porting/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/ilc-architecture/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/intro-to-clr/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/logging/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/managed-type-system/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/method-descriptor/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/mixed-mode/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/porting-ryujit/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/profilability/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/profiling/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/r2r-perfmap-format/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/readytorun-format/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/readytorun-overview/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/ryujit-overview/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/shared-generics/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/stackwalking/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/threading/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/type-loader/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/type-system/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/vectors-and-intrinsics/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/virtual-stub-dispatch/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://jurakovic.github.io/runtime/xplat-minidump-generation/</loc>
-         <lastmod>2025-08-27</lastmod>
+         <lastmod>2025-09-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>

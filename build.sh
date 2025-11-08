@@ -72,7 +72,7 @@ text='in <a href="https://github.com/jurakovic/runtime" target="_blank">jurakovi
 mapfile -t files < <(find docs -type f -iwholename "*.html")
 for file in "${files[@]}"; do
   total_lines=$(wc -l < "$file")
-  insert_line=$((total_lines - 44))
+  insert_line=$((total_lines - 48))
   sed -i "${insert_line}i$text" "$file"
 done
 

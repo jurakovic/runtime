@@ -46,6 +46,9 @@ cd runtime
 git sparse-checkout set .github docs
 ```
 
+> [!TIP]
+> All commands below are run from repo root (`cd runtime`).
+
 #### Rebase `main`
 
 ```bash
@@ -79,6 +82,13 @@ Browse <http://localhost:9903>
 
 ```
 docker pull ghcr.io/jurakovic/mkdocs-botr:latest
+```
+
+#### Build docker image from source
+
+```
+docker build -t ghcr.io/jurakovic/mkdocs-botr:2025-11-08 .
+docker tag ghcr.io/jurakovic/mkdocs-botr:2025-11-08 ghcr.io/jurakovic/mkdocs-botr:latest
 ```
 
 #### Build docs

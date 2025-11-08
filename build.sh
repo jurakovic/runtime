@@ -1,17 +1,16 @@
 #!/bin/bash
 
-# save current branch
-branch=$(git branch --show-current)
-
-echo "Checking out 'main' branch"
-git checkout main
-git pull
+echo "Cloning dotnet/runtime repo"
+git clone --filter=tree:0 https://github.com/dotnet/runtime.git --no-checkout dotnet
+cd dotnet
+git sparse-checkout set docs
+git checkout
 
 # clear any leftovers
 rm -rf site
 
 # temp config
-echo "$(git show $branch:mkdocs.yml)" > mkdocs.yml
+cp ../mkdocs.yml .
 
 # copy out-of-scope files
 cp docs/design/coreclr/botr/../jit/ryujit-overview.md docs/design/coreclr/botr/ryujit-overview.md
@@ -41,20 +40,15 @@ docker run --rm -v ${PWD}:/docs ghcr.io/jurakovic/mkdocs-botr:latest build </dev
 #for debugging:
 #docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh ghcr.io/jurakovic/mkdocs-botr:latest
 
-# undoing temp changes
-rm mkdocs.yml
-rm docs/design/coreclr/botr/ryujit-overview.md
-rm docs/design/coreclr/botr/porting-ryujit.md
-git restore '*.md'
-
-echo "Checking out '$branch' branch"
-git checkout $branch
+# move out of dotnet dir
+cd ..
 
 # clear old build
 rm -rf docs
 
-# rename
-mv site docs
+# move to docs dir
+mv dotnet/site docs
+rm -rf dotnet
 
 # change dotnet repo to fork; fix api url
 find docs -type f -iwholename "*.html" -exec sed -i -r 's|(href="https://github.com/)(dotnet)(/runtime" title="Go to repository")|\1jurakovic\3|' {} +

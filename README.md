@@ -13,9 +13,9 @@ It is available at <https://jurakovic.github.io/runtime/>.
 
 [build.sh](./build.sh) - does docs build and required file modifications before and after build
 
-[check.sh](./check.sh) - checks for docs updates in upstream repo
+[check.sh](./check.sh) - checks for [botr docs updates](https://github.com/dotnet/runtime/commits/main/docs/design/coreclr/botr) in upstream repo
 
-[commit.txt](./commit.txt) - tracks last commit used for docs build
+[commit.txt](./commit.txt) - tracks [last commit](https://api.github.com/repos/dotnet/runtime/commits?path=docs/design/coreclr/botr&per_page=1) used for docs build
 
 [mkdocs.yml](./mkdocs.yml) - mkdocs configuration
 

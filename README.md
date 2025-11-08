@@ -78,7 +78,7 @@ Browse <http://localhost:9903>
 #### Pull docker image
 
 ```
-docker pull ghcr.io/jurakovic/mkdocs-botr:latest .
+docker pull ghcr.io/jurakovic/mkdocs-botr:latest
 ```
 
 #### Build docs

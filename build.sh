@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Cloning dotnet/runtime repo"
-git clone --filter=tree:0 https://github.com/dotnet/runtime.git --no-checkout dotnet
+git clone --depth=1 --filter=tree:0 https://github.com/dotnet/runtime.git --no-checkout dotnet
 cd dotnet
 git sparse-checkout set docs
 git checkout

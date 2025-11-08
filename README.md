@@ -7,20 +7,6 @@ The site provides easy-to-navigate interface with dark and light themes and inte
 
 It is available at <https://jurakovic.github.io/runtime/>.
 
-## Overview
-
-This repo has two *main* branches:
-
-[docs](https://github.com/jurakovic/runtime/tree/docs)
-- contains built docs together with required scripts and files
-- created as [orphan](https://git-scm.com/docs/git-checkout#Documentation/git-checkout.txt---orphanltnew-branchgt) branch disconnected from all other branches and commits
-- set as default branch in this repo
-
-[main](https://github.com/jurakovic/runtime/tree/main)
-- used as documentation source for build
-- kept in sync with upstream main branch
-
-
 ## Files
 
 [Dockerfile](./Dockerfile) - defines docker image used for `mkdocs build`
@@ -87,8 +73,8 @@ docker pull ghcr.io/jurakovic/mkdocs-botr:latest
 #### Build docker image from source
 
 ```
-docker build -t ghcr.io/jurakovic/mkdocs-botr:2025-11-08 .
-docker tag ghcr.io/jurakovic/mkdocs-botr:2025-11-08 ghcr.io/jurakovic/mkdocs-botr:latest
+docker build -t ghcr.io/jurakovic/mkdocs-botr:9.6.23 .
+docker tag ghcr.io/jurakovic/mkdocs-botr:9.6.23 ghcr.io/jurakovic/mkdocs-botr:latest
 ```
 
 #### Build docs

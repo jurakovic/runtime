@@ -14,7 +14,7 @@
         <link rel="prev" href="../r2r-perfmap-format/">
       
       
-        <link rel="next" href="../shared-generics/">
+        <link rel="next" href="../readytorun-platform-native-envelope/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -872,6 +872,28 @@
   
   
     <li class="md-nav__item">
+      <a href="../readytorun-platform-native-envelope/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ReadyToRun Platform Native Envelope
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../shared-generics/" class="md-nav__link">
         
   
@@ -983,8 +1005,8 @@ with the following customizations:</p>
 <p>The COR header and ECMA 335 metadata pointed to by the COM descriptor data directory item
 in the COFF header represent a full copy of the input IL and MSIL metadata it was generated from.</p>
 <p><strong>Composite R2R files</strong> currently conform to Windows PE executable file format as the
-native envelope. Moving forward we plan to gradually add support for platform-native
-executable formats (ELF on Linux, MachO on OSX) as the native envelopes. There is a
+native envelope. Moving forward we <a href="../readytorun-platform-native-envelope/">plan to gradually add support for platform-native
+executable formats</a> (ELF on Linux, MachO on OSX) as the native envelopes. There is a
 global CLI / COR header in the file, but it only exists to facilitate pdb generation, and does
 not participate in any usages by the CoreCLR runtime. The ReadyToRun header structure is pointed to
 by the well-known export symbol <code>RTR_HEADER</code> and has the <code>READYTORUN_FLAG_COMPOSITE</code> flag set.</p>
@@ -2483,13 +2505,13 @@ It could be either 1 byte, 2 bytes or 4 bytes. The three cases are described wit
         
         
           
-          <a href="../shared-generics/" class="md-footer__link md-footer__link--next" aria-label="Next: Shared Generics Design">
+          <a href="../readytorun-platform-native-envelope/" class="md-footer__link md-footer__link--next" aria-label="Next: ReadyToRun Platform Native Envelope">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Shared Generics Design
+                ReadyToRun Platform Native Envelope
               </div>
             </div>
             <div class="md-footer__button md-icon">

@@ -872,6 +872,28 @@
   
   
     <li class="md-nav__item">
+      <a href="../readytorun-platform-native-envelope/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ReadyToRun Platform Native Envelope
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../shared-generics/" class="md-nav__link">
         
   
@@ -1005,7 +1027,7 @@
 <li>The garbage collection information can be omitted for environments with conservative garbage collection, such as IL2CPP.</li>
 <li>The full metadata information is not strictly required for 'private' methods or types so it is possible to strip it from the CLI image.</li>
 <li>The metadata can be stored in more efficient form, such as the .NET Native metadata format.</li>
-<li>The platform native executable format (ELF, Mach-O) can be used as envelope instead of PE to take advantage of platform OS loader.</li>
+<li>As of .NET 10, the PE format is used on all platforms. A <a href="#platform-native-envelope-support">future improvement</a> could be support for the platform native executable format (ELF, Mach-O) to take advantage of platform OS loader.</li>
 </ul>
 <h2 id="definition-of-version-compatibility-for-native-code">Definition of Version Compatibility for Native Code</h2>
 <p>Even for IL or unmanaged native code, there are limits to what compatible changes can be made. For example, deleting a public method is sure to be an incompatible change for any extern code using that method.</p>
@@ -1190,7 +1212,9 @@ From a versioning perspective, the fundamental problem with GC information is th
 <p>While it is possible to make the GC information resilient and have the GC use this resilient data, GC happens frequently and type loading happens infrequently, so arguably you should trade type loading speed for GC speed if given the choice. Moreover the size of the GC information is typically quite small (e.g. 12-32 bytes) and will only occur for those types that cross version bubbles. Thus forming the GC information on the fly (from a version resilient form) is a reasonable starting point.</p>
 <p>Another important observation is that <code>MethodTable</code> contains other very frequently accessed data, like flags indicating whether the <code>MethodTable</code> represents an array, or pointer to parent type. This data tends to change a lot with the evolution of the runtime. Thus, generating method tables at runtime will solve a number of other versioning issues in addition to the GC information versioning.</p>
 <h1 id="current-state">Current State</h1>
-<p>The design and implementation is a work in progress under code name ReadyToRun (<code>FEATURE_READYTORUN</code>). RyuJIT is used as the code generator to produce the ReadyToRun images currently.</p>
+<p>As of .NET 6, the .NET SDK can publish applications as ReadyToRun using the <code>crossgen2</code> tool. The tool lives under <code>src/coreclr/aot/crossgen2</code>. Support in the coreclr runtime is under <code>FEATURE_READYTORUN</code>. RyuJIT is used as the code generator to produce the ReadyToRun images currently.</p>
+<h2 id="platform-native-envelope-support">Platform-Native Envelope Support</h2>
+<p>Through .NET 10, ReadyToRun uses the PE format on all platforms. In .NET 11, we plan to start adding support for other formats, with Mach-O being the first target. For more details, see <a href="../readytorun-platform-native-envelope/">ReadyToRun Platform-Native Envelope</a>.</p>
 
 
 

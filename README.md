@@ -87,9 +87,28 @@ docker pull ghcr.io/jurakovic/mkdocs-botr:latest
 #### Build docker image from source
 
 ```
-docker build -t ghcr.io/jurakovic/mkdocs-botr:9.6.23 .
-docker tag ghcr.io/jurakovic/mkdocs-botr:9.6.23 ghcr.io/jurakovic/mkdocs-botr:latest
+docker build -t ghcr.io/jurakovic/mkdocs-botr:latest .
 ```
+
+<!--
+#### Push docker images
+
+```
+docker build -t ghcr.io/jurakovic/mkdocs-botr:2025-11-09 .
+docker tag ghcr.io/jurakovic/mkdocs-botr:2025-11-09 ghcr.io/jurakovic/mkdocs-botr:9.6.23
+docker tag ghcr.io/jurakovic/mkdocs-botr:2025-11-09 ghcr.io/jurakovic/mkdocs-botr:latest
+
+export CR_PAT=<PAT>
+echo $CR_PAT | docker login ghcr.io -u jurakovic --password-stdin
+
+docker push ghcr.io/jurakovic/mkdocs-botr:2025-11-09
+docker push ghcr.io/jurakovic/mkdocs-botr:9.6.23
+docker push ghcr.io/jurakovic/mkdocs-botr:latest
+
+git tag 9.6.23
+git push origin 9.6.23
+```
+-->
 
 #### Build docs
 

@@ -1,10 +1,9 @@
 #!/bin/bash
 
-echo "Cloning dotnet/runtime repo"
-git clone --depth=1 --filter=tree:0 https://github.com/dotnet/runtime.git --no-checkout dotnet
+echo "Creating new 'dotnet' worktree with 'main' branch"
+git worktree add dotnet main
 cd dotnet
-git sparse-checkout set docs
-git checkout
+git pull
 
 # clear any leftovers
 rm -rf site
@@ -69,5 +68,8 @@ for file in "${files[@]}"; do
   insert_line=$((total_lines - 48))
   sed -i "${insert_line}i$text" "$file"
 done
+
+echo "Removing 'dotnet' worktree"
+git worktree remove dotnet --force
 
 echo "Done"

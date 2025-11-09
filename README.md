@@ -25,7 +25,7 @@ This repo has two *main* branches:
 
 [Dockerfile](./Dockerfile) - defines docker image used for `mkdocs build`
 
-[build.sh](./build.sh) - does docs build and required file modifications before and after build
+[build.sh](./build.sh) - main script, does docs build and required file modifications before and after build
 
 [check.sh](./check.sh) - checks for [botr docs updates](https://github.com/dotnet/runtime/commits/main/docs/design/coreclr/botr) in upstream repo
 
@@ -37,29 +37,35 @@ This repo has two *main* branches:
 
 #### Clone
 
-> [Treeles](https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/) [clone](https://git-scm.com/docs/git-clone#Documentation/git-clone.txt-code--filtercodeemltfilter-specgtem) and [sparse checkout](https://git-scm.com/docs/git-sparse-checkout) are used because we only want `/docs/` and `/*` (root) files.  
+> [Treeles](https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/) [clone](https://git-scm.com/docs/git-clone#Documentation/git-clone.txt-code--filtercodeemltfilter-specgtem) and [sparse checkout](https://git-scm.com/docs/git-sparse-checkout) are used because we only want `/docs/`, `/.github/`, and `/*` (root) files.  
 > Otherwise hundreds MB of data would be downloaded and checked out on `main` branch.
 
 ```bash
-git clone --branch docs --filter=tree:0 https://github.com/jurakovic/runtime.git
+git clone --branch docs --filter=tree:0 https://github.com/jurakovic/runtime.git --no-checkout
 cd runtime
 git sparse-checkout set .github docs
+git checkout
 ```
-
-> [!TIP]
-> All commands below are run from repo root (`cd runtime`).
 
 #### Rebase `main`
 
+> Doesn't work with treeless clone. Use [GitHub web UI](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork?platform=windows#syncing-a-fork-branch-from-the-web-ui) or normal clone.
+
 ```bash
+git clone --branch docs https://github.com/jurakovic/runtime.git
+cd runtime
+
 git remote add upstream https://github.com/dotnet/runtime.git
 
 git fetch upstream main
-git checkout main
+git checkout origin/main
 git rebase upstream/main
 
 git push
 ```
+
+> [!IMPORTANT]
+> All commands below are run from repo root (`cd runtime`).
 
 #### Run site locally
 
@@ -132,9 +138,12 @@ MkDocs
 Material for MkDocs  
 <https://squidfunk.github.io/mkdocs-material>  
 <https://github.com/squidfunk/mkdocs-material>  
+<https://hub.docker.com/r/squidfunk/mkdocs-material>  
+<https://pypi.org/project/mkdocs-material/>  
 
 MkDocs Awesome Pages Plugin  
 <https://github.com/lukasgeiter/mkdocs-awesome-pages-plugin>  
+<https://pypi.org/project/mkdocs-awesome-pages-plugin/>  
 
 #### What others say about BOTR
 

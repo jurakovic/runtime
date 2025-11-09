@@ -18,18 +18,18 @@ This repo has two *main* branches:
 
 [main](https://github.com/jurakovic/runtime/tree/main)
 - used as documentation source for build
-- kept in sync with upstream main branch
+- kept in sync with upstream dotnet/runtime main branch
 
 
 ## Files
 
 [Dockerfile](./Dockerfile) - defines docker image used for `mkdocs build`
 
-[build.sh](./build.sh) - does docs build and required file modifications before and after build
+[build.sh](./build.sh) - main script, does the docs build and required file modifications before and after build
 
-[check.sh](./check.sh) - checks for docs updates in upstream repo
+[check.sh](./check.sh) - checks for [BOTR docs updates](https://github.com/dotnet/runtime/commits/main/docs/design/coreclr/botr) in dotnet/runtime repo
 
-[commit.txt](./commit.txt) - tracks last commit used for docs build
+[commit.txt](./commit.txt) - tracks [last commit](https://api.github.com/repos/dotnet/runtime/commits?path=docs/design/coreclr/botr&per_page=1) used for docs build
 
 [mkdocs.yml](./mkdocs.yml) - mkdocs configuration
 
@@ -37,26 +37,35 @@ This repo has two *main* branches:
 
 #### Clone
 
-> [Treeles](https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/) [clone](https://git-scm.com/docs/git-clone#Documentation/git-clone.txt-code--filtercodeemltfilter-specgtem) and [sparse checkout](https://git-scm.com/docs/git-sparse-checkout) are used because we only want `/docs/` and `/*` (root) files.  
+> [Treeles](https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/) [clone](https://git-scm.com/docs/git-clone#Documentation/git-clone.txt-code--filtercodeemltfilter-specgtem) and [sparse checkout](https://git-scm.com/docs/git-sparse-checkout) are used because we only want `/docs/`, `/.github/`, and `/*` (root) files.  
 > Otherwise hundreds MB of data would be downloaded and checked out on `main` branch.
 
 ```bash
-git clone --branch docs --filter=tree:0 https://github.com/jurakovic/runtime.git
+git clone --branch docs --filter=tree:0 https://github.com/jurakovic/runtime.git --no-checkout
 cd runtime
 git sparse-checkout set .github docs
+git checkout
 ```
 
 #### Rebase `main`
 
+> Doesn't work with treeless clone. Use [GitHub web UI](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork?platform=windows#syncing-a-fork-branch-from-the-web-ui) or normal clone.
+
 ```bash
+git clone --branch docs https://github.com/jurakovic/runtime.git
+cd runtime
+
 git remote add upstream https://github.com/dotnet/runtime.git
 
 git fetch upstream main
-git checkout main
+git checkout --track origin/main
 git rebase upstream/main
 
 git push
 ```
+
+> [!IMPORTANT]
+> All commands below are run from repo root (`cd runtime`).
 
 #### Run site locally
 
@@ -78,8 +87,34 @@ Browse <http://localhost:9903>
 #### Pull docker image
 
 ```
-docker pull ghcr.io/jurakovic/mkdocs-botr:latest .
+docker pull ghcr.io/jurakovic/mkdocs-botr:latest
 ```
+
+#### Build docker image from source
+
+```
+docker build -t ghcr.io/jurakovic/mkdocs-botr:latest .
+```
+
+<!--
+#### Push docker images
+
+```
+docker build -t ghcr.io/jurakovic/mkdocs-botr:2025-11-09 .
+docker tag ghcr.io/jurakovic/mkdocs-botr:2025-11-09 ghcr.io/jurakovic/mkdocs-botr:9.6.23
+docker tag ghcr.io/jurakovic/mkdocs-botr:2025-11-09 ghcr.io/jurakovic/mkdocs-botr:latest
+
+export CR_PAT=<PAT>
+echo $CR_PAT | docker login ghcr.io -u jurakovic --password-stdin
+
+docker push ghcr.io/jurakovic/mkdocs-botr:2025-11-09
+docker push ghcr.io/jurakovic/mkdocs-botr:9.6.23
+docker push ghcr.io/jurakovic/mkdocs-botr:latest
+
+git tag 9.6.23
+git push origin 9.6.23
+```
+-->
 
 #### Build docs
 
@@ -103,9 +138,12 @@ MkDocs
 Material for MkDocs  
 <https://squidfunk.github.io/mkdocs-material>  
 <https://github.com/squidfunk/mkdocs-material>  
+<https://hub.docker.com/r/squidfunk/mkdocs-material>  
+<https://pypi.org/project/mkdocs-material/>  
 
 MkDocs Awesome Pages Plugin  
 <https://github.com/lukasgeiter/mkdocs-awesome-pages-plugin>  
+<https://pypi.org/project/mkdocs-awesome-pages-plugin/>  
 
 #### What others say about BOTR
 

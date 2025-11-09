@@ -81,5 +81,6 @@ nav:
   - managed-type-system.md
   - r2r-perfmap-format.md
   - readytorun-format.md
+  - readytorun-platform-native-envelope.md
   - shared-generics.md
   - logging.md

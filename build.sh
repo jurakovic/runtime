@@ -39,7 +39,7 @@ docker run --rm -v ${PWD}:/docs ghcr.io/jurakovic/mkdocs-botr:latest build </dev
 #for debugging:
 #docker run --rm -it -v ${PWD}:/docs --entrypoint /bin/sh ghcr.io/jurakovic/mkdocs-botr:latest
 
-# move out of dotnet dir
+# back to repo root
 cd ..
 
 # clear old build

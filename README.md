@@ -18,16 +18,16 @@ This repo has two *main* branches:
 
 [main](https://github.com/jurakovic/runtime/tree/main)
 - used as documentation source for build
-- kept in sync with upstream main branch
+- kept in sync with upstream dotnet/runtime main branch
 
 
 ## Files
 
 [Dockerfile](./Dockerfile) - defines docker image used for `mkdocs build`
 
-[build.sh](./build.sh) - main script, does docs build and required file modifications before and after build
+[build.sh](./build.sh) - main script, does the docs build and required file modifications before and after build
 
-[check.sh](./check.sh) - checks for [botr docs updates](https://github.com/dotnet/runtime/commits/main/docs/design/coreclr/botr) in upstream repo
+[check.sh](./check.sh) - checks for [BOTR docs updates](https://github.com/dotnet/runtime/commits/main/docs/design/coreclr/botr) in dotnet/runtime repo
 
 [commit.txt](./commit.txt) - tracks [last commit](https://api.github.com/repos/dotnet/runtime/commits?path=docs/design/coreclr/botr&per_page=1) used for docs build
 
@@ -58,7 +58,7 @@ cd runtime
 git remote add upstream https://github.com/dotnet/runtime.git
 
 git fetch upstream main
-git checkout origin/main
+git checkout --track origin/main
 git rebase upstream/main
 
 git push

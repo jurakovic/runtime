@@ -8,26 +8,24 @@
       
       
       
-        <link rel="canonical" href="https://jurakovic.github.io/runtime/">
+        <link rel="canonical" href="https://jurakovic.github.io/runtime/runtime-async-codegen/">
       
       
       
-        <link rel="next" href="botr-faq/">
       
-      
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
     
     
       
-        <title>The Book of the Runtime</title>
+        <title>Responsibilities of a code generator for implementing the Runtime Async feature - The Book of the Runtime</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.84d31ad4.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -46,7 +44,7 @@
       
     
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
   
@@ -82,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#the-book-of-the-runtime" class="md-skip">
+        <a href="#responsibilities-of-a-code-generator-for-implementing-the-runtime-async-feature" class="md-skip">
           Skip to content
         </a>
       
@@ -98,7 +96,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="The Book of the Runtime" class="md-header__button md-logo" aria-label="The Book of the Runtime" data-md-component="logo">
+    <a href=".." title="The Book of the Runtime" class="md-header__button md-logo" aria-label="The Book of the Runtime" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -118,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Introduction
+              Responsibilities of a code generator for implementing the Runtime Async feature
             
           </span>
         </div>
@@ -236,7 +234,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="The Book of the Runtime" class="md-nav__button md-logo" aria-label="The Book of the Runtime" data-md-component="logo">
+    <a href=".." title="The Book of the Runtime" class="md-nav__button md-logo" aria-label="The Book of the Runtime" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -263,19 +261,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -286,7 +275,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -298,7 +286,7 @@
   
   
     <li class="md-nav__item">
-      <a href="botr-faq/" class="md-nav__link">
+      <a href="../botr-faq/" class="md-nav__link">
         
   
   
@@ -320,7 +308,7 @@
   
   
     <li class="md-nav__item">
-      <a href="intro-to-clr/" class="md-nav__link">
+      <a href="../intro-to-clr/" class="md-nav__link">
         
   
   
@@ -342,7 +330,7 @@
   
   
     <li class="md-nav__item">
-      <a href="garbage-collection/" class="md-nav__link">
+      <a href="../garbage-collection/" class="md-nav__link">
         
   
   
@@ -364,7 +352,7 @@
   
   
     <li class="md-nav__item">
-      <a href="threading/" class="md-nav__link">
+      <a href="../threading/" class="md-nav__link">
         
   
   
@@ -386,7 +374,7 @@
   
   
     <li class="md-nav__item">
-      <a href="ryujit-overview/" class="md-nav__link">
+      <a href="../ryujit-overview/" class="md-nav__link">
         
   
   
@@ -408,7 +396,7 @@
   
   
     <li class="md-nav__item">
-      <a href="porting-ryujit/" class="md-nav__link">
+      <a href="../porting-ryujit/" class="md-nav__link">
         
   
   
@@ -430,7 +418,7 @@
   
   
     <li class="md-nav__item">
-      <a href="type-system/" class="md-nav__link">
+      <a href="../type-system/" class="md-nav__link">
         
   
   
@@ -452,7 +440,7 @@
   
   
     <li class="md-nav__item">
-      <a href="type-loader/" class="md-nav__link">
+      <a href="../type-loader/" class="md-nav__link">
         
   
   
@@ -474,7 +462,7 @@
   
   
     <li class="md-nav__item">
-      <a href="method-descriptor/" class="md-nav__link">
+      <a href="../method-descriptor/" class="md-nav__link">
         
   
   
@@ -496,7 +484,7 @@
   
   
     <li class="md-nav__item">
-      <a href="virtual-stub-dispatch/" class="md-nav__link">
+      <a href="../virtual-stub-dispatch/" class="md-nav__link">
         
   
   
@@ -518,7 +506,7 @@
   
   
     <li class="md-nav__item">
-      <a href="stackwalking/" class="md-nav__link">
+      <a href="../stackwalking/" class="md-nav__link">
         
   
   
@@ -540,7 +528,7 @@
   
   
     <li class="md-nav__item">
-      <a href="corelib/" class="md-nav__link">
+      <a href="../corelib/" class="md-nav__link">
         
   
   
@@ -562,7 +550,7 @@
   
   
     <li class="md-nav__item">
-      <a href="dac-notes/" class="md-nav__link">
+      <a href="../dac-notes/" class="md-nav__link">
         
   
   
@@ -584,7 +572,7 @@
   
   
     <li class="md-nav__item">
-      <a href="profiling/" class="md-nav__link">
+      <a href="../profiling/" class="md-nav__link">
         
   
   
@@ -606,7 +594,7 @@
   
   
     <li class="md-nav__item">
-      <a href="profilability/" class="md-nav__link">
+      <a href="../profilability/" class="md-nav__link">
         
   
   
@@ -628,7 +616,7 @@
   
   
     <li class="md-nav__item">
-      <a href="exceptions/" class="md-nav__link">
+      <a href="../exceptions/" class="md-nav__link">
         
   
   
@@ -650,7 +638,7 @@
   
   
     <li class="md-nav__item">
-      <a href="readytorun-overview/" class="md-nav__link">
+      <a href="../readytorun-overview/" class="md-nav__link">
         
   
   
@@ -672,7 +660,7 @@
   
   
     <li class="md-nav__item">
-      <a href="clr-abi/" class="md-nav__link">
+      <a href="../clr-abi/" class="md-nav__link">
         
   
   
@@ -694,7 +682,7 @@
   
   
     <li class="md-nav__item">
-      <a href="xplat-minidump-generation/" class="md-nav__link">
+      <a href="../xplat-minidump-generation/" class="md-nav__link">
         
   
   
@@ -716,7 +704,7 @@
   
   
     <li class="md-nav__item">
-      <a href="mixed-mode/" class="md-nav__link">
+      <a href="../mixed-mode/" class="md-nav__link">
         
   
   
@@ -738,7 +726,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guide-for-porting/" class="md-nav__link">
+      <a href="../guide-for-porting/" class="md-nav__link">
         
   
   
@@ -760,7 +748,7 @@
   
   
     <li class="md-nav__item">
-      <a href="vectors-and-intrinsics/" class="md-nav__link">
+      <a href="../vectors-and-intrinsics/" class="md-nav__link">
         
   
   
@@ -782,7 +770,7 @@
   
   
     <li class="md-nav__item">
-      <a href="ilc-architecture/" class="md-nav__link">
+      <a href="../ilc-architecture/" class="md-nav__link">
         
   
   
@@ -804,7 +792,7 @@
   
   
     <li class="md-nav__item">
-      <a href="managed-type-system/" class="md-nav__link">
+      <a href="../managed-type-system/" class="md-nav__link">
         
   
   
@@ -826,7 +814,7 @@
   
   
     <li class="md-nav__item">
-      <a href="r2r-perfmap-format/" class="md-nav__link">
+      <a href="../r2r-perfmap-format/" class="md-nav__link">
         
   
   
@@ -848,7 +836,7 @@
   
   
     <li class="md-nav__item">
-      <a href="readytorun-format/" class="md-nav__link">
+      <a href="../readytorun-format/" class="md-nav__link">
         
   
   
@@ -870,7 +858,7 @@
   
   
     <li class="md-nav__item">
-      <a href="readytorun-platform-native-envelope/" class="md-nav__link">
+      <a href="../readytorun-platform-native-envelope/" class="md-nav__link">
         
   
   
@@ -892,7 +880,7 @@
   
   
     <li class="md-nav__item">
-      <a href="shared-generics/" class="md-nav__link">
+      <a href="../shared-generics/" class="md-nav__link">
         
   
   
@@ -914,7 +902,7 @@
   
   
     <li class="md-nav__item">
-      <a href="logging/" class="md-nav__link">
+      <a href="../logging/" class="md-nav__link">
         
   
   
@@ -971,49 +959,105 @@
     
       
     
-    <a href="https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/botr/README.md" title="View source of this page" target="_blank" class="md-content__button md-icon">
+    <a href="https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/botr/runtime-async-codegen.md" title="View source of this page" target="_blank" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
     </a>
   
 
 
-<h1 id="the-book-of-the-runtime">The Book of the Runtime</h1>
-<p>Welcome to the Book of the Runtime (BOTR) for the .NET Runtime.   This contains
-a collection of articles about the non-trivial internals of the .NET Runtime.   Its
-intended audience are people actually modifying the code or simply wishing to have a
-deep understanding of the runtime.</p>
-<p>Below is a table of contents.</p>
+<h1 id="responsibilities-of-a-code-generator-for-implementing-the-runtime-async-feature">Responsibilities of a code generator for implementing the Runtime Async feature</h1>
+<p>This document describes the behaviors that a code generator must conform to to correctly make the runtime async feature work correctly.</p>
+<p>This document is NOT intended to describe the runtime-async feature. That is better described in the runtime-async specification. See (https://github.com/dotnet/runtime/blob/main/docs/design/specs/runtime-async.md).</p>
+<p>The general responsibilities of the runtime-async code generator</p>
+<ol>
+<li>
+<p>Wrap the body of Task and ValueTask returning functions in try/finally blocks which set/reset the <code>ExecutionContext</code> and <code>SynchronizationContext</code>.</p>
+</li>
+<li>
+<p>Allow the async thunk logic to work.</p>
+</li>
+<li>
+<p>Generate Async Debug info (Not yet described in this document)f</p>
+</li>
+</ol>
+<h1 id="identifying-calls-to-runtime-async-methods-that-can-be-handled-by-runtime-async">Identifying calls to Runtime-Async methods that can be handled by runtime-async</h1>
+<p>When compiling a call to a method that might be called in the optimized fashion, recognize the following sequence.</p>
+<div class="highlight"><pre><span></span><code>call[virt] &lt;Method&gt;
+[ OPTIONAL ]
+{
+[ OPTIONAL - Used for ValueTask based ConfigureAwait ]
+{
+stloc X;
+ldloca X
+}
+ldc.i4.0 / ldc.i4.1
+call[virt] &lt;ConfigureAwait&gt; (The virt instruction is used for ConfigureAwait on a Task based runtime async function) NI_System_Threading_Tasks_Task_ConfigureAwait
+}
+call       &lt;Await&gt; One of the functions which matches NI_System_Runtime_CompilerServices_AsyncHelpers_Await
+</code></pre></div>
+<p>A search for this sequence is done if Method is known to be async.</p>
+<p>The dispatch to async functions save the <code>ExecutionContext</code> on suspension and restore it on resumption via <code>AsyncHelpers.CaptureExecutionContext</code> and <code>AsyncHelpers.RestoreExecutionContext</code> respectively</p>
+<p>If PREFIX_TASK_AWAIT_CONTINUE_ON_CAPTURED_CONTEXT, then continuation mode shall be ContinuationContextHandling::ContinueOnCapturedContext otherwise ContinuationContextHandling::ContinueOnThreadPool.</p>
+<h1 id="non-optimized-pattern">Non-optimized pattern</h1>
+<p>It is also legal for code to have a simple direct usage of <code>AsyncHelpers.Await</code>, <code>AsyncHelpers.AwaitAwaiter</code>, <code>AsyncHelpers.UnsafeAwaitAwaiter</code> or <code>AsyncHelpers.TransparentAwait</code>. To support this these functions are marked as async even though they do not return a Task/ValueTask.</p>
+<p>Like other async calls the dispatch to these functions will save and restore the execution context on suspension/resumption.</p>
+<p>The dispatch to these functions will set continuation mode to ContinuationContextHandling::None</p>
+<h1 id="calli-of-an-async-function">Calli of an async function</h1>
+<p>The dispatch to these functions will save and restore the execution context only on async dispatch.</p>
+<h1 id="the-systemruntimecompilerservicesasynchelpersasyncsuspend-intrinsic">The System.Runtime.CompilerServices.AsyncHelpers::AsyncSuspend intrinsic</h1>
+<p>When encountered, triggers the function to suspend immediately, and return the passed in Continuation.</p>
+<h1 id="saving-and-restoring-of-contexts">Saving and restoring of contexts</h1>
+<p>Capture the execution context before the suspension, and when the function resumes, call <code>AsyncHelpers.RestoreExecutionContext</code>. The context should be stored into the Continuation. The context may be captured by calling <code>AsyncHelpers.CaptureExecutionContext</code>.</p>
+<h1 id="abi-for-async-function-handling">ABI for async function handling</h1>
+<p>There is an additional argument which is the Continuation. When calling a function normally, this is always set to 0. When resuming, this is set to the Continuation object. There is also an extra return argument. It is either 0 or a Continuation. If it is a continuation, then the calling function needs to suspend (if it is an async function), or generate a Task/ValueTask (if it is a async function wrapper).</p>
+<h2 id="suspension-path">Suspension path</h2>
+<p>This is what is used in calls to async functions made from async functions.</p>
+<div class="highlight"><pre><span></span><code>bool didSuspend = false; // Needed for the context restore
+
+(result, continuation) = call func(NULL /\* Continuation argument \*/, args)
+if (continuation != NULL)
+{
+    // Allocate new continuation
+    // Capture Locals
+    // Copy resumption details into continuation (Do things like call AsyncHelpers.CaptureContinuationContext or AsyncHelpers.CaptureExecutionContext as needed)
+    // Chain to continuation returned from called function
+    // IF in a function which saves the exec and sync contexts, and we haven&#39;t yet suspended, restore the old values.
+    // return.
+
+    // Resumption point
+
+    // Copy values out of continuation (including captured sync context and execution context locals)
+    // If the continuation may have an exception, check to see if its there, and if it is, throw it. Do this if CORINFO\_CONTINUATION\_HAS\_EXCEPTION is set.
+    // If the continuation has a return value, copy it out of the continuation. (CORINFO\_CONTINUATION\_HAS\_RESULT is set)
+}
+</code></pre></div>
+<h2 id="thunks-path">Thunks path</h2>
+<p>This is what is used in non-async functions when calling an async function. Generally used in the AsyncResumptionStub and in the Task returning thunk.
+<div class="highlight"><pre><span></span><code>(result, continuation) = call func(NULL /\* Continuation argument \*/, args)
+place result onto IL evaluation stack
+Place continuation into a local for access using the StubHelpers.AsyncCallContinuation() helper function.
+</code></pre></div></p>
+<p>Implement an intrinsic for StubHelpers.AsyncCallContinuation() which will load the most recent value stored into the continuation local.</p>
+<h1 id="behavior-of-continuationcontexthandling">Behavior of ContinuationContextHandling</h1>
+<p>This only applies to calls which where ContinuationContextHandling is not ContinuationContextHandling::None.</p>
+<p>If set to ContinuationContextHandling::ContinueOnCapturedContext</p>
 <ul>
-<li><a href="botr-faq/">Book of the Runtime FAQ</a></li>
-<li><a href="intro-to-clr/">Introduction to the Common Language Runtime</a></li>
-<li><a href="garbage-collection/">Garbage Collection Design</a></li>
-<li><a href="threading/">Threading</a></li>
-<li><a href="ryujit-overview/">RyuJIT Overview</a></li>
-<li><a href="porting-ryujit/">Porting RyuJIT to other platforms</a></li>
-<li><a href="type-system/">Type System</a></li>
-<li><a href="type-loader/">Type Loader</a></li>
-<li><a href="method-descriptor/">Method Descriptor</a></li>
-<li><a href="virtual-stub-dispatch/">Virtual Stub Dispatch</a></li>
-<li><a href="stackwalking/">Stack Walking</a></li>
-<li><a href="corelib/"><code>System.Private.CoreLib</code> and calling into the runtime</a></li>
-<li><a href="dac-notes/">Data Access Component (DAC) Notes</a></li>
-<li><a href="profiling/">Profiling</a></li>
-<li><a href="profilability/">Implementing Profilability</a></li>
-<li><a href="exceptions/">What Every Dev needs to Know About Exceptions in the Runtime</a></li>
-<li><a href="readytorun-overview/">ReadyToRun Overview</a></li>
-<li><a href="clr-abi/">CLR ABI</a></li>
-<li><a href="xplat-minidump-generation/">Cross-platform Minidumps</a></li>
-<li><a href="mixed-mode/">Mixed Mode Assemblies</a></li>
-<li><a href="guide-for-porting/">Guide For Porting</a></li>
-<li><a href="vectors-and-intrinsics/">Vectors and Intrinsics</a></li>
-<li><a href="runtime-async-codegen/">Runtime Async Codegen</a></li>
+<li>
+<p>The Continuation shall have an allocated data member for the captured context, and the CORINFO_CONTINUATION_HAS_CONTINUATION_CONTEXT flag shall be set on the continuation.</p>
+</li>
+<li>
+<p>The Continuation will store the captured synchronization context. This is done by calling <code>AsyncHelpers.CaptureContinuationContext(ref newContinuation.ContinuationContext, ref newContinuation.Flags)</code> while filling in the <code>Continuation</code>.</p>
+</li>
 </ul>
-<p>It may be possible that this table is not complete.  You can get a complete list
-by looking at the directory where all the chapters are stored:</p>
-<ul>
-<li><a href="https://github.com/dotnet/runtime/blob/main/docs/design/coreclr/botr" target="_blank">All Book of the Runtime (BOTR) chapters on GitHub</a></li>
-</ul>
+<p>If set to ContinuationContextHandling::ContinueOnThreadPool
+- The Continuation shall have the CORINFO_CONTINUATION_CONTINUE_ON_THREAD_POOL flag set</p>
+<h1 id="exception-handling-behavior">Exception handling behavior</h1>
+<p>If an async function is called within a try block (In the jit hasTryIndex return true), set the CORINFO_CONTINUATION_HAS_EXCEPTION bit on the Continuation and make it large enough.</p>
+<h1 id="locals-handling">Locals handling</h1>
+<p>ByRef locals must not be captured. In fact, we should NULL out any locals which are ByRefs or ByRef-like. Currently we do not do this on synchronous execution, but logically possibly we should.</p>
+<h1 id="saving-and-restoring-the-synchronization-and-execution-contexts">Saving and restoring the synchronization and execution contexts</h1>
+<p>The code generator must save/restore the sync and execution contexts around the body of all Task/ValueTask methods when directly called with a null continuation context. The EE communicates when this is necessary with the <code>CORINFO_ASYNC_SAVE_CONTEXTS</code> flag returned through <code>getMethodInfo</code>.</p>
 
 
 
@@ -1045,30 +1089,6 @@ by looking at the directory where all the chapters are stored:</p>
       
         <footer class="md-footer">
   
-    
-      
-        
-      
-      <nav class="md-footer__inner md-grid" aria-label="Footer" >
-        
-        
-          
-          <a href="botr-faq/" class="md-footer__link md-footer__link--next" aria-label="Next: Book of the Runtime FAQ">
-            <div class="md-footer__title">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              <div class="md-ellipsis">
-                Book of the Runtime FAQ
-              </div>
-            </div>
-            <div class="md-footer__button md-icon">
-              
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
-            </div>
-          </a>
-        
-      </nav>
     
   
   <div class="md-footer-meta md-typeset">
@@ -1123,10 +1143,10 @@ in <a href="https://github.com/jurakovic/runtime" target="_blank">jurakovic/runt
     
     
       
-      <script id="__config" type="application/json">{"base": ".", "features": ["content.action.view", "navigation.footer", "navigation.instant", "navigation.indexes"], "search": "assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "..", "features": ["content.action.view", "navigation.footer", "navigation.instant", "navigation.indexes"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.f55a23d4.min.js"></script>
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
       
     
   </body>

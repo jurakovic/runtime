@@ -918,6 +918,54 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="crossgen2: producing Mach-O object files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mach-o-emitter-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mach-O Emitter Decisions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mach-O Emitter Decisions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sections" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sections
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relocations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relocations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-symbol-and-rvas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Base Symbol and RVAs
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1031,6 +1079,54 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="crossgen2: producing Mach-O object files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mach-o-emitter-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mach-O Emitter Decisions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mach-O Emitter Decisions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sections" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sections
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relocations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relocations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-symbol-and-rvas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Base Symbol and RVAs
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1102,6 +1198,36 @@
 - Mark each input IL assembly as a component R2R assembly: <code>READYTORUN_FLAG_COMPONENT</code>.
 - Mark each input IL assembly with a new flag indicating that the associated composite image is in the platform-native format: <code>READYTORUN_FLAG_PLATFORM_NATIVE_IMAGE</code></p>
 <p><code>crossgen2</code> does not produce the final shared library. A separate SDK / build linking step must preserve the <code>RTR_HEADER</code> export in the final <code>dylib</code>.</p>
+<h3 id="mach-o-emitter-decisions">Mach-O Emitter Decisions</h3>
+<p>There's a few cases in the R2R format that are not natively represented in the Mach-O format that have to be emulated. This section will describe some of the design decisions for the Mach-O R2R format.</p>
+<h4 id="sections">Sections</h4>
+<p>Sections folded into <code>__TEXT,__text</code> that is in other sections in the PE envelope:</p>
+<ul>
+<li>CLR metadata: In the PE format, put in .cormeta, corresponds to the PE Header's "COR Header directory"</li>
+<li>Win32 Resources: In the PE format, put in .rsrc, corresponds to the PE Header's "Win32 Resources Header directory"</li>
+<li>Managed Unwind Info: In the Mach-O format, this section is expected to be in the Mach-O unwind format. The unwind info used by the runtime must be in the Windows unwind format.</li>
+<li>GC Info: Entries correspond to the unwind info.</li>
+</ul>
+<p>Data moved out of <code>__TEXT,__text</code>:</p>
+<ul>
+<li>Precompiled managed code has been moved into <code>__TEXT,__managedcode</code>. <code>__TEXT,__text</code> gets special treatment by the linker and <code>__TEXT,__managedcode</code> matches NativeAOT.</li>
+</ul>
+<p>Data that stays in the corresponding locations as the PE envelope:</p>
+<ul>
+<li>Read-only data such as jump tables and the R2R headers: <code>__TEXT,__const</code></li>
+<li>Read-write data, such as fixup tables: <code>__DATA,__data</code></li>
+<li>Import thunks: <code>__TEXT,__text</code></li>
+</ul>
+<h4 id="relocations">Relocations</h4>
+<p>Symbol ranges are represented differently in Mach-O than other platforms. Apple linkers have issues when multiple symbols are defined at the same location. Additionally, the Mach format natively supports a "subtractor" reloc to represent the distance between two symbols. As a result, we can represent the start of the symbol range as the start symbol of the range. We can represent the size of the range we can represent as "end symbol location - start symbol location + end symbol size".</p>
+<h4 id="base-symbol-and-rvas">Base Symbol and RVAs</h4>
+<p>The R2R format, like the PE format, is heavily based around having RVAs emitted into the image that can be added to the base symbol of the image. The COFF object file format natively supports such a concept, and the PE format uses such a concept in the PE header. However, other formats do not natively support such a concept.</p>
+<p>The Apple linker does provide a base symbol for the Mach format, but the base symbol depends on the output type, generally in the form <code>__mh_&lt;output&gt;_header</code>. For dylibs, the symbol is <code>__mh_dylib_header</code>. This symbol is located at the address returned by <code>dlinfo</code> and <code>dladdr</code> for the base address. It also points to the Mach header, which can be used to find the size of the image to bound reads of the R2R data.</p>
+<p>As a result, we can emulate this support in the Mach format with ease:</p>
+<ol>
+<li>The base symbol that we use in the object writer will be <code>__mh_dylib_header</code>.</li>
+<li>To emit the distance from the base symbol, we will use a subtractor relocation to represent "symbol location - <code>__mh_dylib_header</code> location".</li>
+</ol>
 <h2 id="runtime-consuming-a-platform-native-r2r-image">Runtime: consuming a platform-native R2R image</h2>
 <p>The runtime will be updated to handle platform-native R2R images during assembly load.</p>
 <ol>

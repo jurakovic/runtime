@@ -1459,6 +1459,14 @@ However, note that the use of <code>r11</code> in the dispatcher makes it incomp
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div>
+<h1 id="interpreter-abi-details">Interpreter ABI details</h1>
+<p>The interpreter data stack is separately allocated from the normal "thread" stack, and it grows UP. The interpreter execution control stack is allocated on the "thread" stack, as a series of <code>InterpMethodContextFrame</code> values that are linked in a singly linked list onto an <code>InterpreterFrame</code> which is placed onto the Frame chain of the thread. <code>InterpMethodContextFrame</code> structures are always allocated in descending order so that a callee method's associated <code>InterpMethodContextFrame</code> is always located lower in memory compared to its caller or the containing <code>InterpreterFrame</code>.</p>
+<p>The base stack pointer within a method never changes, but when a function is called in the interpreter it will have a stack pointer which is associated with the set of arguments passed. In effect argument passing is done by giving a portion of the temporary args space of the caller function to the callee.</p>
+<p>All instructions and GC that address the stack pointer are relative to the current stack pointer, which does not move. This requires that implementations of the localloc instruction actually allocate the memory on the heap, and localloc'd memory is not actually tied to the data stack in any way.</p>
+<p>The stack pointer in all interpreter functions is always aligned on a <code>INTERP_STACK_ALIGNMENT</code> boundary. Currently this is a 16 byte alignment requirement.</p>
+<p>The stack elements are always aligned to at least <code>INTERP_STACK_SLOT_SIZE</code> and never more than <code>INTERP_STACK_ALIGNMENT</code> Given that today's implementation sets <code>INTERP_STACK_SLOT_SIZE</code> to 8 and <code>INTERP_STACK_ALIGNMENT</code> to 16, this implies all data on the stack is either aligned at an 8 or 16 byte alignment.</p>
+<p>Primitive types smaller than 4 bytes are always zero or sign extended to 4 bytes when on the stack.</p>
+<p>When a function is async it will have a continuation return. This return is not done using the data stack, but instead is done by setting the Continuation field in the <code>InterpreterFrame</code>. Thunks are responsible for setting/resetting this value as we enter/leave code compiled by the JIT.</p>
 
 
 

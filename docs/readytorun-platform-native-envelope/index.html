@@ -1191,30 +1191,27 @@
    - Linking the object files into a shared library is expected to be handled by the SDK and is not covered in this document.</p>
 <p>The tentative high-level design is outlined below. As we implement this support, this document should be updated with more details and the <a href="../readytorun-overview/">ReadyToRun overview</a> and <a href="../readytorun-format/">ReadyToRun format</a> should be updated to reflect the changes.</p>
 <h2 id="crossgen2-producing-mach-o-object-files">crossgen2: producing Mach-O object files</h2>
-<p>Mach‑O support will only be supported for composite ReadyToRun when the target OS is macOS. It will be opt-in via a new <code>crossgen2</code> flag:
-- <code>--obj-format macho</code></p>
-<p><code>crossgen2</code> will:
-- Produce a Mach-O object file as the composite R2R image with the <code>RTR_HEADER</code> export for the <code>READYTORUN_HEADER</code>.
-- Mark each input IL assembly as a component R2R assembly: <code>READYTORUN_FLAG_COMPONENT</code>.
-- Mark each input IL assembly with a new flag indicating that the associated composite image is in the platform-native format: <code>READYTORUN_FLAG_PLATFORM_NATIVE_IMAGE</code></p>
+<p>Mach‑O support will only be supported for composite ReadyToRun when the target OS is macOS. It will be opt-in via a new <code>crossgen2</code> flag:</p>
+<ul>
+<li><code>--obj-format macho</code></li>
+</ul>
+<p><code>crossgen2</code> will:</p>
+<ul>
+<li>Produce a Mach-O object file as the composite R2R image with the <code>RTR_HEADER</code> export for the <code>READYTORUN_HEADER</code>.</li>
+<li>Mark each input IL assembly as a component R2R assembly: <code>READYTORUN_FLAG_COMPONENT</code>.</li>
+<li>Mark each input IL assembly with a new flag indicating that the associated composite image is in the platform-native format: <code>READYTORUN_FLAG_PLATFORM_NATIVE_IMAGE</code></li>
+</ul>
 <p><code>crossgen2</code> does not produce the final shared library. A separate SDK / build linking step must preserve the <code>RTR_HEADER</code> export in the final <code>dylib</code>.</p>
 <h3 id="mach-o-emitter-decisions">Mach-O Emitter Decisions</h3>
 <p>There's a few cases in the R2R format that are not natively represented in the Mach-O format that have to be emulated. This section will describe some of the design decisions for the Mach-O R2R format.</p>
 <h4 id="sections">Sections</h4>
-<p>Sections folded into <code>__TEXT,__text</code> that is in other sections in the PE envelope:</p>
-<ul>
-<li>CLR metadata: In the PE format, put in .cormeta, corresponds to the PE Header's "COR Header directory"</li>
-<li>Win32 Resources: In the PE format, put in .rsrc, corresponds to the PE Header's "Win32 Resources Header directory"</li>
-<li>Managed Unwind Info: In the Mach-O format, this section is expected to be in the Mach-O unwind format. The unwind info used by the runtime must be in the Windows unwind format.</li>
-<li>GC Info: Entries correspond to the unwind info.</li>
-</ul>
 <p>Data moved out of <code>__TEXT,__text</code>:</p>
 <ul>
 <li>Precompiled managed code has been moved into <code>__TEXT,__managedcode</code>. <code>__TEXT,__text</code> gets special treatment by the linker and <code>__TEXT,__managedcode</code> matches NativeAOT.</li>
+<li>Read-only data such as jump tables, CLR metadata, Win32 Resources, managed unwind info, gc info, and the R2R headers are moved to <code>__TEXT,__const</code></li>
 </ul>
 <p>Data that stays in the corresponding locations as the PE envelope:</p>
 <ul>
-<li>Read-only data such as jump tables and the R2R headers: <code>__TEXT,__const</code></li>
 <li>Read-write data, such as fixup tables: <code>__DATA,__data</code></li>
 <li>Import thunks: <code>__TEXT,__text</code></li>
 </ul>

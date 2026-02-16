@@ -1036,9 +1036,9 @@ if (continuation != NULL)
 <p>This is what is used in non-async functions when calling an async function. Generally used in the AsyncResumptionStub and in the Task returning thunk.
 <div class="highlight"><pre><span></span><code>(result, continuation) = call func(NULL /\* Continuation argument \*/, args)
 place result onto IL evaluation stack
-Place continuation into a local for access using the StubHelpers.AsyncCallContinuation() helper function.
+Place continuation into a local for access using the AsyncHelpers.AsyncCallContinuation() helper function.
 </code></pre></div></p>
-<p>Implement an intrinsic for StubHelpers.AsyncCallContinuation() which will load the most recent value stored into the continuation local.</p>
+<p>Implement an intrinsic for AsyncHelpers.AsyncCallContinuation() which will load the most recent value stored into the continuation local.</p>
 <h1 id="behavior-of-continuationcontexthandling">Behavior of ContinuationContextHandling</h1>
 <p>This only applies to calls which where ContinuationContextHandling is not ContinuationContextHandling::None.</p>
 <p>If set to ContinuationContextHandling::ContinueOnCapturedContext</p>

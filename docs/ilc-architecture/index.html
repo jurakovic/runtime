@@ -944,6 +944,57 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#compiling-generics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Compiling generics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Compiling generics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#shared-generics-and-canonicalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shared generics and canonicalization
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runtime-determined-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Runtime-determined types
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generic-virtual-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Generic virtual methods
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shadow-method-nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shadow method nodes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#compiler-generated-method-bodies" class="md-nav__link">
     <span class="md-ellipsis">
       Compiler-generated method bodies
@@ -1241,6 +1292,57 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#compiling-generics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Compiling generics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Compiling generics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#shared-generics-and-canonicalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shared generics and canonicalization
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runtime-determined-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Runtime-determined types
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generic-virtual-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Generic virtual methods
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shadow-method-nodes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shadow method nodes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#compiler-generated-method-bodies" class="md-nav__link">
     <span class="md-ellipsis">
       Compiler-generated method bodies
@@ -1409,6 +1511,37 @@ The dashed edges are conditional dependencies, with the condition marked on the 
 <p>The compiler also needs to call into some well-known entrypoints within the base class library to support the generated code. The base class library needs to define these methods. Examples of such entrypoints would be various helpers to throw <code>OverflowException</code> during mathematical operations, <code>IndexOutOfRangeException</code> during array access, or various helpers to aid in generating p/invoke marshalling code (e.g. converting a UTF-16 string to ANSI and back before/after invoking the native method).</p>
 <p>One interesting thing to point out is that the coupling of the compiler with the base class libraries is relatively loose (there are only few mandatory parts). This allows different base class libraries to be used with ILC. Such base class libraries could look quite different from what regular .NET developers are used to (e.g. a <code>System.Object</code> that doesn't have a <code>ToString</code> method) but could allow using type safe code in environments where regular .NET would be considered "too heavy". Various experiments with such lightweight code have been done in the past, and some of them even shipped as part of the Windows operating system.</p>
 <p>Example of such alternative base class library is <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/Test.CoreLib/">Test.CoreLib</a>. The <code>Test.CoreLib</code> library provides a very minimal API surface. This, coupled with the fact that it requires almost no initialization, makes it a great assistant in bringing NativeAOT to new platforms.</p>
+<h2 id="compiling-generics">Compiling generics</h2>
+<h3 id="shared-generics-and-canonicalization">Shared generics and canonicalization</h3>
+<p>When a program uses the same generic method or type with multiple reference type arguments (e.g. <code>List&lt;string&gt;</code> and <code>List&lt;object&gt;</code>), ILC compiles a single <em>canonical</em> form of the code shared across all compatible instantiations. All reference types share a canonical representation known as <code>__Canon</code>. For instance, <code>List&lt;string&gt;</code> and <code>List&lt;object&gt;</code> both use the code compiled for <code>List&lt;__Canon&gt;</code>.</p>
+<p>This sharing only applies to reference type instantiations. Value type instantiations (e.g. <code>List&lt;int&gt;</code>) require separate native code bodies because differences such as size affect code generation. When type arguments are themselves generic types with mixed value/reference components, the canonical form reflects this. For example, <code>List&lt;KeyValuePair&lt;int, string&gt;&gt;</code> canonicalizes to <code>List&lt;KeyValuePair&lt;int, __Canon&gt;&gt;</code>.</p>
+<p>When the dependency graph includes a method like <code>List&lt;string&gt;.Add</code>, ILC adds a dependency on the canonical method body <code>List&lt;__Canon&gt;.Add</code> and generates a <em><a href="../shared-generics/">generic dictionary</a></em> for the <code>List&lt;string&gt;</code> instantiation. When ILC invokes RyuJIT to compile a method, it passes the canonical form (e.g. <code>List&lt;__Canon&gt;.Add</code>).</p>
+<h3 id="runtime-determined-types">Runtime-determined types</h3>
+<p>Neither the canonical form nor the uninstantiated form of a type alone is sufficient for dependency analysis of shared generic code. The canonical form loses parameter identity (both <code>T</code> and <code>U</code> become <code>__Canon</code>), while the uninstantiated form with signature variables (<code>!!0</code>, <code>!!1</code>) lacks concrete type information needed for operations like <code>sizeof(T)</code>.</p>
+<p>To solve this, ILC uses <em>runtime-determined types</em> (<code>RuntimeDeterminedType</code>) to represent types that will only be resolved at runtime. A <code>RuntimeDeterminedType</code> captures both the canonical type and the generic parameter it originated from: internally it holds a reference to both the <code>DefType</code> (e.g. <code>__Canon</code>) and the <code>GenericParameterDesc</code> (e.g. <code>T</code> from <code>Foo&lt;T&gt;</code>).</p>
+<p>For example, when analyzing <code>Foo&lt;T&gt;.Method()</code> that references <code>List&lt;T&gt;</code>, ILC represents this as <code>List&lt;T_System.__Canon&gt;</code> where the type argument is a <code>RuntimeDeterminedType</code> pairing <code>__Canon</code> with <code>T</code>.</p>
+<h3 id="generic-virtual-methods">Generic virtual methods</h3>
+<p>Generic virtual methods (GVMs) require resolving both the method pointer and the generic dictionary at runtime, since the target implementation depends on the object's runtime type. Consider:</p>
+<div class="highlight"><pre><span></span><code><span class="k">abstract</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">Base</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">abstract</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="n">Method</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Derived</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">Base</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="n">Method</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>At a call site like <code>baseRef.Method&lt;string&gt;()</code>, the runtime needs both the runtime type of <code>baseRef</code>, and the type argument info, to determine which implementation to call.</p>
+<p>ILC handles GVMs using <em>dynamic dependencies</em> in the dependency graph. When the compiler sees a GVM call, it creates a <code>GVMDependenciesNode</code> for the canonical form of the called method. This node has dynamic dependencies - it observes which types are constructed in the program and, for each type that could potentially override the GVM, ensures the appropriate implementations are compiled.</p>
+<p>For example, if <code>GVMDependenciesNode</code> for <code>Base.Method&lt;__Canon&gt;</code> sees that <code>Derived</code> is constructed, it will add dependencies on <code>Derived.Method&lt;__Canon&gt;</code> and ensure the mapping from the base slot to the derived implementation is recorded. At runtime, a GVM table allows lookup of the correct implementation given the object's type and the method's instantiation.</p>
+<p>This is one of the few places in ILC where dynamic dependencies are used, because the set of possible GVM implementations cannot be determined by examining any single node in isolation.</p>
+<h3 id="shadow-method-nodes">Shadow method nodes</h3>
+<p>"Shadow" method nodes represent partially or fully instantiated generic methods for the purposes of dependency tracking only. These nodes on their own do not produce code.</p>
+<p>Code generation is always done for the canonical form of a method (such as <code>List&lt;__Canon&gt;.Add</code>). However, the compiler may need to produce instantiation-specific dependencies if there is a call to <code>List&lt;string&gt;.Add</code> or <code>List&lt;object&gt;.Add</code>. Shadow method nodes represent these specific method instantiations for dependency tracking purposes even though they don't contribute separate code.</p>
+<p>Both <code>ShadowConcreteMethodNode</code> and <code>ShadowNonConcreteMethodNode</code> extend <code>ShadowMethodNode</code>, which works by examining the canonical method's dependencies. Dependencies that implement <code>INodeWithRuntimeDeterminedDependencies</code> are <em>instantiated</em> with the shadow node's type/method arguments, converting abstract dependencies (e.g. "MethodTable for <code>List&lt;T&gt;</code>") into concrete ones (e.g. "MethodTable for <code>List&lt;string&gt;</code>"). This allows shadow nodes to contribute dependencies required for generic dictionaries to the object file. The generic dictionary nodes cannot report their dependencies directly, because the compiler doesn't know all of the dependencies until it has discovered all methods using the same dictionary. The shadow methods allow growing the graph incrementally with each compiled method.</p>
+<p><code>ShadowConcreteMethodNode</code> represents fully instantiated methods like <code>List&lt;string&gt;.Add</code> for dependency analysis.</p>
+<p><code>ShadowNonConcreteMethodNode</code> represents partially instantiated methods that are still shared. For example, <code>Foo&lt;string&gt;.Bar&lt;__Canon&gt;()</code> is backed by <code>Foo&lt;__Canon&gt;.Bar&lt;__Canon&gt;()</code>, but knows that <code>T</code> is <code>string</code>. This allows resolving dependencies that only involve the type's type parameters (e.g. <code>typeof(T)</code>, <code>new T[]</code>) even when the method's type parameters remain open.</p>
 <h2 id="compiler-generated-method-bodies">Compiler-generated method bodies</h2>
 <p>Besides compiling the code provided by the user in the form of input assemblies, the compiler also needs to compile various helpers generated within the compiler. The helpers are used to lower some of the higher-level .NET constructs into concepts that the underlying code generation backend understands. These helpers are emitted as IL code on the fly, without being physically backed by IL in an assembly on disk. Having the higher level concepts expressed as regular IL helps avoid having to implement the higher-level concept in each code generation backend (we only must do it once because IL is the thing all backends understand).</p>
 <p>The helpers serve various purposes such as:

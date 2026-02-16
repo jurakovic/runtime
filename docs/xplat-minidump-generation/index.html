@@ -1015,6 +1015,7 @@
 <li><code>DOTNET_DbgEnableMiniDump</code>: if set to "1", enables this core dump generation. The default is NOT to generate a dump.</li>
 <li><code>DOTNET_DbgMiniDumpType</code>: See below. Default is "2" MiniDumpWithPrivateReadWriteMemory.</li>
 <li><code>DOTNET_DbgMiniDumpName</code>: if set, use as the template to create the dump path and file name. See "Dump name formatting" for how the dump name can be formatted. The default is <em>/tmp/coredump.%p</em>.</li>
+<li><code>DOTNET_DbgCreateDumpToolPath</code>: <strong>(NativeAOT only)</strong> if set, specifies the directory path where the createdump tool is located. The runtime will look for the createdump binary in this directory. This is useful in scenarios where createdump is not shipped with the runtime and you need to "bring your own" dump generation tool. This environment variable is only supported in NativeAOT applications and ignored otherwise.</li>
 <li><code>DOTNET_CreateDumpDiagnostics</code>: if set to "1", enables the <em>createdump</em> utilities diagnostic messages (TRACE macro).</li>
 <li><code>DOTNET_CreateDumpVerboseDiagnostics</code>: if set to "1", enables the <em>createdump</em> utilities verbose diagnostic messages (TRACE_VERBOSE macro).</li>
 <li><code>DOTNET_CreateDumpLogToFile</code>: if set, it is the path of the file to write the <em>createdump</em> diagnostic messages.</li>
@@ -1084,6 +1085,13 @@
 %h  Hostname return by gethostname().
 %t  Time of dump, expressed as seconds since the Epoch, 1970-01-01 00:00:00 +0000 (UTC).
 </code></pre></div>
+<p><strong>Using a custom createdump tool (NativeAOT only)</strong></p>
+<p>In scenarios where the NativeAOT runtime does not ship with the createdump tool, you can specify a custom directory path using the <code>DOTNET_DbgCreateDumpToolPath</code> environment variable:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">DOTNET_DbgEnableMiniDump</span><span class="o">=</span><span class="m">1</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">DOTNET_DbgCreateDumpToolPath</span><span class="o">=</span>/path/to/directory
+./myapp
+</code></pre></div>
+<p>The runtime will look for the <code>createdump</code> binary in the specified directory. This allows you to "bring your own" dump generation tool. Note that this environment variable is only supported in NativeAOT applications and ignored otherwise.</p>
 <h1 id="testing">Testing</h1>
 <p>The test plan is to modify the SOS tests in the (still) private debuggertests repo to trigger and use the core minidumps generated. Debugging managed core dumps on Linux is not supported by <em>mdbg</em> at this time until we have a ELF core dump reader so only the SOS tests (which use <em>lldb</em> on Linux) will be modified.</p>
 

@@ -18,7 +18,7 @@ theme:
   palette:
     - media: '(prefers-color-scheme: light)'
       scheme: default
-      primary: black
+      primary: white
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode

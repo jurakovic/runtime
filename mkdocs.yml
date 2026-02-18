@@ -13,21 +13,10 @@ docs_dir: 'docs/design/coreclr/botr'
 theme:
   name: material
   language: en
+  font:
+    text: Roboto
   palette:
-    - media: '(prefers-color-scheme: light)'
-      scheme: default
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    - media: '(prefers-color-scheme: dark)'
-      scheme: slate
-      primary: black
-      accent: indigo
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
+    primary: black
   features:
     - content.action.view
     - navigation.footer
@@ -49,8 +38,13 @@ extra:
       link: https://github.com/dotnet/runtime
 
 markdown_extensions:
+#  - meta
+#  - admonition
   - pymdownx.highlight
   - pymdownx.superfences
+#  - pymdownx.pathconverter
+#  - pymdownx.tabbed
+#  - pymdownx.tasklist
 
 nav:
   - Introduction: README.md

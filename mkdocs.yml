@@ -47,18 +47,12 @@ extra:
       link: https://github.com/jurakovic/runtime
     - icon: fontawesome/brands/github
       link: https://github.com/dotnet/runtime
-  #generator: false
 
-copyright: 'Unofficial documentation site. Not affiliated with Microsoft. .NET and Microsoft are trademarks of Microsoft Corporation.'
+copyright: 'Unofficial documentation site. Not affiliated with Microsoft. Microsoft and .NET are trademarks of Microsoft Corporation.'
 
 markdown_extensions:
-#  - meta
-#  - admonition
   - pymdownx.highlight
   - pymdownx.superfences
-#  - pymdownx.pathconverter
-#  - pymdownx.tabbed
-#  - pymdownx.tasklist
 
 extra_css:
   - custom.css

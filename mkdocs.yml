@@ -12,6 +12,7 @@ docs_dir: 'docs/design/coreclr/botr'
 
 theme:
   name: material
+  custom_dir: overrides
   language: en
   font:
     text: Segoe UI

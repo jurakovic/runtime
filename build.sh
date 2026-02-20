@@ -11,6 +11,8 @@ rm -rf site
 # temp config
 cp ../mkdocs.yml .
 cp ../custom.css docs/design/coreclr/botr/custom.css
+mkdir -p overrides/partials
+cp ../copyright.html overrides/partials/copyright.html
 
 # copy out-of-scope files
 cp docs/design/coreclr/botr/../jit/ryujit-overview.md docs/design/coreclr/botr/ryujit-overview.md
@@ -60,15 +62,6 @@ sed -i -r 's|(href="https://github\.com/dotnet/runtime/blob/main/docs/design/cor
 
 # fix index urls
 sed -i -r 's|(">All Book of the Runtime \(BOTR\) chapters on GitHub)|" target="_blank\1|' docs/index.html
-
-# add footer url
-text='in <a href="https://github.com/jurakovic/runtime" target="_blank">jurakovic/runtime</a>'
-mapfile -t files < <(find docs -type f -iwholename "*.html")
-for file in "${files[@]}"; do
-  total_lines=$(wc -l < "$file")
-  insert_line=$((total_lines - 48))
-  sed -i "${insert_line}i$text" "$file"
-done
 
 echo "Removing 'dotnet' worktree"
 git worktree remove dotnet --force

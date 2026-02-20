@@ -7,8 +7,9 @@ The site provides easy-to-navigate interface with dark and light themes and inte
 
 It is available at <https://jurakovic.github.io/runtime/>.
 
-> **Disclaimer:** This is an unofficial documentation site and is not affiliated with Microsoft.  
-> .NET and Microsoft are trademarks of Microsoft Corporation.  
+> **Disclaimer:**  
+> This is an unofficial documentation site and is not affiliated with Microsoft.  
+> Microsoft and .NET are trademarks of Microsoft Corporation.  
 
 ## Overview
 

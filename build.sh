@@ -10,6 +10,7 @@ rm -rf site
 
 # temp config
 cp ../mkdocs.yml .
+cp ../custom.css docs/design/coreclr/botr/custom.css
 
 # copy out-of-scope files
 cp docs/design/coreclr/botr/../jit/ryujit-overview.md docs/design/coreclr/botr/ryujit-overview.md

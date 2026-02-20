@@ -60,6 +60,9 @@ markdown_extensions:
 #  - pymdownx.tabbed
 #  - pymdownx.tasklist
 
+extra_css:
+  - custom.css
+
 nav:
   - Introduction: README.md
   - Book of the Runtime FAQ: botr-faq.md

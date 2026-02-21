@@ -84,6 +84,7 @@ nav:
   - Mixed Mode Assemblies: mixed-mode.md
   - Guide For Porting: guide-for-porting.md
   - Vectors and Intrinsics: vectors-and-intrinsics.md
+  - Runtime Async Codegen: runtime-async-codegen.md
   #- ... # messes up all titles
   - ilc-architecture.md
   - managed-type-system.md

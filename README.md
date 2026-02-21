@@ -1,6 +1,8 @@
 
 # The Book of the Runtime Build Repo
 
+[![Build Docs](https://github.com/jurakovic/runtime/actions/workflows/build.yaml/badge.svg)](https://github.com/jurakovic/runtime/actions/workflows/build.yaml)
+
 This repository is a fork of the [dotnet/runtime](https://github.com/dotnet/runtime), created solely to build the [_Book of the Runtime_](https://github.com/dotnet/runtime/tree/main/docs/design/coreclr/botr/README.md) using MkDocs and host it on GitHub Pages.
 
 The site provides easy-to-navigate interface with dark and light themes and interactive search functionality.

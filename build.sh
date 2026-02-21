@@ -1,5 +1,7 @@
 #!/bin/bash
 
+docs_dir='docs/design/coreclr/botr'
+
 function add_worktree {
   echo "Adding new 'dotnet' worktree with 'main' branch"
   git worktree add dotnet main
@@ -9,24 +11,24 @@ function add_worktree {
 
 function copy_mkdocs_config {
   cp ../mkdocs.yml .
-  cp ../custom.css docs/design/coreclr/botr/custom.css
+  cp ../custom.css $docs_dir/custom.css
   mkdir -p overrides/partials
-  cp ../favicon.svg docs/design/coreclr/botr/favicon.svg
+  cp ../favicon.svg $docs_dir/favicon.svg
   cp ../copyright.html overrides/partials/copyright.html
 }
 
 function pre_build {
   # copy out-of-scope files
-  cp docs/design/coreclr/botr/../jit/ryujit-overview.md docs/design/coreclr/botr/ryujit-overview.md
-  cp docs/design/coreclr/botr/../jit/porting-ryujit.md docs/design/coreclr/botr/porting-ryujit.md
+  cp $docs_dir/../jit/ryujit-overview.md $docs_dir/ryujit-overview.md
+  cp $docs_dir/../jit/porting-ryujit.md $docs_dir/porting-ryujit.md
 
   # fix profiling.md; e.g. List<int> => List&lt;int&gt;
-  sed -i -r 's/(\w+)(<)([a-zA-Z,]+)(>)/\1\&lt;\3\&gt;/g' docs/design/coreclr/botr/profiling.md
+  sed -i -r 's/(\w+)(<)([a-zA-Z,]+)(>)/\1\&lt;\3\&gt;/g' $docs_dir/profiling.md
 
   # temp fix to images path in jit file
-  sed -i -r 's;]\(images;]\(https://raw.githubusercontent.com/dotnet/runtime/refs/heads/main/docs/design/coreclr/jit/images;g' docs/design/coreclr/botr/ryujit-overview.md
+  sed -i -r 's;]\(images;]\(https://raw.githubusercontent.com/dotnet/runtime/refs/heads/main/docs/design/coreclr/jit/images;g' $docs_dir/ryujit-overview.md
 
-  mapfile -t files < <(find docs/design/coreclr/botr -type f -iwholename "*.md")
+  mapfile -t files < <(find $docs_dir -type f -iwholename "*.md")
   for file in "${files[@]}"; do
     # hide toc on all pages (no other proposed solutions work)
     sed -i '1s/^/---\nhide:\n  - toc\n---\n/' "$file"

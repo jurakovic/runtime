@@ -4,6 +4,11 @@
 curr=$(curl -s "https://api.github.com/repos/dotnet/runtime/commits?path=docs/design/coreclr/botr&per_page=1" | jq -r '.[0].sha')
 prev=$(cat commit.txt)
 
+if [ -z "$curr" ] || [ "$curr" = "null" ]; then
+  echo "Failed to fetch latest commit"
+  exit 1
+fi
+
 if [ $curr = $prev ]
 then
   echo "There are no changes"
@@ -17,3 +22,5 @@ if [ -z "$yn" ] || [ "$yn" != "y" ]; then exit 1; fi;
 ./build.sh
 
 echo "$curr" > commit.txt
+
+git diff --name-only $prev $curr -- docs/design/coreclr/botr

@@ -17,3 +17,5 @@ if [ -z "$yn" ] || [ "$yn" != "y" ]; then exit 1; fi;
 ./build.sh
 
 echo "$curr" > commit.txt
+
+git diff --name-only $prev $curr -- docs/design/coreclr/botr

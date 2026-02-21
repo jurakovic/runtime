@@ -14,11 +14,10 @@ theme:
   name: material
   custom_dir: overrides
   language: en
-  font:
-    text: Segoe UI
   favicon: favicon.svg
   icon:
     logo: material/alpha-b-box
+  font: false
   palette:
     - media: '(prefers-color-scheme: light)'
       scheme: default

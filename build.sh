@@ -83,7 +83,7 @@ function main {
   cd dotnet
   #add_worktree
   copy_mkdocs_config
-  #prebuild
+  #pre_build
   build
   post_build
   #remove_worktree

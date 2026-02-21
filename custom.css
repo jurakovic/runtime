@@ -1,4 +1,9 @@
 
+:root {
+  --md-text-font: "Segoe UI";
+  --md-text-font-family: "Segoe UI", "Segoe UI Variable Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
 .md-typeset {
   font-size: .75rem;
 }

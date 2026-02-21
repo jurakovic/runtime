@@ -80,13 +80,13 @@ function remove_worktree {
 }
 
 function main {
-  cd dotnet
-  #add_worktree
+  #cd dotnet
+  add_worktree
   copy_mkdocs_config
-  #pre_build
+  pre_build
   build
   post_build
-  #remove_worktree
+  remove_worktree
   echo "Done"
 }
 

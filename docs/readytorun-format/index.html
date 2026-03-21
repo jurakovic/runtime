@@ -1607,6 +1607,16 @@ fixup kind, the rest of the signature varies based on the fixup kind.</p>
 <td style="text-align: left;">Verify an IL body is defined the same at compile time and runtime. A failed match will cause a hard runtime failure. See<a href="il-body-signatures">IL Body signatures</a> for details.</td>
 </tr>
 <tr>
+<td style="text-align: left;">READYTORUN_FIXUP_ContinuationLayout</td>
+<td style="text-align: right;">0x37</td>
+<td style="text-align: left;">Layout of an async method continuation type, followed by typespec signature</td>
+</tr>
+<tr>
+<td style="text-align: left;">READYTORUN_FIXUP_ResumptionStubEntryPoint</td>
+<td style="text-align: right;">0x38</td>
+<td style="text-align: left;">Entry point of an async method resumption stub</td>
+</tr>
+<tr>
 <td style="text-align: left;">READYTORUN_FIXUP_ModuleOverride</td>
 <td style="text-align: right;">0x80</td>
 <td style="text-align: left;">When or-ed to the fixup ID, the fixup byte in the signature is followed by an encoded uint with assemblyref index, either within the MSIL metadata of the master context module for the signature or within the manifest metadata R2R header table (used in cases inlining brings in references to assemblies not seen in the input MSIL).</td>
@@ -1665,6 +1675,11 @@ token, and additional data determined by the flags.</p>
 <td style="text-align: left;">READYTORUN_METHOD_SIG_UpdateContext</td>
 <td style="text-align: right;">0x80</td>
 <td style="text-align: left;">If set, update the module which is used to parse tokens before performing any token processing. A uint index into the modules table immediately follows the flags</td>
+</tr>
+<tr>
+<td style="text-align: left;">READYTORUN_METHOD_SIG_AsyncVariant</td>
+<td style="text-align: right;">0x100</td>
+<td style="text-align: left;">If set, the method signature refers to the runtime-async variant of the method.</td>
 </tr>
 </tbody>
 </table>

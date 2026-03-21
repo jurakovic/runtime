@@ -1086,6 +1086,10 @@ Apple's ARM64 calling convention differences can be found <a href="https://devel
 <td>risc-v</td>
 <td>a2</td>
 </tr>
+<tr>
+<td>loongarch64</td>
+<td>a2</td>
+</tr>
 </tbody>
 </table>
 <h3 id="passing-continuation-argument">Passing <code>Continuation</code> argument</h3>
@@ -1498,8 +1502,13 @@ However, note that the use of <code>r11</code> in the dispatcher makes it incomp
 <p>Structs are generally returned via hidden buffers, whose address is supplied by the caller and passed just after the managed <code>this</code>, or after <code>$sp</code> argument when <code>this</code> is not present. In such cases the return value of the method is the address of the return value. But if the struct can be passed on the Wasm stack it is returned on the Wasm stack.</p>
 <p>(TBD: ABI for vector types)</p>
 <h3 id="prolog">Prolog</h3>
-<p>The prolog will increment the stack pointer, home any arguments that are stored on the linear stack, and zero initialize slots on the linear stack as appropriate. It will establish a frame pointer if one is needed.</p>
-<p>It will also save a frame descriptor onto the stack, for use during GC and EH. For methods with EH or with GC safe points, a slot on the linear stack will be reserved for a "virtual IP" that will index into the EH and GC info to provide within-method information and allow external code to walk the managed stack frames.</p>
+<p>The prolog will decrement the stack pointer by the fixed frame size, home any arguments that are stored on the linear stack, and zero initialize slots on the linear stack as appropriate. It will establish a frame pointer if one is needed.</p>
+<p>So on exit from the prolog the stack pointer (<code>$sp</code>) will point to the bottom of the fixed part of the stack frame. The frame pointer (<code>$fp</code>) if used, will also point to the bottom of fixed part of the stack frame. <code>$sp</code> and <code>$fp</code> will only differ in methods that can allocate extra storage on the stack at runtime (typically from <code>localloc</code>). The stack is kept 16 byte aligned.</p>
+<p>For methods that can be interrupted by GC or EH (generally speaking: methods with gc safe calls) the prolog also saves a frame descriptor onto the stack, for use during GC and EH. By convention this value is stored at <code>fp[0]</code>. Since only <code>sp</code> will be available for unwinding (by virtue of being saved to <code>$__stack_pointer</code>) we adopt the convention that when <code>$sp</code> moves in the middle of the method, <code>$sp[0]</code> is set to <code>$fp</code>.</p>
+<p>Thus to access information for EH/GC/unwinding, the frame descriptor <code>fd</code> can be found from the managed frame <code>$sp</code> as follows:
+* <code>fd = $sp[0]</code>
+* if <code>fd</code> is a stack address, it is the saved <code>$fp</code>. So then <code>fd = fd[0]</code>.</p>
+<p>We will save the "virtual IP" in a similar fashion (TBD: exact details on this).</p>
 <h3 id="epilog">Epilog</h3>
 <p>Generally epilogs will be empty. There is no notion of callee-save registers in Wasm, and no other global state to update.</p>
 <h2 id="outgoing-call-abi">Outgoing call ABI</h2>

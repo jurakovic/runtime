@@ -1084,7 +1084,7 @@
 <h3 id="uniqueness">Uniqueness</h3>
 <p>A ProcessID is unique system-wide for the lifetime of the process. All other IDs are unique process-wide for the lifetime of the ID.</p>
 <h3 id="hierarchy-containment">Hierarchy &amp; Containment</h3>
-<p>ID's are arranged in a hierarchy, mirroring the hierarchy in the process. Processes contain AppDomains contain Assemblies contain Modules contain Classes contain Functions. Threads are contained within Processes, and may move from AppDomain to AppDomain. Objects are mostly contained within AppDomains (a very few objects may be members of more than one AppDomain at a time). Contexts are contained within Processes.</p>
+<p>ID's are arranged in a hierarchy, mirroring the hierarchy in the process. Processes contain the global AppDomain which contains Assemblies which contain Modules which contain Classes which contain Functions. Threads are contained within Processes. Objects are contained within the AppDomain. Contexts are contained within Processes.</p>
 <h3 id="lifetime-stability">Lifetime &amp; Stability</h3>
 <p>When a given ID dies, all IDs contained within it die.</p>
 <p>ProcessID – Alive and stable from the call to Initialize until the return from Shutdown.</p>
@@ -1095,9 +1095,6 @@
 <p>ObjectID – Alive beginning with the call to ObjectAllocated. Eligible to change or die with each garbage collection.</p>
 <p>GCHandleID – Alive from the call to HandleCreated until the return from HandleDestroyed.</p>
 <p>In addition, any ID returned from a profiling API function will be alive at the time it is returned.</p>
-<h3 id="app-domain-affinity">App-Domain Affinity</h3>
-<p>There is an AppDomainID for each user-created app-domain in the process, plus the "default" domain, plus a special pseudo-domain used for holding domain-neutral assemblies.</p>
-<p>Assembly, Module, Class, Function, and GCHandleIDs have app-domain affinity, meaning that if an assembly is loaded into multiple app domains, it (and all of the modules, classes, and functions contained within it) will have a different ID in each, and operations upon each ID will take effect only in the associated app domain. Domain-neutral assemblies will appear in the special pseudo-domain mentioned above.</p>
 <h3 id="special-notes">Special Notes</h3>
 <p>All IDs except ObjectID should be treated as opaque values. Most IDs are fairly self-explanatory. A few are worth explaining in more detail:</p>
 <p><strong>ClassIDs</strong> represent classes. In the case of generic classes, they represent fully-instantiated types. List&lt;int&gt;, List&lt;char&gt;, List&lt;object&gt;, and List&lt;string&gt; each have their own ClassID. List&lt;T&gt; is an uninstantiated type, and has no ClassID. Dictionary&lt;string,V&gt; is a partially-instantiated type, and has no ClassID.</p>
@@ -1360,12 +1357,12 @@ _ObjectID - oldObjectIDRangeStart[i] + newObjectIDRangeStart[i]_
 <tbody>
 <tr>
 <td>AppDomain</td>
-<td>Your basic static field—has a different value in each app domain.</td>
+<td>Your basic static field.</td>
 <td>Static field with no attached custom attributes</td>
 </tr>
 <tr>
 <td>Thread</td>
-<td>Managed TLS—a static field with a unique value for each thread and each app domain.</td>
+<td>Managed TLS—a static field with a unique value for each thread.</td>
 <td>Static field with System.ThreadStaticAttribute</td>
 </tr>
 <tr>

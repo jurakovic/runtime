@@ -940,6 +940,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#customizing-the-rtr_header-symbol-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      Customizing the RTR_HEADER symbol name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#mach-o-emitter-decisions" class="md-nav__link">
     <span class="md-ellipsis">
       Mach-O Emitter Decisions
@@ -1101,6 +1110,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#customizing-the-rtr_header-symbol-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      Customizing the RTR_HEADER symbol name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#mach-o-emitter-decisions" class="md-nav__link">
     <span class="md-ellipsis">
       Mach-O Emitter Decisions
@@ -1215,11 +1233,13 @@
 </ul>
 <p><code>crossgen2</code> will:</p>
 <ul>
-<li>Produce a Mach-O object file as the composite R2R image with the <code>RTR_HEADER</code> export for the <code>READYTORUN_HEADER</code>.</li>
+<li>Produce a Mach-O object file as the composite R2R image with the <code>RTR_HEADER</code> export for the <code>READYTORUN_HEADER</code>. The export symbol name defaults to <code>RTR_HEADER</code> but can be overridden with the <code>--rtr-header-symbol-name</code> option (see below).</li>
 <li>Mark each input IL assembly as a component R2R assembly: <code>READYTORUN_FLAG_COMPONENT</code>.</li>
 <li>Mark each input IL assembly with a new flag indicating that the associated composite image is in the platform-native format: <code>READYTORUN_FLAG_PLATFORM_NATIVE_IMAGE</code></li>
 </ul>
-<p><code>crossgen2</code> does not produce the final shared library. A separate SDK / build linking step must preserve the <code>RTR_HEADER</code> export in the final <code>dylib</code>.</p>
+<p><code>crossgen2</code> does not produce the final shared library. A separate SDK / build linking step must preserve the <code>RTR_HEADER</code> export (or the custom name if <code>--rtr-header-symbol-name</code> was used) in the final <code>dylib</code>.</p>
+<h3 id="customizing-the-rtr_header-symbol-name">Customizing the RTR_HEADER symbol name</h3>
+<p>The <code>crossgen2</code> <code>--rtr-header-symbol-name &lt;name&gt;</code> option overrides the exported symbol name for the <code>READYTORUN_HEADER</code>. This is intended for custom hosts that directly link against multiple R2R images — rather than loading them dynamically via <code>dlopen</code> or equivalent — where each image needs a distinct export symbol name to avoid collisions. The runtime or host must then use the matching custom name when locating the header.</p>
 <h3 id="mach-o-emitter-decisions">Mach-O Emitter Decisions</h3>
 <p>There's a few cases in the R2R format that are not natively represented in the Mach-O format that have to be emulated. This section will describe some of the design decisions for the Mach-O R2R format.</p>
 <h4 id="sections">Sections</h4>

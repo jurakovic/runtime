@@ -1027,7 +1027,7 @@ native envelope. Moving forward we <a href="../readytorun-platform-native-envelo
 executable formats</a> (ELF on Linux, MachO on OSX) as the native envelopes. There is a
 global CLI / COR header in the file, but it only exists to facilitate pdb generation, and does
 not participate in any usages by the CoreCLR runtime. The ReadyToRun header structure is pointed to
-by the well-known export symbol <code>RTR_HEADER</code> and has the <code>READYTORUN_FLAG_COMPOSITE</code> flag set.</p>
+by the well-known export symbol <code>RTR_HEADER</code> (customizable via the <code>--rtr-header-symbol-name</code> crossgen2 option — see below) and has the <code>READYTORUN_FLAG_COMPOSITE</code> flag set.</p>
 <p>Input MSIL metadata and IL streams can be either embedded in the composite R2R file or left
 as separate files on disk. In case of embedded MSIL, the "actual" metadata for the individual
 component assemblies is accessed via the R2R section <code>ComponentAssemblies</code>.</p>
@@ -1060,8 +1060,11 @@ debug directory entry is described in <a href="https://github.com/dotnet/runtime
 <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/readytorun.h">readytorun.h</a>
 header file.
 Basically the entire R2R executable image is addressed through the READYTORUN_HEADER singleton
-pointed to by the well-known export RTR_HEADER in the export section of the native executable
-envelope.</p>
+pointed to by the well-known export <code>RTR_HEADER</code> in the export section of the native executable
+envelope. For composite images, this export symbol name can be customized using the
+<code>--rtr-header-symbol-name</code> option in <code>crossgen2</code>, which is useful for custom hosts that
+directly link against multiple R2R images (instead of loading them dynamically via <code>dlopen</code> or
+equivalent) and therefore need distinct symbol names to avoid collisions.</p>
 <p>For single-file R2R executables, there's just one header representing all image sections.
 For composite and single exe, the global <code>READYTORUN_HEADER</code> includes a section of the type
 <code>ComponentAssemblies</code> representing the component assemblies comprising the composite
@@ -1253,7 +1256,7 @@ and execute the ready to run file.</p>
 <tr>
 <td style="text-align: left;">InliningInfo2</td>
 <td style="text-align: right;">114</td>
-<td style="text-align: left;">Image (added in V4.1)</td>
+<td style="text-align: left;">Image (non-composite, added in V4.1), Assembly (composite, added in V6.3)</td>
 </tr>
 <tr>
 <td style="text-align: left;">ComponentAssemblies</td>
@@ -2071,6 +2074,14 @@ section pointed to by the <code>READYTORUN_SECTION_ASSEMBLIES_ENTRY</code> core 
 <li>RIDs of the inliners follow. They are encoded similarly to the way the inlinee is encoded (shifted left with the lowest bit indicating foreign RID). Instead of encoding the RID directly, RID delta (the difference between the previous RID and the current RID) is encoded. This allows better integer compression.</li>
 </ul>
 <p>Foreign RIDs are only present if a fragile inlining was allowed at compile time.</p>
+<p><strong>Note:</strong> In single-file (non-composite) R2R files, this section is image-wide and is
+referenced directly by the main R2R header. In composite R2R files (v6.3+), this section
+is instead emitted per component assembly and is referenced by the
+<code>READYTORUN_SECTION_ASSEMBLIES_ENTRY</code> core header of each component; inlinee/inliner RIDs
+without a module override flag refer to methods in the owning component assembly. The
+image-wide <a href="#readytorunsectiontypecrossmoduleinlineinfo-v63"><code>CrossModuleInlineInfo</code></a>
+section supersedes the image-wide use of <code>InliningInfo2</code> for cross-module inlines in
+composite images and may be emitted alongside the per-assembly <code>InliningInfo2</code> sections.</p>
 <p><strong>TODO:</strong> It remains to be seen whether <code>DelayLoadMethodCallThunks</code> and / or
 <code>InliningInfo</code> also require changes specific to the composite R2R file format.</p>
 <h2 id="readytorunsectiontypecomponentassemblies-v41">ReadyToRunSectionType.ComponentAssemblies (v4.1+)</h2>

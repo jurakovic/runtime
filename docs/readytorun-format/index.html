@@ -1620,6 +1620,11 @@ fixup kind, the rest of the signature varies based on the fixup kind.</p>
 <td style="text-align: left;">Entry point of an async method resumption stub</td>
 </tr>
 <tr>
+<td style="text-align: left;">READYTORUN_FIXUP_InjectStringThunks</td>
+<td style="text-align: right;">0x39</td>
+<td style="text-align: left;">Inject pregenerated string-to-code thunk mappings. See <a href="#injectstringthunks-signatures">InjectStringThunks signatures</a> for details.</td>
+</tr>
+<tr>
 <td style="text-align: left;">READYTORUN_FIXUP_ModuleOverride</td>
 <td style="text-align: right;">0x80</td>
 <td style="text-align: left;">When or-ed to the fixup ID, the fixup byte in the signature is followed by an encoded uint with assemblyref index, either within the MSIL metadata of the master context module for the signature or within the manifest metadata R2R header table (used in cases inlining brings in references to assemblies not seen in the input MSIL).</td>
@@ -1741,6 +1746,32 @@ additional data determined by the flags.</p>
 </table>
 <h4 id="il-body-signatures">IL Body signatures</h4>
 <p>ECMA 335 does not define a format that can represent the exact implementation of a method by itself. This signature holds all of the IL of the method, the EH table, the locals table, and each token (other than type references) in those tables is replaced with an index into a local stream of signatures. Those signatures are simply verbatim copies of the needed metadata to describe MemberRefs, TypeSpecs, MethodSpecs, StandaloneSignatures and strings. All of that is bundled into a large byte array. In addition, a series of TypeSignatures follows which allow the type references to be resolved, as well as a methodreference to the uninstantiated method. Assuming all of this matches with the data that is present at runtime, the fixup is considered to be satisfied. See ReadyToRunStandaloneMetadata.cs for the exact details of the format.</p>
+<h4 id="injectstringthunks-signatures">InjectStringThunks signatures</h4>
+<p>The <code>READYTORUN_FIXUP_InjectStringThunks</code> fixup is placed in an eager import section and is processed at R2R module load time. There is at most one such fixup per compilation. It encodes a mapping from UTF-8 strings to pregenerated code thunks embedded in the R2R image.</p>
+<p>The signature following the fixup kind byte is a series of elements:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: right;">Size</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">LookupString</td>
+<td style="text-align: right;">variable</td>
+<td style="text-align: left;">A null-terminated UTF-8 string (the lookup key)</td>
+</tr>
+<tr>
+<td style="text-align: left;">ThunkRVA</td>
+<td style="text-align: right;">4 bytes</td>
+<td style="text-align: left;">An RVA into the module indicating the location of the thunk code. On WebAssembly platforms, this is an I32 function table index instead.</td>
+</tr>
+</tbody>
+</table>
+<p>The series terminates when the null-terminated string is the empty string (a single <code>0x00</code> byte). There is no trailing RVA after the terminal empty string.</p>
+<p>At runtime, the entries are merged into a global hash table. Strings already present in the table from previously loaded modules take precedence over new entries. The table can be queried via <code>LookupPregeneratedThunkByString</code>.</p>
 <h3 id="readytorun_import_sectionsauxiliarydata">READYTORUN_IMPORT_SECTIONS::AuxiliaryData</h3>
 <p>For slots resolved lazily via <code>READYTORUN_HELPER_DelayLoad_MethodCall</code> helper, auxiliary data are
 compressed argument maps that allow precise GC stack scanning while the helper is running. The CoreCLR runtime class <a href="https://github.com/dotnet/runtime/blob/69e114c1abf91241a0eeecf1ecceab4711b8aa62/src/coreclr/inc/gcrefmap.h#L158"><code>GCRefMapDecoder</code></a> is used to parse this information. This data would not be required for runtimes that allow conservative stack scanning.</p>
@@ -2498,6 +2529,197 @@ It could be either 1 byte, 2 bytes or 4 bytes. The three cases are described wit
 <span class="w">    </span><span class="n">READYTORUN_HELPER_EndCatch</span><span class="w">                  </span><span class="o">=</span><span class="w"> </span><span class="mh">0x110</span><span class="p">,</span>
 <span class="p">};</span>
 </code></pre></div>
+<h1 id="wasm-signature-string-encoding">Wasm Signature String Encoding</h1>
+<p>Every managed method signature is encoded as a compact string that uniquely identifies its
+lowered Wasm calling convention. This encoding is used in R2R thunk lookup tables and is
+shared across three codebases:</p>
+<ul>
+<li><strong>crossgen2</strong> (<code>WasmLowering.GetSignature</code>): reference implementation, produces the string
+  during R2R compilation.</li>
+<li><strong>WasmAppBuilder</strong> (<code>SignatureMapper</code>): MSBuild task that generates interpreter-to-native
+  thunk tables from reflection metadata.</li>
+<li><strong>CoreCLR runtime</strong> (<code>helpers.cpp</code>, <code>GetSignatureKey</code>): runtime signature computation for
+  calli and portable entrypoint thunks.</li>
+</ul>
+<p>The string format is:</p>
+<div class="highlight"><pre><span></span><code>&lt;return&gt; [&lt;this&gt;] [&lt;hidden-params&gt;...] &lt;explicit-params&gt;... [p]
+</code></pre></div>
+<p><strong>Return type</strong> (first character):</p>
+<table>
+<thead>
+<tr>
+<th>Encoding</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>v</code></td>
+<td>void return, or empty struct return (no return buffer)</td>
+</tr>
+<tr>
+<td><code>i</code></td>
+<td>returns <code>i32</code></td>
+</tr>
+<tr>
+<td><code>l</code></td>
+<td>returns <code>i64</code></td>
+</tr>
+<tr>
+<td><code>f</code></td>
+<td>returns <code>f32</code></td>
+</tr>
+<tr>
+<td><code>d</code></td>
+<td>returns <code>f64</code></td>
+</tr>
+<tr>
+<td><code>S&lt;N&gt;</code></td>
+<td>struct return via hidden buffer, <code>N</code> is the struct size in bytes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>This pointer</strong> (if the method has a <code>this</code> parameter):</p>
+<table>
+<thead>
+<tr>
+<th>Encoding</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>T</code></td>
+<td><code>this</code> pointer (managed instance methods)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Hidden parameters</strong> (inserted between <code>this</code> and explicit parameters, in order):</p>
+<ol>
+<li><strong>Generic context</strong> (<code>i</code>): present when the method requires an inst method desc or
+   method table argument.</li>
+<li><strong>Async continuation</strong> (<code>i</code>): present for async calls.</li>
+</ol>
+<p>Note: the hidden return buffer pointer is <strong>not</strong> encoded in the signature string. Its
+presence is implied by the return type being <code>S&lt;N&gt;</code> — when the caller sees a struct return,
+it knows a hidden retbuf pointer argument is present in the Wasm parameter list.</p>
+<p><strong>Explicit parameters</strong> (one token per parameter, in declaration order):</p>
+<table>
+<thead>
+<tr>
+<th>Encoding</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>i</code></td>
+<td><code>i32</code> parameter</td>
+</tr>
+<tr>
+<td><code>l</code></td>
+<td><code>i64</code> parameter</td>
+</tr>
+<tr>
+<td><code>f</code></td>
+<td><code>f32</code> parameter</td>
+</tr>
+<tr>
+<td><code>d</code></td>
+<td><code>f64</code> parameter</td>
+</tr>
+<tr>
+<td><code>S&lt;N&gt;</code></td>
+<td>struct parameter passed by reference, <code>&lt;N&gt;</code> is the struct size in bytes</td>
+</tr>
+<tr>
+<td><code>e</code></td>
+<td>empty struct parameter — elided from Wasm args but present in the string</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Suffix</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Encoding</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>p</code></td>
+<td>managed call with portable entrypoint (the <code>&amp;pe</code> argument is implicit)</td>
+</tr>
+<tr>
+<td><em>(absent)</em></td>
+<td>unmanaged callers only (reverse P/Invoke)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Prefix</strong> (applied by the caller, not part of the core encoding):</p>
+<p>When storing signature strings in thunk lookup tables, callers prepend a single-character
+prefix to distinguish thunk categories:</p>
+<table>
+<thead>
+<tr>
+<th>Prefix</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>M</code></td>
+<td>Calli thunk or interpreter-to-native thunk</td>
+</tr>
+<tr>
+<td><code>I</code></td>
+<td>Portable entrypoint-to-interpreter thunk</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Examples</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature string (no prefix)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>static void F()</code></td>
+<td><code>vp</code></td>
+</tr>
+<tr>
+<td><code>static int F(int x)</code></td>
+<td><code>iip</code></td>
+</tr>
+<tr>
+<td><code>void F(int x)</code> (instance)</td>
+<td><code>vTip</code></td>
+</tr>
+<tr>
+<td><code>static MyStruct F()</code> where <code>MyStruct</code> is 16 bytes</td>
+<td><code>S16p</code></td>
+</tr>
+<tr>
+<td><code>static void F(MyStruct s)</code> where <code>MyStruct</code> is 8 bytes</td>
+<td><code>vS8p</code></td>
+</tr>
+<tr>
+<td><code>static int F(float x, double y)</code></td>
+<td><code>ifdp</code></td>
+</tr>
+<tr>
+<td><code>[UnmanagedCallersOnly] static int F(int x)</code></td>
+<td><code>ii</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slot sizing for structs</strong>: When computing interpreter stack layout, struct parameters
+(<code>S&lt;N&gt;</code>) consume <code>max(N / 8, 1)</code> interpreter stack slots, while all other parameter types
+consume exactly 1 slot.</p>
 <h1 id="references">References</h1>
 <p><a href="https://www.ecma-international.org/publications-and-standards/standards/ecma-335">ECMA-335</a></p>
 

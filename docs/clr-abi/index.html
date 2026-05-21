@@ -1498,9 +1498,68 @@ However, note that the use of <code>r11</code> in the dispatcher makes it incomp
 <h2 id="incoming-argument-abi">Incoming argument ABI</h2>
 <p>The linear stack pointer <code>$sp</code> is the first argument to all methods. At a native-&gt;managed transition it is the value of the <code>$__stack_pointer</code> global. This global may be updated to the current <code>$sp</code> within managed code, and must be up to date with the current <code>$sp</code> at managed-&gt;native boundaries. Within the method the stack pointer always points at the bottom (lowest address) of the stack; generally this is a fixed offset from the value the stack pointer held on entry, except in methods that can do dynamic allocation.</p>
 <p>A frame pointer, if used, points at the bottom of the "fixed" portion of the stack to facilitate use of Wasm addressing modes, which only allow positive offsets.</p>
-<p>Structs are generally passed by-reference, unless they happen to exactly contain a single primitive field (or be a struct exactly containing such a struct). The linear stack provides the backing storage for the by-reference structs.</p>
-<p>Structs are generally returned via hidden buffers, whose address is supplied by the caller and passed just after the managed <code>this</code>, or after <code>$sp</code> argument when <code>this</code> is not present. In such cases the return value of the method is the address of the return value. But if the struct can be passed on the Wasm stack it is returned on the Wasm stack.</p>
+<p>Arguments and return values are processed via the Type Lowering algorithm below.</p>
+<p>If a struct is returned via a hidden buffer, the address is supplied by the caller and passed just after the managed <code>this</code>, or after <code>$sp</code> argument when <code>this</code> is not present. In such cases the return value of the method is the address of the return value. But if the struct can be passed on the Wasm stack it is returned on the Wasm stack per the Type Lowering rules.</p>
 <p>(TBD: ABI for vector types)</p>
+<h3 id="type-lowering">Type Lowering</h3>
+<p>Managed types are lowered to WebAssembly value types according to the following rules
+(implemented in <code>WasmLowering.LowerToAbiType</code> and <code>WasmLowering.LowerType</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Managed type</th>
+<th>Wasm value type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bool</code>, <code>char</code>, <code>sbyte</code>, <code>byte</code>, <code>short</code>, <code>ushort</code>, <code>int</code>, <code>uint</code></td>
+<td><code>i32</code></td>
+</tr>
+<tr>
+<td><code>long</code>, <code>ulong</code></td>
+<td><code>i64</code></td>
+</tr>
+<tr>
+<td><code>float</code></td>
+<td><code>f32</code></td>
+</tr>
+<tr>
+<td><code>double</code></td>
+<td><code>f64</code></td>
+</tr>
+<tr>
+<td><code>nint</code>, <code>nuint</code>, pointer, byref, function pointer</td>
+<td><code>i32</code> (pointer-sized)</td>
+</tr>
+<tr>
+<td>Reference types (class, string, array, szarray, interface)</td>
+<td><code>i32</code> (pointer-sized)</td>
+</tr>
+<tr>
+<td>Value type (struct) — single primitive field, no padding</td>
+<td>Unwrap recursively to the field's wasm type</td>
+</tr>
+<tr>
+<td>Value type (struct) — single field with padding, or multiple fields</td>
+<td>Passed by reference (<code>i32</code> pointer)</td>
+</tr>
+<tr>
+<td>Empty struct (zero instance fields)</td>
+<td>Elided from the signature entirely</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Struct unwrapping</strong> is recursive: a struct containing a single struct field, where the inner struct
+has the same size as the outer, is unwrapped until a primitive is reached or the rule no longer applies.
+For example, a struct <code>Wrapper { Inner value; }</code> where <code>Inner { int x; }</code> is unwrapped all the way
+to <code>i32</code>.</p>
+<p>A struct is <strong>not</strong> unwrapped when:
+- It has more than one instance field.
+- It has exactly one instance field but the field's size differs from the struct's size (i.e., the
+  struct has padding due to explicit layout or alignment attributes).</p>
+<p>Structs that cannot be unwrapped are passed by reference. The caller allocates space on the linear
+stack and passes a pointer. For return values, the caller provides a hidden return buffer pointer.</p>
 <h3 id="prolog">Prolog</h3>
 <p>The prolog will decrement the stack pointer by the fixed frame size, home any arguments that are stored on the linear stack, and zero initialize slots on the linear stack as appropriate. It will establish a frame pointer if one is needed.</p>
 <p>So on exit from the prolog the stack pointer (<code>$sp</code>) will point to the bottom of the fixed part of the stack frame. The frame pointer (<code>$fp</code>) if used, will also point to the bottom of fixed part of the stack frame. <code>$sp</code> and <code>$fp</code> will only differ in methods that can allocate extra storage on the stack at runtime (typically from <code>localloc</code>). The stack is kept 16 byte aligned.</p>

@@ -1930,6 +1930,62 @@ which encodes an extra 4-byte representing the end RVA of the unwind info blob.<
 </tr>
 </tbody>
 </table>
+<h3 id="runtime_function-wasm-size-8-bytes">RUNTIME_FUNCTION (wasm, size = 8 bytes)</h3>
+<p>On WebAssembly, the <code>RUNTIME_FUNCTION</code> uses a virtual IP as the <code>BeginAddress</code> rather than an RVA
+into the image. The high bit of the <code>BeginAddress</code> field indicates whether the entry represents a
+funclet (1) or a main method body (0). The remaining 31 bits encode the virtual IP of the start of
+the function or funclet.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Offset</th>
+<th style="text-align: right;">Size</th>
+<th style="text-align: left;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: left;">Virtual IP (bits 30:0) &#124; IsFunclet flag (bit 31)</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: left;">UnwindData RVA (GC info follows immediately after the unwind blob)</td>
+</tr>
+</tbody>
+</table>
+<p>The table is terminated by a sentinel entry with all bits set (<code>0xFFFFFFFF</code>), followed by a 4-byte
+value containing the minimum WebAssembly function table index for the image.</p>
+<h3 id="unwindinfo-wasm">UnwindInfo (wasm)</h3>
+<p>On WebAssembly, the unwind info blob associated with each <code>RUNTIME_FUNCTION</code> entry is encoded as
+two consecutive ULEB128 values:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Order</th>
+<th style="text-align: left;">Encoding</th>
+<th style="text-align: left;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">ULEB128</td>
+<td style="text-align: left;">Frame size in bytes (the number of bytes to unwind from the stack)</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">ULEB128</td>
+<td style="text-align: left;">Virtual IP count divided by 2 (the number of virtual IPs logically present in the function, halved)</td>
+</tr>
+</tbody>
+</table>
+<p>The virtual IP count (after multiplying by 2) gives the span of virtual IPs covered by this
+function or funclet. All virtual IPs are forced to even numbers so that the runtime can force all virtual
+ips to have odd numbers and fit into the address space in a manner which cannot conflict with either interpreter
+IPs or PortableEntryPoint structures.</p>
 <h2 id="readytorunsectiontypemethoddefentrypoints">ReadyToRunSectionType.MethodDefEntryPoints</h2>
 <p>This section contains a native format sparse array (see 4 Native Format) that maps methoddef rows to
 method entrypoints. Methoddef is used as index into the array. The element of the array is index of the
@@ -2423,7 +2479,7 @@ It could be either 1 byte, 2 bytes or 4 bytes. The three cases are described wit
 <span class="w">    </span><span class="c1">// Write barriers</span>
 <span class="w">    </span><span class="n">READYTORUN_HELPER_WriteBarrier</span><span class="w">              </span><span class="o">=</span><span class="w"> </span><span class="mh">0x30</span><span class="p">,</span>
 <span class="w">    </span><span class="n">READYTORUN_HELPER_CheckedWriteBarrier</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="mh">0x31</span><span class="p">,</span>
-<span class="w">    </span><span class="n">READYTORUN_HELPER_ByRefWriteBarrier</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="mh">0x32</span><span class="p">,</span>
+<span class="w">    </span><span class="n">READYTORUN_HELPER_ByRefWriteBarrier</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="mh">0x32</span><span class="p">,</span><span class="w"> </span><span class="c1">// Unused since READYTORUN_MAJOR_VERSION 19.0</span>
 
 <span class="w">    </span><span class="c1">// Array helpers</span>
 <span class="w">    </span><span class="n">READYTORUN_HELPER_Stelem_Ref</span><span class="w">                </span><span class="o">=</span><span class="w"> </span><span class="mh">0x38</span><span class="p">,</span>

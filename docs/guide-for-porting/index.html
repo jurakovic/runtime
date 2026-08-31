@@ -1474,10 +1474,8 @@ Here is an annotated list of the stubs implemented for Unix on Arm64.</p>
     starvation</p>
 </li>
 <li>
-<p><code>VarargPInvokeStub</code>/ <code>GenericPInvokeCalliHelper</code> Used to support calli
-    pinvokes. It is expected that C# 8.0 will increase use of this feature.
-    Today use of this feature on Unix requires hand-written IL. On Windows
-    this feature is commonly used by C++/CLI</p>
+<p><code>VarargPInvokeStub</code> – Used to support vararg pinvokes, which are commonly
+    used by C++/CLI. Not necessary for non-Windows platforms at this time.</p>
 </li>
 </ol>
 </li>

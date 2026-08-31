@@ -1037,8 +1037,8 @@
 <li><code>DOTNET_CreateDumpDiagnostics</code>: if set to "1", enables the <em>createdump</em> utilities diagnostic messages (TRACE macro).</li>
 <li><code>DOTNET_CreateDumpVerboseDiagnostics</code>: if set to "1", enables the <em>createdump</em> utilities verbose diagnostic messages (TRACE_VERBOSE macro).</li>
 <li><code>DOTNET_CreateDumpLogToFile</code>: if set, it is the path of the file to write the <em>createdump</em> diagnostic messages.</li>
-<li><code>DOTNET_EnableCrashReport</code>: In .NET 6.0 or greater, if set to "1", createdump also generates a json formatted crash report which includes information about the threads and stack frames of the crashing application. The crash report name is the dump path/name with <em>.crashreport.json</em> appended.</li>
-<li><code>DOTNET_EnableCrashReportOnly</code>: In .NET 7.0 or greater, same as DOTNET_EnableCrashReport except the core dump is not generated.</li>
+<li><code>DOTNET_EnableCrashReport</code>: In .NET 6.0 or greater, if set to "1" together with <code>DOTNET_DbgEnableMiniDump</code>, createdump also generates a json formatted crash report which includes information about the threads and stack frames of the crashing application. The crash report name is the dump path/name with <em>.crashreport.json</em> appended. Starting in .NET 11, when <code>DOTNET_DbgEnableMiniDump</code> is not enabled on a platform that supports the in-process crash reporter, this setting enables the in-process reporter instead.</li>
+<li><code>DOTNET_EnableCrashReportOnly</code>: In .NET 7.0 or greater, same as <code>DOTNET_EnableCrashReport</code> except createdump does not generate the core dump. Starting in .NET 11, when <code>DOTNET_DbgEnableMiniDump</code> is not enabled, this setting also enables the in-process reporter on supported platforms.</li>
 </ul>
 <p>DOTNET_DbgMiniDumpType values:</p>
 <table>

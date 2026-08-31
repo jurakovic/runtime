@@ -1562,7 +1562,7 @@ fixup kind, the rest of the signature varies based on the fixup kind.</p>
 <tr>
 <td style="text-align: left;">READYTORUN_FIXUP_DeclaringTypeHandle</td>
 <td style="text-align: right;">0x2D</td>
-<td style="text-align: left;">Dictionary lookup for method declaring type. Followed by the type signature.</td>
+<td style="text-align: left;">Type which declares the method described by the signature. Followed by the method signature.</td>
 </tr>
 <tr>
 <td style="text-align: left;">READYTORUN_FIXUP_IndirectPInvokeTarget</td>
@@ -1623,6 +1623,11 @@ fixup kind, the rest of the signature varies based on the fixup kind.</p>
 <td style="text-align: left;">READYTORUN_FIXUP_InjectStringThunks</td>
 <td style="text-align: right;">0x39</td>
 <td style="text-align: left;">Inject pregenerated string-to-code thunk mappings. See <a href="#injectstringthunks-signatures">InjectStringThunks signatures</a> for details.</td>
+</tr>
+<tr>
+<td style="text-align: left;">READYTORUN_FIXUP_StoreMultiCallableAddrOfCode</td>
+<td style="text-align: right;">0x3A</td>
+<td style="text-align: left;">Store the runtime multi-callable code address of a method into a location embedded in the R2R image. See <a href="#storemulticallableaddrofcode-signatures">StoreMultiCallableAddrOfCode signatures</a> for details.</td>
 </tr>
 <tr>
 <td style="text-align: left;">READYTORUN_FIXUP_ModuleOverride</td>
@@ -1772,6 +1777,32 @@ additional data determined by the flags.</p>
 </table>
 <p>The series terminates when the null-terminated string is the empty string (a single <code>0x00</code> byte). There is no trailing RVA after the terminal empty string.</p>
 <p>At runtime, the entries are merged into a global hash table. Strings already present in the table from previously loaded modules take precedence over new entries. The table can be queried via <code>LookupPregeneratedThunkByString</code>.</p>
+<h4 id="storemulticallableaddrofcode-signatures">StoreMultiCallableAddrOfCode signatures</h4>
+<p>The <code>READYTORUN_FIXUP_StoreMultiCallableAddrOfCode</code> fixup is placed in a precode import section and is processed at method load time (when the fixups for the associated method are resolved). It records the runtime multi-callable code address of a target method into a location embedded in the R2R image (for example, a slot in a compiled method's read-only data blob). This is required on platforms where a callable code pointer is not simply <code>imageBase + RVA</code> and is therefore only known at runtime (such as WebAssembly, where a callable pointer is a runtime-allocated portable entry point rather than a compile-time function table index).</p>
+<p>The signature following the fixup kind byte is:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: right;">Size</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">TargetCodeRVA</td>
+<td style="text-align: right;">4 bytes</td>
+<td style="text-align: left;">An RVA identifying the target method's code. On WebAssembly platforms, this is an I32 function table index instead. This is encoded identically to the target of a <code>READYTORUN_FIXUP_ResumptionStubEntryPoint</code> fixup so the resulting entry point value matches the one that fixup registers.</td>
+</tr>
+<tr>
+<td style="text-align: left;">LocationRVA</td>
+<td style="text-align: right;">4 bytes</td>
+<td style="text-align: left;">An <code>IMAGE_REL_BASED_ADDR32NB</code> RVA identifying the location within the R2R image where the resolved code address is to be stored.</td>
+</tr>
+</tbody>
+</table>
+<p>At runtime, the fixup resolves the target entry point to its <code>MethodDesc</code> (using the entry-point-to-<code>MethodDesc</code> mapping populated by the <code>READYTORUN_FIXUP_ResumptionStubEntryPoint</code> fixup), computes <code>GetMultiCallableAddrOfCode</code>, and stores the resulting pointer at the location identified by <code>LocationRVA</code>.</p>
+<p>Because this fixup depends on the target entry point already being registered, it must be ordered after the corresponding <code>READYTORUN_FIXUP_ResumptionStubEntryPoint</code> fixup within the method's precode fixup list.</p>
 <h3 id="readytorun_import_sectionsauxiliarydata">READYTORUN_IMPORT_SECTIONS::AuxiliaryData</h3>
 <p>For slots resolved lazily via <code>READYTORUN_HELPER_DelayLoad_MethodCall</code> helper, auxiliary data are
 compressed argument maps that allow precise GC stack scanning while the helper is running. The CoreCLR runtime class <a href="https://github.com/dotnet/runtime/blob/69e114c1abf91241a0eeecf1ecceab4711b8aa62/src/coreclr/inc/gcrefmap.h#L158"><code>GCRefMapDecoder</code></a> is used to parse this information. This data would not be required for runtimes that allow conservative stack scanning.</p>
@@ -2630,11 +2661,17 @@ shared across three codebases:</p>
 <td>returns <code>f64</code></td>
 </tr>
 <tr>
+<td><code>V</code></td>
+<td>returns <code>v128</code> (a <code>Vector128&lt;T&gt;</code>, or a 16-byte <code>Vector&lt;T&gt;</code>)</td>
+</tr>
+<tr>
 <td><code>S&lt;N&gt;</code></td>
 <td>struct return via hidden buffer, <code>N</code> is the struct size in bytes</td>
 </tr>
 </tbody>
 </table>
+<p>Struct returns always use <code>S&lt;N&gt;</code> regardless of alignment. The aligned form is valid only
+for parameters because their placement in the transition block depends on it.</p>
 <p><strong>This pointer</strong> (if the method has a <code>this</code> parameter):</p>
 <table>
 <thead>
@@ -2654,7 +2691,7 @@ shared across three codebases:</p>
 <ol>
 <li><strong>Generic context</strong> (<code>i</code>): present when the method requires an inst method desc or
    method table argument.</li>
-<li><strong>Async continuation</strong> (<code>i</code>): present for async calls.</li>
+<li><strong>Async continuation</strong> (<code>a</code>): present for async calls.</li>
 </ol>
 <p>Note: the hidden return buffer pointer is <strong>not</strong> encoded in the signature string. Its
 presence is implied by the return type being <code>S&lt;N&gt;</code> — when the caller sees a struct return,
@@ -2685,15 +2722,78 @@ it knows a hidden retbuf pointer argument is present in the Wasm parameter list.
 <td><code>f64</code> parameter</td>
 </tr>
 <tr>
+<td><code>V</code></td>
+<td><code>v128</code> parameter (a <code>Vector128&lt;T&gt;</code>, or a 16-byte <code>Vector&lt;T&gt;</code>, passed by value)</td>
+</tr>
+<tr>
 <td><code>S&lt;N&gt;</code></td>
-<td>struct parameter passed by reference, <code>&lt;N&gt;</code> is the struct size in bytes</td>
+<td>struct parameter passed by reference, <code>&lt;N&gt;</code> is the struct size in bytes and its alignment is at most 8</td>
+</tr>
+<tr>
+<td><code>A&lt;N&gt;</code></td>
+<td>struct parameter passed by reference, <code>&lt;N&gt;</code> is the struct size in bytes and its alignment exceeds 8</td>
 </tr>
 <tr>
 <td><code>e</code></td>
 <td>empty struct parameter — elided from Wasm args but present in the string</td>
 </tr>
+<tr>
+<td><code>&lt;slot&gt;&lt;E&gt;</code></td>
+<td>multi-slot parameter passed by value, see below</td>
+</tr>
 </tbody>
 </table>
+<p><strong>Multi-slot parameters</strong>: some types are passed by value across several Wasm parameters
+because no single Wasm value type can hold them, matching the Wasm C ABI. The slot
+character is followed by the factor by which the type's alignment is elevated above that
+slot's natural alignment:</p>
+<table>
+<thead>
+<tr>
+<th>Encoding</th>
+<th>Slots</th>
+<th>Alignment</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>l2</code></td>
+<td>2 x <code>i64</code></td>
+<td>16 (elevated 2x)</td>
+<td><code>Int128</code>, <code>UInt128</code>, <code>Decimal128</code></td>
+</tr>
+<tr>
+<td><code>V2</code></td>
+<td>2 x <code>v128</code></td>
+<td>32 (elevated 2x)</td>
+<td><code>Vector256&lt;T&gt;</code></td>
+</tr>
+<tr>
+<td><code>V4</code></td>
+<td>4 x <code>v128</code></td>
+<td>64 (elevated 4x)</td>
+<td><code>Vector512&lt;T&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<p>A single-field struct wrapping one of these is passed the same way as the type it wraps,
+matching the treatment of a struct wrapping a <code>v128</code>.</p>
+<p>The digit is required. A repeated slot character without one — <code>ll</code>, <code>VV</code> — is not an
+aggregate: it is two independent scalar parameters, which is how every implementation
+reads it. So <code>ll2VV4</code> is <code>i64</code>, <code>Int128</code>, <code>Vector128&lt;T&gt;</code>, <code>Vector512&lt;T&gt;</code>. The grammar stays
+unambiguous because no other token places a digit after a slot character; struct tokens
+consume their own size.</p>
+<p>These types are still <em>returned</em> through a hidden buffer, encoded as <code>S&lt;N&gt;</code> like any other
+aggregate. Limitation: a single digit carries both the slot count and the elevation factor,
+so an aggregate whose elevation differs from its slot count has no spelling. That includes
+one whose alignment is merely natural for its slot type, which would need count <code>N</code> with
+elevation 1. No such type exists in the Wasm ABI today.</p>
+<p>WasmAppBuilder does not emit or consume multi-slot tokens: they do not appear in
+<code>InternalCall</code> or <code>PInvoke</code> signatures.</p>
+<p>A struct argument is placed at its own alignment clamped to <code>[8, 16]</code> in the transition
+block. Therefore <code>A&lt;N&gt;</code> covers every struct whose declared alignment exceeds 8: alignments
+of 16 or higher all require the same 16-byte transition-block placement.</p>
 <p><strong>Suffix</strong>:</p>
 <table>
 <thead>
@@ -2764,8 +2864,20 @@ prefix to distinguish thunk categories:</p>
 <td><code>vS8p</code></td>
 </tr>
 <tr>
+<td><code>static void F(long tag, MyStruct s, int t)</code> where <code>MyStruct</code> is 32 bytes and at least 16-byte aligned</td>
+<td><code>vlA32ip</code></td>
+</tr>
+<tr>
 <td><code>static int F(float x, double y)</code></td>
 <td><code>ifdp</code></td>
+</tr>
+<tr>
+<td><code>static long F(long tag, Int128 v, int t)</code></td>
+<td><code>lll2ip</code></td>
+</tr>
+<tr>
+<td><code>static int F(long tag, Vector512&lt;int&gt; v, int t)</code></td>
+<td><code>ilV4ip</code></td>
 </tr>
 <tr>
 <td><code>[UnmanagedCallersOnly] static int F(int x)</code></td>
@@ -2774,8 +2886,8 @@ prefix to distinguish thunk categories:</p>
 </tbody>
 </table>
 <p><strong>Slot sizing for structs</strong>: When computing interpreter stack layout, struct parameters
-(<code>S&lt;N&gt;</code>) consume <code>max(N / 8, 1)</code> interpreter stack slots, while all other parameter types
-consume exactly 1 slot.</p>
+(<code>S&lt;N&gt;</code> and <code>A&lt;N&gt;</code>) consume <code>max((N + 7) / 8, 1)</code> interpreter stack slots, while all
+other parameter types consume exactly 1 slot.</p>
 <h1 id="references">References</h1>
 <p><a href="https://www.ecma-international.org/publications-and-standards/standards/ecma-335">ECMA-335</a></p>
 

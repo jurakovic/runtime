@@ -1044,29 +1044,29 @@
 <p>QCalls should be implemented with a C-style method signature. This makes it easier for AOT tooling in the future to connect a QCall on the managed side to the implementation on the native side.</p>
 <h3 id="qcall-example-managed">QCall example - managed</h3>
 <p>Do not replicate the comments into your actual QCall implementation. This is for illustrative purposes.</p>
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Foo</span>
+<div class="highlight"><pre><span></span><code><span class="k">partial</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">Foo</span>
 <span class="p">{</span>
-<span class="w">    </span><span class="c1">// All QCalls should have the following DllImport attribute</span>
-<span class="w">    </span><span class="na">[DllImport(RuntimeHelpers.QCall, EntryPoint = &quot;Foo_BarInternal&quot;, CharSet = CharSet.Unicode)]</span>
-
-<span class="w">    </span><span class="c1">// QCalls should always be static extern.</span>
-<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="k">extern</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">BarInternal</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">flags</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">inString</span><span class="p">,</span><span class="w"> </span><span class="n">StringHandleOnStack</span><span class="w"> </span><span class="n">retString</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// QCalls that use BEGIN_QCALL must use the hidden last parameter error handler.</span>
+<span class="w">    </span><span class="na">[ErrorHandler(typeof(QCallExceptionStatusMarshaller), ErrorLocation.HiddenLastParameter)]</span>
+<span class="w">    </span><span class="na">[LibraryImport(RuntimeHelpers.QCall, EntryPoint = &quot;Foo_BarInternal&quot;, StringMarshalling = StringMarshalling.Utf16)]</span>
+<span class="w">    </span><span class="na">[return: MarshalAs(UnmanagedType.Bool)]</span>
+<span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="k">partial</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="nf">BarInternal</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">flags</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">inString</span><span class="p">,</span><span class="w"> </span><span class="n">StringHandleOnStack</span><span class="w"> </span><span class="n">retString</span><span class="p">);</span>
 
 <span class="w">    </span><span class="c1">// Many QCalls have a thin managed wrapper around them to perform</span>
 <span class="w">    </span><span class="c1">// as much work prior to the transition as possible. An example would be</span>
 <span class="w">    </span><span class="c1">// argument validation which is easier in managed than native code.</span>
-<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="nf">Bar</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">flags</span><span class="p">)</span>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="nf">Bar</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">flags</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">inString</span><span class="p">)</span>
 <span class="w">    </span><span class="p">{</span>
 <span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">flags</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
 <span class="w">            </span><span class="k">throw</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="nf">ArgumentException</span><span class="p">(</span><span class="s">&quot;Invalid flags&quot;</span><span class="p">);</span>
 
-<span class="w">        </span><span class="kt">string</span><span class="w"> </span><span class="n">retString</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">null</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">string?</span><span class="w"> </span><span class="n">retString</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">null</span><span class="p">;</span>
 <span class="w">        </span><span class="c1">// The strings are returned from QCalls by taking address</span>
-<span class="w">        </span><span class="c1">// of a local variable using StringHandleOnStack</span>
-<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">BarInternal</span><span class="p">(</span><span class="n">flags</span><span class="p">,</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="n">Id</span><span class="p">,</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">StringHandleOnStack</span><span class="p">(</span><span class="k">ref</span><span class="w"> </span><span class="n">retString</span><span class="p">)))</span>
+<span class="w">        </span><span class="c1">// of a local variable using StringHandleOnStack.</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">BarInternal</span><span class="p">(</span><span class="n">flags</span><span class="p">,</span><span class="w"> </span><span class="n">inString</span><span class="p">,</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">StringHandleOnStack</span><span class="p">(</span><span class="k">ref</span><span class="w"> </span><span class="n">retString</span><span class="p">)))</span>
 <span class="w">            </span><span class="n">FatalError</span><span class="p">();</span>
 
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">retString</span><span class="p">;</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">retString</span><span class="o">!</span><span class="p">;</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -1074,7 +1074,8 @@
 <p>Do not replicate the comments into your actual QCall implementation.</p>
 <p>The QCall entrypoint has to be registered in tables in <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/qcallentrypoints.cpp">vm\qcallentrypoints.cpp</a> using the <code>DllImportEntry</code> macro. See <a href="#register">"Registering your QCall or FCall Method"</a> below.</p>
 <div class="highlight"><pre><span></span><code><span class="c1">// All QCalls should be free functions and tagged with QCALLTYPE and extern &quot;C&quot;</span>
-<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="w"> </span><span class="n">BOOL</span><span class="w"> </span><span class="n">QCALLTYPE</span><span class="w"> </span><span class="n">Foo_BarInternal</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">flags</span><span class="p">,</span><span class="w"> </span><span class="n">LPCWSTR</span><span class="w"> </span><span class="n">wszString</span><span class="p">,</span><span class="w"> </span><span class="n">QCall</span><span class="o">::</span><span class="n">StringHandleOnStack</span><span class="w"> </span><span class="n">retString</span><span class="p">)</span>
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="w"> </span><span class="n">BOOL</span><span class="w"> </span><span class="n">QCALLTYPE</span><span class="w"> </span><span class="n">Foo_BarInternal</span><span class="p">(</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">flags</span><span class="p">,</span><span class="w"> </span><span class="n">LPCWSTR</span><span class="w"> </span><span class="n">wszString</span><span class="p">,</span><span class="w"> </span><span class="n">QCall</span><span class="o">::</span><span class="n">StringHandleOnStack</span><span class="w"> </span><span class="n">retString</span><span class="p">,</span><span class="w"> </span><span class="n">QCallExceptionStatus</span><span class="o">*</span><span class="w"> </span><span class="n">qcallError</span><span class="p">)</span>
 <span class="p">{</span>
 <span class="w">    </span><span class="c1">// All QCalls should have QCALL_CONTRACT.</span>
 <span class="w">    </span><span class="c1">// It is alias for THROWS; GC_TRIGGERS; MODE_PREEMPTIVE.</span>
@@ -1092,7 +1093,7 @@
 <span class="w">    </span><span class="n">BOOL</span><span class="w"> </span><span class="n">retVal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FALSE</span><span class="p">;</span>
 
 <span class="w">    </span><span class="c1">// The body has to be enclosed in BEGIN_QCALL/END_QCALL macro.</span>
-<span class="w">    </span><span class="c1">// It is necessary for exception handling.</span>
+<span class="w">    </span><span class="c1">// It initializes qcallError and captures exceptions for the managed error handler.</span>
 <span class="w">    </span><span class="n">BEGIN_QCALL</span><span class="p">;</span>
 
 <span class="w">    </span><span class="c1">// Argument validation would ideally be in managed, but in some cases</span>
@@ -1117,6 +1118,8 @@
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">retVal</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre></div>
+<p>QCalls that return before entering <code>BEGIN_QCALL</code>, including no-op fast paths and code excluded
+by platform conditionals, must explicitly set <code>*qcallError = 0</code> before returning.</p>
 <h2 id="fcall-functional-behavior">FCall functional behavior</h2>
 <p>FCalls allow more flexibility in terms of passing object references around, but with higher code complexity and more opportunities to make mistakes. Additionally, for any FCall of non-trivial length, explicitly poll for whether a garbage collection must occur. Failing to do so will lead to starvation issues if managed code repeatedly calls the FCall method in a tight loop, because FCalls execute while the thread only allows the GC to run in a cooperative manner.</p>
 <p>FCalls require a lot of boilerplate code, too much to describe here. Refer to <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/fcall.h">fcall.h</a> for details.</p>

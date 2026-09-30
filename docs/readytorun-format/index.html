@@ -1303,6 +1303,21 @@ and execute the ready to run file.</p>
 <td style="text-align: right;">123</td>
 <td style="text-align: left;">Assembly (Added in V9.0)</td>
 </tr>
+<tr>
+<td style="text-align: left;">ExternalTypeMaps</td>
+<td style="text-align: right;">124</td>
+<td style="text-align: left;">Assembly (added in V18.3, extended in V28)</td>
+</tr>
+<tr>
+<td style="text-align: left;">ProxyTypeMaps</td>
+<td style="text-align: right;">125</td>
+<td style="text-align: left;">Assembly (added in V18.3, extended in V28)</td>
+</tr>
+<tr>
+<td style="text-align: left;">TypeMapAssemblyTargets</td>
+<td style="text-align: right;">126</td>
+<td style="text-align: left;">Assembly (added in V18.3)</td>
+</tr>
 </tbody>
 </table>
 <h2 id="readytorunsectiontypecompileridentifier">ReadyToRunSectionType.CompilerIdentifier</h2>
@@ -2131,6 +2146,7 @@ alternate lookup is not currently a deeply nested algorithm. If that lookup fail
 will proceed to every module which specified <code>READYTORUN_FLAG_UNRELATED_R2R_CODE</code> as a flag.</p>
 <h2 id="readytorunsectiontypeinlininginfo-v21">ReadyToRunSectionType.InliningInfo (v2.1+)</h2>
 <p><strong>TODO</strong>: document inlining info encoding</p>
+<p>CoreCLR no longer consumes this legacy section. R2R inspection tools retain support for reading it.</p>
 <h2 id="readytorunsectiontypeprofiledatainfo-v22">ReadyToRunSectionType.ProfileDataInfo (v2.2+)</h2>
 <p><strong>TODO</strong>: document profile data encoding</p>
 <h2 id="readytorunsectiontypemanifestmetadata-v23-with-changes-for-v63">ReadyToRunSectionType.ManifestMetadata (v2.3+ with changes for v6.3+)</h2>
@@ -2184,7 +2200,8 @@ implementation assemblies.</p>
 main R2R header; in composite R2R files, each component module has its own attribute presence
 section pointed to by the <code>READYTORUN_SECTION_ASSEMBLIES_ENTRY</code> core header structure.</p>
 <h2 id="readytorunsectiontypeinlininginfo2-v41">ReadyToRunSectionType.InliningInfo2 (v4.1+)</h2>
-<p>The inlining information section captures what methods got inlined into other methods. It consists of a single <em>Native Format Hashtable</em> (described below).</p>
+<p>The inlining information section captures what methods got inlined into other methods. It consists of a single <em>Native Format Hashtable</em> (described below).
+CoreCLR loads this section only in builds that support profiling, ReJIT, or code versioning.</p>
 <p>The entries in the hashtable are lists of inliners for each inlinee. One entry in the hashtable corresponds to one inlinee. The hashtable is hashed by hashcode of the module name XORed with inlinee RID.</p>
 <p>The entry of the hashtable is a counted sequence of compressed unsigned integers:</p>
 <ul>
@@ -2229,7 +2246,8 @@ Number of assemblies stored in the manifest metadata is equal to the number of M
 MVID records are used at runtime to verify that the assemblies loaded match those referenced by the
 manifest metadata representing the versioning bubble.</p>
 <h2 id="readytorunsectiontypecrossmoduleinlineinfo-v63">ReadyToRunSectionType.CrossModuleInlineInfo (v6.3+)</h2>
-<p>The inlining information section captures what methods got inlined into other methods. It consists of a single <em>Native Format Hashtable</em> (described below).</p>
+<p>The inlining information section captures what methods got inlined into other methods. It consists of a single <em>Native Format Hashtable</em> (described below).
+CoreCLR loads this section only in builds that support profiling, ReJIT, or code versioning.</p>
 <p>The entries in the hashtable are lists of inliners for each inlinee. One entry in the hashtable corresponds to one inlinee. The hashtable is hashed with the version resilient hashcode of the uninstantiated methoddef inlinee.</p>
 <p>The entry of the hashtable is a counted sequence of compressed unsigned integers which begins with an InlineeIndex which combines a 30 bit index with 2 bits of flags which how the sequence of inliners shall be parsed and what table is to be indexed into to find the inlinee.</p>
 <ul>
@@ -2281,6 +2299,73 @@ A single 32 bit integer representing the number of entries in the map followed b
 <li>Are there any constraints on the generic parameters? (This is the 3rd bit of the entry)</li>
 <li>Do any of the generic parameters have co or contra variance? (This is the 4th bit of the entry)</li>
 </ol>
+<h2 id="readytorunsectiontypeexternaltypemaps-v183">ReadyToRunSectionType.ExternalTypeMaps (v18.3+)</h2>
+<p>This optional section contains precomputed external type maps. It is a native hashtable keyed by the version-resilient hash code of the type map group. Each value has the following layout:</p>
+<div class="highlight"><pre><span></span><code>GroupTypeFixup
+State
+[ExternalTypeMapHashtable]
+[NamedEntries]
+</code></pre></div>
+<p><code>GroupTypeFixup</code> is a fixup reference encoded as the import section index followed by the fixup row index. <code>State</code> is a compressed unsigned integer with one of these values:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">State</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Remaining layout</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: left;">Runtime attribute fallback</td>
+<td style="text-align: left;">No precomputed map data. The runtime processes the type map attributes instead.</td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">Precomputed fixups</td>
+<td style="text-align: left;"><code>ExternalTypeMapHashtable</code> only.</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">Precomputed fixups and type names</td>
+<td style="text-align: left;"><code>ExternalTypeMapHashtable</code> followed immediately by <code>NamedEntries</code>. Added in V28.</td>
+</tr>
+</tbody>
+</table>
+<p><code>ExternalTypeMapHashtable</code> is a native hashtable keyed by the name hash code of the external type map key. Each value contains:</p>
+<div class="highlight"><pre><span></span><code>KeyString
+TargetTypeFixup
+</code></pre></div>
+<p><code>TargetTypeFixup</code> has the same import-section-index and fixup-row-index encoding as <code>GroupTypeFixup</code>.</p>
+<p>In state 2, <code>NamedEntries</code> is a native sequence: a compressed unsigned count followed by that many inline pairs. Each pair contains:</p>
+<div class="highlight"><pre><span></span><code>KeyString
+SerializedTargetTypeName
+</code></pre></div>
+<p>These entries represent target types that cannot be encoded as ReadyToRun fixups. The endpoint stored in the final bucket-offset cell of <code>ExternalTypeMapHashtable</code> identifies the start of <code>NamedEntries</code>; a hashtable lookup therefore does not enumerate the string sequence.</p>
+<h2 id="readytorunsectiontypeproxytypemaps-v183">ReadyToRunSectionType.ProxyTypeMaps (v18.3+)</h2>
+<p>This optional section contains precomputed proxy type maps. Its outer native hashtable and per-group <code>GroupTypeFixup</code> and <code>State</code> fields use the same layout as <code>ExternalTypeMaps</code>:</p>
+<div class="highlight"><pre><span></span><code>GroupTypeFixup
+State
+[ProxyTypeMapHashtable]
+[NamedEntries]
+</code></pre></div>
+<p><code>ProxyTypeMapHashtable</code> is keyed by the version-resilient hash code of the source type. Each value contains:</p>
+<div class="highlight"><pre><span></span><code>SourceTypeFixup
+ProxyTypeFixup
+</code></pre></div>
+<p>In state 2, <code>NamedEntries</code> begins immediately after <code>ProxyTypeMapHashtable</code> and contains a compressed unsigned count followed by that many inline pairs:</p>
+<div class="highlight"><pre><span></span><code>SerializedSourceTypeName
+SerializedProxyTypeName
+</code></pre></div>
+<p>If either type in a proxy mapping cannot be encoded as a ReadyToRun fixup, both types are represented by their serialized names in <code>NamedEntries</code>.</p>
+<h2 id="readytorunsectiontypetypemapassemblytargets-v183">ReadyToRunSectionType.TypeMapAssemblyTargets (v18.3+)</h2>
+<p>This optional section is a native hashtable keyed by the version-resilient hash code of the type map group. Each value contains the group type fixup followed by a native sequence of module fixups:</p>
+<div class="highlight"><pre><span></span><code>GroupTypeFixup
+TargetModuleCount
+TargetModuleFixup[TargetModuleCount]
+</code></pre></div>
+<p>Each type or module fixup is encoded as an import section index followed by a fixup row index.</p>
 <h1 id="native-format">Native Format</h1>
 <p>Native format is set of encoding patterns that allow persisting type system data in a binary format that is
 efficient for runtime access - both in working set and CPU cycles. (Originally designed for and extensively
@@ -2617,9 +2702,9 @@ It could be either 1 byte, 2 bytes or 4 bytes. The three cases are described wit
 <span class="p">};</span>
 </code></pre></div>
 <h1 id="wasm-signature-string-encoding">Wasm Signature String Encoding</h1>
-<p>Every managed method signature is encoded as a compact string that uniquely identifies its
-lowered Wasm calling convention. This encoding is used in R2R thunk lookup tables and is
-shared across three codebases:</p>
+<p>Every managed method signature is encoded as a compact string that records the semantic
+details needed by interpreter transition and delay-load thunks. This encoding is shared
+across three codebases:</p>
 <ul>
 <li><strong>crossgen2</strong> (<code>WasmLowering.GetSignature</code>): reference implementation, produces the string
   during R2R compilation.</li>
@@ -2631,6 +2716,19 @@ shared across three codebases:</p>
 <p>The string format is:</p>
 <div class="highlight"><pre><span></span><code>&lt;return&gt; [&lt;this&gt;] [&lt;hidden-params&gt;...] &lt;explicit-params&gt;... [p]
 </code></pre></div>
+<p>Some string-discoverable Wasm stubs use a structural encoding that contains only the lowered
+Wasm result and parameter types.</p>
+<p>Virtual dispatch (<code>V</code>) thunk lookup uses a separate canonical form based only on the
+lowered Wasm function type:</p>
+<div class="highlight"><pre><span></span><code>V&lt;wasm-return&gt;&lt;wasm-params...&gt;
+</code></pre></div>
+<p>The return is <code>v</code> for no Wasm result; otherwise each result and parameter is encoded as
+<code>i</code> (<code>i32</code>), <code>l</code> (<code>i64</code>), <code>f</code> (<code>f32</code>), <code>d</code> (<code>f64</code>), or <code>V</code> (<code>v128</code>). The parameter list
+includes the stack pointer, hidden parameters, indirect return or argument pointers, and
+the portable entrypoint parameter exactly as they appear in the Wasm function type. This
+allows one virtual dispatch thunk to serve managed signatures whose semantic encodings
+differ but whose Wasm calling conventions are identical, such as an indirect structure
+argument and an <code>i32</code> argument on Wasm32.</p>
 <p><strong>Return type</strong> (first character):</p>
 <table>
 <thead>
@@ -2690,7 +2788,9 @@ for parameters because their placement in the transition block depends on it.</p
 <p><strong>Hidden parameters</strong> (inserted between <code>this</code> and explicit parameters, in order):</p>
 <ol>
 <li><strong>Generic context</strong> (<code>i</code>): present when the method requires an inst method desc or
-   method table argument.</li>
+   method table argument. It is encoded like a pointer argument: without an async
+   continuation it occupies the same slot as a leading pointer argument, and callers such as
+   <code>InitHelpers.CallClassConstructor</code> pass it as one.</li>
 <li><strong>Async continuation</strong> (<code>a</code>): present for async calls.</li>
 </ol>
 <p>Note: the hidden return buffer pointer is <strong>not</strong> encoded in the signature string. Its
@@ -2814,8 +2914,8 @@ of 16 or higher all require the same 16-byte transition-block placement.</p>
 </tbody>
 </table>
 <p><strong>Prefix</strong> (applied by the caller, not part of the core encoding):</p>
-<p>When storing signature strings in thunk lookup tables, callers prepend a single-character
-prefix to distinguish thunk categories:</p>
+<p>When storing signature strings in thunk lookup tables, callers prepend a prefix to distinguish
+thunk categories:</p>
 <table>
 <thead>
 <tr>
@@ -2832,8 +2932,108 @@ prefix to distinguish thunk categories:</p>
 <td><code>I</code></td>
 <td>Portable entrypoint-to-interpreter thunk</td>
 </tr>
+<tr>
+<td><code>U</code></td>
+<td>Unboxing stub whose target does not require a generic context argument</td>
+</tr>
+<tr>
+<td><code>UG</code></td>
+<td>Unboxing stub that passes the boxed object's MethodTable as the generic context argument</td>
+</tr>
+<tr>
+<td><code>UM</code></td>
+<td>Unboxing stub that passes a target MethodDesc as the generic context argument</td>
+</tr>
+<tr>
+<td><code>V</code></td>
+<td>Virtual dispatch thunk</td>
+</tr>
 </tbody>
 </table>
+<p>A <code>V</code> thunk receives a dynamically allocated virtual-dispatch portable entrypoint as its final
+argument. The first call uses the signature-specific external-method thunk. When the runtime
+resolves a class virtual call, it dynamically looks up the corresponding <code>V</code> thunk and publishes
+a new portable entrypoint containing that thunk, the two packed vtable offsets, and the original
+portable entrypoint. Subsequent calls load the target method's portable entrypoint from the
+receiver's method table and forward the call using the same lowered Wasm signature. If that
+portable entrypoint does not yet have an actual code target, the <code>V</code> thunk redispatches through
+the original portable entrypoint so the runtime can resolve the receiver and prepare its target
+portable entrypoint for calls from R2R code.</p>
+<p>The 12-byte virtual-dispatch portable entrypoint has this layout:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Offset</th>
+<th style="text-align: right;">Size</th>
+<th>Field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">4</td>
+<td><code>V</code> thunk table index</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">2</td>
+<td>Offset from the method table to the vtable indirection</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">2</td>
+<td>Offset from that indirection to the target slot</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">4</td>
+<td>Pointer to the original import portable entrypoint</td>
+</tr>
+</tbody>
+</table>
+<p>Unboxing stub keys use only structural Wasm result and parameter types:</p>
+<div class="highlight"><pre><span></span><code>U[G|M]&lt;result&gt;[r]&lt;parameters&gt;
+</code></pre></div>
+<p>The <code>G</code> or <code>M</code> suffix is omitted for a normal <code>U</code> stub. For <code>UG</code> and <code>UM</code>, a lowercase <code>r</code>
+immediately after the result type indicates that the first parameter after <code>this</code> is a hidden
+return buffer. The <code>r</code> marker is not used for <code>U</code> stubs because those stubs do not insert a
+generic context argument. This distinction is required because a void-returning method with an
+explicit <code>i32</code> parameter can otherwise have the same structural Wasm type as a method returning
+a struct through a hidden buffer, but the generic context must be inserted at a different
+position.</p>
+<h3 id="wasm-unboxing-stub-portable-entrypoints">Wasm unboxing stub portable entrypoints</h3>
+<p>On browser Wasm, a MethodDesc for an R2R unboxing stub uses an
+<code>UnboxingStubPortableEntryPoint</code>. The address exposed as the method's portable entrypoint points
+to the embedded <code>PortableEntryPoint</code>; two pointer-sized fields are stored immediately before it:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Offset from portable entrypoint</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;"><code>-2 * sizeof(void*)</code></td>
+<td>Target MethodDesc</td>
+</tr>
+<tr>
+<td style="text-align: right;"><code>-sizeof(void*)</code></td>
+<td>Target method's portable entrypoint</td>
+</tr>
+<tr>
+<td style="text-align: right;"><code>0</code></td>
+<td>Embedded <code>PortableEntryPoint</code>, beginning with its actual-code field</td>
+</tr>
+</tbody>
+</table>
+<p>For a <code>UM</code> stub, the target MethodDesc is the exact non-unboxing MethodDesc and is passed as the
+generic method context. The target portable entrypoint belongs to the method containing the actual
+shared code and is used for the indirect tail call. <code>U</code> and <code>UG</code> stubs do not consume the target
+MethodDesc field.</p>
+<p>The runtime initializes both fields before publishing the generated unboxing stub through the
+embedded portable entrypoint's actual-code field. A thread that observes the generated stub code
+therefore also observes the initialized target MethodDesc and target portable entrypoint.</p>
 <p><strong>Examples</strong>:</p>
 <table>
 <thead>
